@@ -1,0 +1,25 @@
+/** 試合結果 **/
+.rlt_ttlSec {
+    padding: 16px 20px;
+}
+
+.rlt_resultSec {
+    padding: 24px 20px;
+}
+
+.rlt_matchCard {
+    padding: 16px;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+}
+
+.rlt_matchTable {
+    table-layout: fixed;
+    width: 100%;
+}
+
+.rlt_matchTable th:nth-child(2),
+.rlt_matchTable th:nth-child(3),
+.rlt_matchTable th:nth-child(4) {
+    width: 28px;
+}
