@@ -1,0 +1,95 @@
+/** 対戦表 **/
+.mat_header {
+    position: relative;
+    padding: 8px 0 0;
+}
+
+.mat_reloadBtn {
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.mat_reloadIcon {
+    width: 32px;
+    height: 32px;
+}
+
+.mat_main {
+    padding: 24px 20px 64px;
+}
+
+.mat_roundSec {
+    padding-top: 48px;
+}
+
+.mat_roundList>li:not(:first-child) {
+    padding-top: 16px;
+}
+
+.mat_matchCardList>li:first-child {
+    padding-top: 16px;
+}
+
+.mat_matchCardList>li:not(:first-child) {
+    padding-top: 8px;
+}
+
+.mat_matchCardList>li:not(:last-child) {
+    padding-bottom: 8px;
+}
+
+.mat_matchCardList>li:last-child {
+    padding-bottom: 16px;
+}
+
+.mat_matchCard {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
+}
+
+.mat_matchCard_left {
+    flex-grow: 1;
+}
+
+.mat_matchCard_matchInfo {
+    display: flex;
+    align-items: center;
+    padding-top: 4px;
+}
+
+.mat_matchCard_matchInfo>*:not(:first-child) {
+    margin-left: 4px;
+}
+
+.mat_matchCard_matchInfo>p:first-child,
+.mat_matchCard_matchInfo>p:last-child {
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+.mat_matchCard_matchInfo>p:nth-child(2),
+.mat_matchCard_matchInfo>p:nth-child(4) {
+    flex-shrink: 1;
+}
+
+.mat_matchCard_detailBtn {
+    flex-shrink: 0;
+    padding-left: 8px;
+}
+
+.mat_matchCard_detailIcon {
+    width: 16px;
+    height: 16px;
+}
+
+.mat_btnSec {
+    padding: 32px 0 48px;
+}

@@ -1,0 +1,16 @@
+/** ホーム **/
+.home_header {
+    padding: 12px 0;
+}
+
+.home_main {
+    padding: 24px 20px 0;
+}
+
+.home_footer {
+    padding: 20px;
+}
+
+.home_btnList>li {
+    padding: 16px 0;
+}

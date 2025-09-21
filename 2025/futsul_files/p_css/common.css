@@ -1,0 +1,74 @@
+/** 画面共通 **/
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;400&display=swap');
+
+body {
+    background-image: url("../p_image/grass_sp.jpg");
+    background-size: contain;
+    background-position: center;
+    background-repeat: repeat-y;
+    font-family: "Noto Sans JP", "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "メイリオ", "Meiryo", "ＭＳ　Ｐゴシック", "HelveticaNeue", "Helvetica", "Arial", Sans-Serif;
+}
+
+@media (min-width: 760px) {
+    body {
+        background-image: url("../p_image/grass_pc.jpg");
+    }
+}
+
+.com_body {
+    height: 100lvh;
+}
+
+.com_body_flex {
+    display: flex;
+    flex-direction: column;
+}
+
+.com_main {
+    flex-grow: 1;
+}
+
+.com_typo_footer {
+    font-size: 10px;
+    line-height: 14px;
+    font-weight: 400;
+    color: #2E2E2E;
+    text-align: center;
+}
+
+/* ナビゲーション */
+.com_nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: #FFFFFF;
+    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 100;
+}
+
+.com_navList {
+    display: flex;
+}
+
+.com_navList>li {
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+.com_navBtn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 8px 0;
+    cursor: pointer;
+}
+
+.com_navBtn_disabled {
+    cursor: default;
+}
+
+.com_navIcon {
+    width: 32px;
+    height: 32px;
+}
