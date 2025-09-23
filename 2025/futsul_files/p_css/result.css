@@ -23,3 +23,48 @@
 .rlt_matchTable th:nth-child(4) {
     width: 28px;
 }
+
+.rlt_vsText {
+    padding: 3px 0;
+}
+
+.rlt_goalList {
+    padding-top: 8px;
+}
+
+.rlt_goalList>li:not(:first-child) {
+    padding-top: 4px;
+}
+
+.rlt_goalBtnWrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 8px;
+}
+
+.rlt_btnSec {
+    padding: 16px 20px;
+}
+
+.rlt_memberSelect {
+    padding-top: 24px;
+}
+
+.rlt_memberSelectBoxWrapper {
+    padding-top: 8px;
+}
+
+.rlt_scoreSelect {
+    padding-top: 24px;
+}
+
+.rlt_scoreInputWrapper {
+    width: 60px;
+    padding-top: 8px;
+}
+
+.rlt_confirmBtnWrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 24px;
+}

@@ -236,3 +236,176 @@
 .c_textLink_WHT p {
     color: #FFFFFF;
 }
+
+/* ボタン */
+.c_btn {
+    display: block;
+}
+
+.c_btn_sizeS {
+    width: 120px;
+    padding: 2px 0;
+    border-radius: 12px;
+}
+
+.c_btn_sizeM {
+    width: 240px;
+    padding: 8px 0;
+    border-radius: 23px;
+}
+
+.c_btn_GRN {
+    border: 2px solid #008673;
+    background-color: #008673;
+}
+
+.c_btn_WHT {
+    border: 2px solid #008673;
+    background-color: #FFFFFF;
+}
+
+.c_btn_disabled {
+    background-color: #D9D9D9;
+    border-color: #D9D9D9;
+    cursor: none;
+}
+
+.c_btn_disabled p {
+    color: #585858;
+}
+
+/* ダイアログ */
+.c_dialog {
+    display: flex;
+}
+
+.c_dialog_target {
+    display: flex;
+    cursor: pointer;
+}
+
+.c_dialog_backGround {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgb(0, 61, 52, 0.9);
+    backdrop-filter: blur(2px);
+}
+
+.c_dialog_backGround[open] {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.c_dialog_contents {
+    position: relative;
+    width: 90vw;
+    max-width: 592px;
+    min-width: 328px;
+    max-height: 90vh;
+}
+
+.c_dialog_closeBtn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    cursor: pointer;
+    transform: translate(16px, -16px);
+}
+
+.c_dialog_closeBtn>svg {
+    cursor: pointer;
+}
+
+.c_dialog_textArea {
+    max-height: 90vh;
+    padding: 32px 24px;
+    border-radius: 24px;
+    background-color: #FFFFFF;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.c_dialog_contentsArea {
+    padding-top: 24px;
+}
+
+/* チェックボックス */
+.c_checkbox>input {
+    display: none;
+}
+
+.c_checkbox>label {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    cursor: pointer;
+}
+
+.c_checkbox_box {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border: 2px solid #2E2E2E;
+    border-radius: 4px;
+    background-color: #FFFFFF;
+}
+
+.c_checkbox>input:checked+label>.c_checkbox_box {
+    background-color: #2E2E2E;
+}
+
+.c_checkbox>label>p {
+    flex-grow: 1;
+    margin-left: 4px;
+}
+
+/* セレクトボックス */
+.c_selectbox {
+    width: 100%;
+    padding: 8px 16px;
+    border: 2px solid #008673;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #2E2E2E;
+    cursor: pointer;
+    transition: all 0.1s ease-in;
+}
+
+.c_selectbox:disabled {
+    background-color: #D9D9D9;
+    border-color: #D9D9D9;
+    color: #585858;
+    cursor: none;
+    transition: all 0.1s ease-in;
+}
+
+/* テキストフィールド */
+.c_textField {
+    width: 100%;
+    padding: 8px 16px;
+    border: 2px solid #008673;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #2E2E2E;
+    cursor: pointer;
+    transition: all 0.1s ease-in;
+}
+
+.c_textField:disabled {
+    background-color: #D9D9D9;
+    border-color: #D9D9D9;
+    color: #585858;
+    cursor: none;
+    transition: all 0.1s ease-in;
+}

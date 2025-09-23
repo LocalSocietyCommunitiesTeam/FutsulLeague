@@ -59,7 +59,8 @@ pre,
 iframe,
 form,
 figure,
-dl {
+dl,
+dialog {
     margin: 0;
 }
 
@@ -238,7 +239,8 @@ button,
 input,
 optgroup,
 select,
-textarea {
+textarea,
+dialog {
     -webkit-appearance: none;
     /* 1 */
     appearance: none;

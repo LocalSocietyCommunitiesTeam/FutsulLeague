@@ -38,13 +38,13 @@
                                 <p class="c_typo_headerM c_typo_BLK01 c_typo_center">営企</p>
                             </th>
                             <th>
-                                <p class="c_typo_bodyXL c_typo_BLK01 c_typo_center">0</p>
+                                <p class="c_typo_headerM c_typo_BLK01 c_typo_center">0</p>
                             </th>
-                            <th>
+                            <th class="rlt_vsText">
                                 <p class="c_typo_bodyS c_typo_BLK01 c_typo_center">VS</p>
                             </th>
                             <th>
-                                <p class="c_typo_bodyXL c_typo_BLK01 c_typo_center">3</p>
+                                <p class="c_typo_headerM c_typo_BLK01 c_typo_center">3</p>
                             </th>
                             <th>
                                 <p class="c_typo_headerM c_typo_BLK01 c_typo_center">法人事務オペ</p>
@@ -56,36 +56,114 @@
                             <td colspan="2">
                                 <ul class="rlt_goalList">
                                     <li>
-                                        <p>得点者なし</p>
+                                        <p class="c_typo_bodyS c_typo_BLK01">得点者なし</p>
                                     </li>
                                 </ul>
-                                <a class="c_btn_sizeS c_btn_GRN" href="javascripr:void(0);">
-                                    <p>得点者を入力</p>
-                                </a>
+                                <div class="rlt_goalBtnWrapper">
+                                    <div id="rlt_inputGoalDialog1" class="c_dialog">
+                                        <div class="c_dialog_target"><a class="c_btn c_btn_sizeS c_btn_GRN"
+                                                href="javascript:void(0);">
+                                                <p class="c_typo_headerXXS c_typo_WHT c_typo_center">得点者を入力</p>
+                                            </a></div>
+                                        <dialog class="c_dialog_backGround">
+                                            <div class="c_dialog_contents">
+                                                <a href="javascript:void(0);" class="c_dialog_closeBtn"><svg width="48"
+                                                        height="48" viewBox="0 0 48 48" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="24" cy="24" r="24" fill="#FABF00" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                                            d="M11.2721 11.2721C10.491 12.0531 10.491 13.3195 11.2721 14.1005L21.1716 24L11.2721 33.8995C10.491 34.6805 10.491 35.9469 11.2721 36.7279C12.0531 37.509 13.3195 37.509 14.1005 36.7279L24 26.8284L33.8995 36.7279C34.6805 37.509 35.9469 37.509 36.7279 36.7279C37.509 35.9469 37.509 34.6805 36.7279 33.8995L26.8284 24L36.7279 14.1005C37.509 13.3195 37.509 12.0531 36.7279 11.2721C35.9469 10.491 34.6805 10.491 33.8995 11.2721L24 21.1716L14.1005 11.2721C13.3195 10.491 12.0531 10.491 11.2721 11.2721Z"
+                                                            fill="#2E2E2E" />
+                                                    </svg></a>
+                                                <div class="c_dialog_textArea">
+                                                    <p class="c_typo_headerM c_typo_BLK">得点者入力</p>
+                                                    <div class="c_dialog_contentsArea">
+                                                        <div class="c_checkbox">
+                                                            <input type="checkbox" id="slt_scorerChx" name="scorerChx"
+                                                                value="0">
+                                                            <label for="slt_scorerChx"
+                                                                class="c_typo_bodyM c_typo_BLK01">
+                                                                <div class="c_checkbox_box"></div>
+                                                                <p>得点者なし</p>
+                                                            </label>
+                                                        </div>
+                                                        <div class="rlt_memberSelect">
+                                                            <p class="c_typo_headerXS c_typo_BLK01">氏名</p>
+                                                            <div class="rlt_memberSelectBoxWrapper">
+                                                                <select name="member" id="slt_member"
+                                                                    class="c_selectbox">
+                                                                    <option value=""></option>
+                                                                    <option value="A999991">め_明安　太郎</option>
+                                                                    <option value="A999992">め_明安　次郎</option>
+                                                                    <option value="A999993">め_明安　三郎</option>
+                                                                </select>
+                                                            </div>
+                                                        </div>
+                                                        <div class="rlt_scoreSelect">
+                                                            <p class="c_typo_headerXS c_typo_BLK01">得点数</p>
+                                                            <div class="rlt_scoreInputWrapper">
+                                                                <input id="slt_score" class="c_textField" type="number"
+                                                                    name="score" min="0" inputmode="numeric">
+                                                            </div>
+                                                        </div>
+                                                        <div class="rlt_confirmBtnWrapper"><a id="rlt_confirmBtn"
+                                                                class="c_btn c_btn_sizeM c_btn_GRN"
+                                                                href="javascript:void(0);">
+                                                                <p class="c_typo_headerM c_typo_WHT c_typo_center">確定
+                                                                </p>
+                                                            </a></div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </dialog>
+                                    </div>
+                                </div>
                             </td>
                             <td></td>
                             <td colspan="2">
                                 <ul class="rlt_goalList">
                                     <li>
-                                        <p>め_明安　太郎<span>×2</span></p>
+                                        <p class="c_typo_bodyS c_typo_BLK01">え_円堂　守<span>×2</span></p>
                                     </li>
                                     <li>
-                                        <p>め_明安　次郎<span>×1</span></p>
+                                        <p class="c_typo_bodyS c_typo_BLK01">か_竈門　炭治郎<span>×1</span></p>
                                     </li>
                                 </ul>
-                                <a class="c_btn_sizeS c_btn_GRN" href="javascripr:void(0);">
-                                    <p>得点者を修正</p>
-                                </a>
+                                <div class="rlt_goalBtnWrapper">
+                                    <div class="c_dialog">
+                                        <div class="c_dialog_target"><a class="c_btn c_btn_sizeS c_btn_WHT"
+                                                href="javascript:void(0);">
+                                                <p class="c_typo_headerXXS c_typo_GRN02 c_typo_center">得点者を修正</p>
+                                            </a></div>
+                                        <dialog class="c_dialog_backGround">
+                                            <div class="c_dialog_contents">
+                                                <a href="javascript:void(0);" class="c_dialog_closeBtn"><svg width="48"
+                                                        height="48" viewBox="0 0 48 48" fill="none"
+                                                        xmlns="http://www.w3.org/2000/svg">
+                                                        <circle cx="24" cy="24" r="24" fill="#FABF00" />
+                                                        <path fill-rule="evenodd" clip-rule="evenodd"
+                                                            d="M11.2721 11.2721C10.491 12.0531 10.491 13.3195 11.2721 14.1005L21.1716 24L11.2721 33.8995C10.491 34.6805 10.491 35.9469 11.2721 36.7279C12.0531 37.509 13.3195 37.509 14.1005 36.7279L24 26.8284L33.8995 36.7279C34.6805 37.509 35.9469 37.509 36.7279 36.7279C37.509 35.9469 37.509 34.6805 36.7279 33.8995L26.8284 24L36.7279 14.1005C37.509 13.3195 37.509 12.0531 36.7279 11.2721C35.9469 10.491 34.6805 10.491 33.8995 11.2721L24 21.1716L14.1005 11.2721C13.3195 10.491 12.0531 10.491 11.2721 11.2721Z"
+                                                            fill="#2E2E2E" />
+                                                    </svg></a>
+                                                <div class="c_dialog_textArea">
+                                                    <p class="c_typo_headerM c_typo_BLK">得点者入力</p>
+                                                    <div class="c_dialog_contentsArea">
+
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </dialog>
+                                    </div>
+                                </div>
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <dialog class="c_dialog"></dialog>
             </div>
         </section>
 
         <!-- ボタンセクション -->
-        <section class>
+        <section class="rlt_btnSec">
             <div class="c_textLink c_textLink_WHT"><a href="javascript:history.back();">
                     <p>← 戻る</p>
                 </a></div>
