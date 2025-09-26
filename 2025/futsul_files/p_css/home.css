@@ -1,16 +1,29 @@
 /** ホーム **/
+.home_body {
+    background-image: url('../p_image/soccerground.jpeg');
+}
+
 .home_header {
-    padding: 12px 0;
+    padding-top: 48px;
 }
 
 .home_main {
     padding: 24px 20px 0;
 }
 
-.home_footer {
-    padding: 20px;
+.home_btnList {
+    padding-top: 48px;
 }
 
 .home_btnList>li {
-    padding: 16px 0;
+    display: flex;
+    justify-content: center;
+}
+
+.home_btnList>li:not(:first-child) {
+    padding-top: 24px;
+}
+
+.home_footer {
+    padding: 20px;
 }

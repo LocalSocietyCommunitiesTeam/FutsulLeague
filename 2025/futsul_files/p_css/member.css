@@ -1,0 +1,84 @@
+/** 対戦表 **/
+.mem_header {
+    position: relative;
+    padding: 8px 0;
+}
+
+.mem_reloadBtn {
+    position: absolute;
+    top: 8px;
+    right: 20px;
+    cursor: pointer;
+}
+
+.mem_reloadIcon {
+    width: 32px;
+    height: 32px;
+}
+
+.mem_ttlSec {
+    padding: 32px 20px 0;
+}
+
+.mem_listSec {
+    padding: 24px 20px 0;
+}
+
+.mem_teamList>li:first-child {
+    padding-bottom: 16px;
+}
+
+.mem_teamList>li:not(:first-child) {
+    padding: 16px 0;
+}
+
+.mem_memberTableWrapper {
+    padding-top: 16px;
+}
+
+.mem_memberBtnWrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 16px;
+}
+
+.mem_memberTable {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+    background-color: #FFFFFF;
+}
+
+.mem_memberTable th {
+    padding: 4px 0;
+    background-color: #7FFFD4;
+}
+
+.mem_memberTable th:not(:first-child) {
+    border-left: 1px solid #2E2E2E;
+}
+
+.mem_memberTable th:last-child {
+    width: 64px;
+}
+
+.mem_memberTable td {
+    padding: 4px 8px;
+    border-top: 1px solid #2E2E2E;
+}
+
+.mem_memberTable td:not(:first-child) {
+    border-left: 1px solid #2E2E2E;
+}
+
+.mem_editIcon {
+    display: block;
+    width: 24px;
+    height: 24px;
+    cursor: pointer;
+}
+
+.mem_editIcon>img {
+    width: 24px;
+    height: 24px;
+}

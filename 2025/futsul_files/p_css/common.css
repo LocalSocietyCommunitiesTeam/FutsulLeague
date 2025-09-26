@@ -3,15 +3,16 @@
 
 body {
     background-image: url("../p_image/grass_sp.jpg");
-    background-size: contain;
+    background-size: cover;
     background-position: center;
-    background-repeat: repeat-y;
+    background-repeat: no-repeat;
     font-family: "Noto Sans JP", "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "メイリオ", "Meiryo", "ＭＳ　Ｐゴシック", "HelveticaNeue", "Helvetica", "Arial", Sans-Serif;
 }
 
 @media (min-width: 760px) {
     body {
         background-image: url("../p_image/grass_pc.jpg");
+        background-repeat: repeat-y;
     }
 }
 
@@ -32,7 +33,7 @@ body {
     font-size: 10px;
     line-height: 14px;
     font-weight: 400;
-    color: #2E2E2E;
+    color: #FFFFFF;
     text-align: center;
 }
 

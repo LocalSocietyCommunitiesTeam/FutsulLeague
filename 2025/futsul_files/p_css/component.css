@@ -244,6 +244,7 @@
 /* ボタン */
 .c_btn {
     display: block;
+    border: 2px solid #008673;
 }
 
 .c_btn_sizeS {
@@ -253,18 +254,16 @@
 }
 
 .c_btn_sizeM {
-    width: 240px;
-    padding: 8px 0;
-    border-radius: 23px;
+    width: 280px;
+    padding: 14px 0;
+    border-radius: 28px;
 }
 
 .c_btn_GRN {
-    border: 2px solid #008673;
     background-color: #008673;
 }
 
 .c_btn_WHT {
-    border: 2px solid #008673;
     background-color: #FFFFFF;
 }
 

@@ -1,7 +1,6 @@
 /** 対戦表 **/
 window.addEventListener('DOMContentLoaded', function () {
     const leagueNum = document.getElementById('mat_leagueNum');
-    const reloadBtn = document.getElementById('mat_reloadBtn');
 
     // 画面読込時にチーム名が改行されている場合、フォントサイズを小さくする処理
     window.addEventListener('load', function () {
@@ -21,9 +20,4 @@ window.addEventListener('DOMContentLoaded', function () {
 
     // リーグ回を入力
     leagueNum.innerText = LEAGUE_NUMBER;
-
-    // 更新ボタンを押下
-    reloadBtn.addEventListener('click', function () {
-        location.reload();
-    });
 });
