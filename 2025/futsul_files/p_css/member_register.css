@@ -1,1 +1,16 @@
 /** メンバー登録 **/
+.mer_main {
+    padding-bottom: 64px;
+}
+
+.mer_header {
+    padding: 4px 0;
+}
+
+.mer_ttlSec {
+    padding: 32px 20px;
+}
+
+.mer_btnSec {
+    padding: 24px 20px;
+}
