@@ -17,13 +17,48 @@
 <body class="com_body com_body_flex">
     <!-- ヘッダー -->
     <header class="mer_header">
-        <h1 class="c_typo_headerXL c_typo_WHT c_typo_center">メンバー<span>登録</span></h1>
+        <h1 class="c_typo_headerXL c_typo_WHT c_typo_center">メンバー<span id="mer_title">登録</span></h1>
     </header>
 
     <!-- メイン -->
     <main class="com_main mer_main">
         <section class="mer_ttlSec">
-            <p class="c_typo_bodyM c_typo_WHT">説明文説明文説明文説明文説明文説明文説明文説明文</p>
+            <p id="mer_exp" class="c_typo_bodyM c_typo_WHT">今回大会の参加メンバーを登録してください。</p>
+        </section>
+
+        <!-- 入力セクション -->
+        <section class="mer_InputSec">
+            <ul class="mer_inputList">
+                <li>
+                    <h3 class="c_typo_headerS c_typo_WHT">チーム</h3>
+                    <p class="c_typo_bodyM c_typo_WHT">営業企画部</p>
+                </li>
+                <li>
+                    <h3 class="c_typo_headerS c_typo_WHT">職員番号</h3>
+                    <div class="mer_inputItem">
+                        <div class="mer_textField_width200"><input id="mer_shokuinNum01" class="c_textField" type="text"
+                                placeholder="A123456"></div>
+                    </div>
+                </li>
+                <li>
+                    <h3 class="c_typo_headerS c_typo_WHT">氏名</h3>
+                    <div class="mer_inputItem">
+                        <div class="mer_textField_width280"><input id="mer_name01" class="c_textField" type="text"
+                                placeholder="め_明安　太郎"></div>
+                    </div>
+                </li>
+            </ul>
+            <div class="mer_addLinkArea">
+                <div class="c_textLink c_textLink_WHT"><a href="javascript:void(0);">
+                        <p class="c_typo_headerS">メンバーを追加</p><img class="c_textLink_icon_right"
+                            src="../futsul_files/p_image/plus_circle.svg?20251010" alt="追加">
+                    </a></div>
+            </div>
+            <div class="mer_registerBtnArea">
+                <div class="com_btnWidth280"><a class="c_btn c_btn_sizeM c_btn_GRN" href="javascript:void(0);">
+                        <p class="c_typo_headerS c_typo_WHT c_typo_center">登録</p>
+                    </a></div>
+            </div>
         </section>
 
         <!-- ボタンセクション -->
@@ -55,7 +90,6 @@
                 </a></li>
         </ul>
     </nav>
-
 
     <!-- 共通JS -->
     <script src="../futsul_files/p_css/event.js?20251010"></script>

@@ -401,16 +401,26 @@
 /* テキストフィールド */
 .c_textField {
     width: 100%;
-    padding: 8px 16px;
-    border: 2px solid #008673;
+    padding: 15px;
+    border: 1px solid #F2FAF9;
     border-radius: 16px;
-    background-color: #FFFFFF;
+    background-color: #F2FAF9;
     font-weight: 400;
     font-size: 16px;
     line-height: 24px;
     color: #2E2E2E;
+    outline: none;
+    resize: none;
     cursor: pointer;
     transition: all 0.1s ease-in;
+}
+
+.c_textField::placeholder {
+    color: #D9D9D9;
+}
+
+.c_textField:focus {
+    border-color: #008673;
 }
 
 .c_textField:disabled {

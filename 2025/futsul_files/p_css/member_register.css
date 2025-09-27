@@ -1,16 +1,46 @@
 /** メンバー登録 **/
+.mer_header {
+    padding: 8px 0;
+}
+
 .mer_main {
     padding-bottom: 64px;
 }
 
-.mer_header {
-    padding: 4px 0;
+.mer_ttlSec {
+    padding: 32px 20px 0;
 }
 
-.mer_ttlSec {
-    padding: 32px 20px;
+.mer_InputSec {
+    padding: 24px 20px 0;
+}
+
+.mer_inputList>li:not(:first-child) {
+    padding-top: 24px;
+}
+
+.mer_inputItem {
+    padding-top: 8px;
+}
+
+.mer_textField_width200 {
+    width: 100px;
+}
+
+.mer_textField_width280 {
+    width: 280px;
+}
+
+.mer_addLinkArea {
+    padding-top: 24px;
+}
+
+.mer_registerBtnArea {
+    display: flex;
+    justify-content: center;
+    padding-top: 24px;
 }
 
 .mer_btnSec {
-    padding: 24px 20px;
+    padding: 48px 20px;
 }
