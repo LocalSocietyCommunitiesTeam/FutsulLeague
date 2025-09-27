@@ -1,4 +1,4 @@
-/** 対戦表 **/
+/** メンバー **/
 window.addEventListener('DOMContentLoaded', function () {
 
 });

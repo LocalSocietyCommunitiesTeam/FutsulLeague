@@ -1,4 +1,4 @@
-/** 対戦表 **/
+/** メンバー **/
 .mem_header {
     position: relative;
     padding: 8px 0;
@@ -16,6 +16,10 @@
     height: 32px;
 }
 
+.mem_main {
+    padding-bottom: 64px;
+}
+
 .mem_ttlSec {
     padding: 32px 20px 0;
 }
@@ -24,19 +28,30 @@
     padding: 24px 20px 0;
 }
 
-.mem_teamList>li:first-child {
-    padding-bottom: 16px;
+.mem_teamList>li:not(:first-child) {
+    padding-top: 24px;
 }
 
-.mem_teamList>li:not(:first-child) {
-    padding: 16px 0;
+.mem_teamHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.mem_teamHeader>p {
+    flex-grow: 1;
+}
+
+.mem_editLink {
+    flex-shrink: 0;
+    padding-left: 4px;
 }
 
 .mem_memberTableWrapper {
     padding-top: 16px;
 }
 
-.mem_memberBtnWrapper {
+.mem_memberBtnArea {
     display: flex;
     justify-content: center;
     padding-top: 16px;
@@ -58,8 +73,8 @@
     border-left: 1px solid #2E2E2E;
 }
 
-.mem_memberTable th:last-child {
-    width: 64px;
+.mem_memberTable th:first-child {
+    width: 48px;
 }
 
 .mem_memberTable td {
@@ -71,14 +86,6 @@
     border-left: 1px solid #2E2E2E;
 }
 
-.mem_editIcon {
-    display: block;
-    width: 24px;
-    height: 24px;
-    cursor: pointer;
-}
-
-.mem_editIcon>img {
-    width: 24px;
-    height: 24px;
+.mem_btnSec {
+    padding: 48px 20px;
 }

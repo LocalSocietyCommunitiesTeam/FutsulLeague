@@ -241,22 +241,29 @@
     color: #FFFFFF;
 }
 
+.c_textLink_icon_right {
+    width: 16px;
+    height: 16px;
+    margin-left: 4px;
+}
+
 /* ボタン */
 .c_btn {
     display: block;
+    width: 100%;
     border: 2px solid #008673;
 }
 
 .c_btn_sizeS {
-    width: 120px;
     padding: 2px 0;
-    border-radius: 12px;
+    border: 2px solid #008673;
+    border-radius: 14px;
 }
 
 .c_btn_sizeM {
-    width: 280px;
-    padding: 14px 0;
-    border-radius: 28px;
+    padding: 13px 0;
+    border: 3px solid #008673;
+    border-radius: 24px;
 }
 
 .c_btn_GRN {
@@ -316,8 +323,9 @@
     position: absolute;
     top: 0;
     right: 0;
-    cursor: pointer;
     transform: translate(16px, -16px);
+    outline: none;
+    cursor: pointer;
 }
 
 .c_dialog_closeBtn>svg {

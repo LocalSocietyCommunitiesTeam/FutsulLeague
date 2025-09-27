@@ -73,3 +73,12 @@ body {
     height: 32px;
 
 }
+
+/* ボタン幅 */
+.com_btnWidth120 {
+    width: 120px;
+}
+
+.com_btnWidth280 {
+    width: 280px;
+}

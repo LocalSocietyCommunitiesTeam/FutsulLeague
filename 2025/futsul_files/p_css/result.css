@@ -39,7 +39,7 @@
 .rlt_goalBtnWrapper {
     display: flex;
     justify-content: center;
-    padding-top: 8px;
+    padding-top: 16px;
 }
 
 .rlt_btnSec {
