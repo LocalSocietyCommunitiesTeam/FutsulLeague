@@ -5,14 +5,13 @@ body {
     background-image: url("../p_image/grass_sp.jpg");
     background-size: cover;
     background-position: center;
-    background-repeat: no-repeat;
+    background-repeat: repeat-y;
     font-family: "Noto Sans JP", "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "メイリオ", "Meiryo", "ＭＳ　Ｐゴシック", "HelveticaNeue", "Helvetica", "Arial", Sans-Serif;
 }
 
 @media (min-width: 760px) {
     body {
         background-image: url("../p_image/grass_pc.jpg");
-        background-repeat: repeat-y;
     }
 }
 
@@ -72,4 +71,5 @@ body {
 .com_navIcon {
     width: 32px;
     height: 32px;
+
 }
