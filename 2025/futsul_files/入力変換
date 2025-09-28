@@ -14,6 +14,22 @@ function getQuery(key) {
     }
 }
 
+// 英数字を全角から半角へ変換する関数
+function toHalfWidth(str) {
+  return str.replace(/[Ａ-Ｚａ-ｚ０-９]/g, function(s) {
+    return String.fromCharCode(s.charCodeAt(0) - 0xFEE0);
+  });
+}
+
+// 英字を小文字から大文字に変換する関数
+function convertToUpperCase(str) {
+  // 文字列が null や undefined でないことを確認
+  if (typeof str !== 'string') {
+    return '';
+  }
+  return str.toUpperCase();
+}
+
 window.addEventListener('DOMContentLoaded', function () {
     // 更新ボタン押下時の処理
     if (document.getElementById('com_reloadBtn')) {
@@ -24,4 +40,5 @@ window.addEventListener('DOMContentLoaded', function () {
             location.reload();
         });
     }
+
 });
