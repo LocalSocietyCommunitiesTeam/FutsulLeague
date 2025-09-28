@@ -232,9 +232,14 @@
     cursor: pointer;
 }
 
+.c_textLink_right {
+    justify-content: flex-end;
+}
+
 .c_textLink>a {
     display: flex;
     align-items: center;
+    outline: none;
 }
 
 .c_textLink_WHT p {
@@ -252,6 +257,7 @@
     display: block;
     width: 100%;
     border: 2px solid #008673;
+    outline: none;
 }
 
 .c_btn_sizeS {

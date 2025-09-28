@@ -28,35 +28,37 @@
 
         <!-- 入力セクション -->
         <section class="mer_InputSec">
-            <ul class="mer_inputList">
+            <ul id="mer_inputList" class="mer_inputList">
                 <li>
-                    <h3 class="c_typo_headerS c_typo_WHT">チーム</h3>
+                    <p class="c_typo_headerM c_typo_WHT">チーム</p>
                     <p class="c_typo_bodyM c_typo_WHT">営業企画部</p>
                 </li>
                 <li>
-                    <h3 class="c_typo_headerS c_typo_WHT">職員番号</h3>
+                    <p class="c_typo_headerM c_typo_WHT">職員番号</p>
                     <div class="mer_inputItem">
-                        <div class="mer_textField_width200"><input id="mer_shokuinNum01" class="c_textField" type="text"
-                                placeholder="A123456"></div>
+                        <div class="mer_textField_width200"><input id="mer_shokuinNum1" class="c_textField" type="text"
+                                placeholder="A123456" pattern="[A-Z]\d{6}"
+                                title="半角大文字英字1字と半角数字6桁で入力してください (例: A123456)" maxlength="7"></div>
                     </div>
                 </li>
                 <li>
-                    <h3 class="c_typo_headerS c_typo_WHT">氏名</h3>
+                    <p class="c_typo_headerM c_typo_WHT">氏名</p>
                     <div class="mer_inputItem">
-                        <div class="mer_textField_width280"><input id="mer_name01" class="c_textField" type="text"
-                                placeholder="め_明安　太郎"></div>
+                        <div class="mer_textField_width280"><input id="mer_name1" class="c_textField" type="text"
+                                placeholder="め_明安　太郎" pattern="^[ぁ-ん]_.*　.*$"
+                                title="ひらがな1字 + _ + 任意の文字列1字以上 + 全角スペース + 任意の文字列1字以上で入力してください (例: め_明安　太郎)"></div>
                     </div>
                 </li>
             </ul>
             <div class="mer_addLinkArea">
-                <div class="c_textLink c_textLink_WHT"><a href="javascript:void(0);">
+                <div class="c_textLink c_textLink_right c_textLink_WHT"><a id="mer_addLink" href="javascript:void(0);">
                         <p class="c_typo_headerS">メンバーを追加</p><img class="c_textLink_icon_right"
                             src="../futsul_files/p_image/plus_circle.svg?20251010" alt="追加">
                     </a></div>
             </div>
             <div class="mer_registerBtnArea">
                 <div class="com_btnWidth280"><a class="c_btn c_btn_sizeM c_btn_GRN" href="javascript:void(0);">
-                        <p class="c_typo_headerS c_typo_WHT c_typo_center">登録</p>
+                        <p class="c_typo_headerM c_typo_WHT c_typo_center">登録</p>
                     </a></div>
             </div>
         </section>

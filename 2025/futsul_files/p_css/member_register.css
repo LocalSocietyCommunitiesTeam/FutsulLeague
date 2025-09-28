@@ -32,13 +32,13 @@
 }
 
 .mer_addLinkArea {
-    padding-top: 24px;
+    padding-top: 48px;
 }
 
 .mer_registerBtnArea {
     display: flex;
     justify-content: center;
-    padding-top: 24px;
+    padding-top: 48px;
 }
 
 .mer_btnSec {
