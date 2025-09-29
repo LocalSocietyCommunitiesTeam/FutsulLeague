@@ -1,6 +1,6 @@
 /** メンバー **/
 window.addEventListener('DOMContentLoaded', function () {
-    const memberData = getMembers();
+    const memberData = getMemberLists();
 
     const teamList = document.getElementById('mem_teamList');
 
@@ -49,7 +49,7 @@ window.addEventListener('DOMContentLoaded', function () {
                 const a = document.createElement('a');
                 a.href = '.\/member_register.html' + `?type=edit&teamId=${memberData[i].teamId}`;
                 const p2 = document.createElement('p');
-                p2.classList.add('c_typo_headerXS', 'c_typo_WHT');
+                p2.classList.add('c_typo_headerS', 'c_typo_WHT');
                 p2.innerText = '変更';
                 const img = document.createElement('img');
                 img.classList.add('c_textLink_icon_right');
@@ -109,40 +109,53 @@ window.addEventListener('DOMContentLoaded', function () {
 });
 
 // メンバー情報取得（仮データ）
-function getMembers() {
+function getMemberLists() {
     const data = [
-        {
-            teamId: "999",
-            teamName: "テスト部",
-            member: []
-        },
         {
             teamId: "101",
             teamName: "営業企画部",
             member: [
                 {
-                    shokuinId: "A864192",
                     shokuinName: "み_水野　大樹"
                 },
                 {
-                    shokuinId: "A481773",
                     shokuinName: "ゆ_行光　隆昌"
                 },
                 {
-                    shokuinId: "A811534",
                     shokuinName: "た_髙橋　祐貴"
                 },
                 {
-                    shokuinId: "A810514",
                     shokuinName: "お_太田　竜司"
                 },
                 {
-                    shokuinId: "A853704",
                     shokuinName: "く_窪田　航介"
                 },
                 {
-                    shokuinId: "A868574",
                     shokuinName: "い_岩政　亮汰"
+                }
+            ]
+        },
+        {
+            teamId: "102",
+            teamName: "法人事務オペレーション部",
+            member: [
+                {
+                    shokuinName: "お_大浦　優輝"
+                },
+                {
+                    shokuinName: "た_高橋　輝也"
+                },
+                {
+                    shokuinName: "あ_安居院　康平"
+                },
+                {
+                    shokuinName: "か_笠原　幹夫"
+                },
+                {
+                    shokuinName: "わ_若林　教和"
+                },
+                {
+                    shokuinName: "や_山井　舜也"
                 }
             ]
         },
@@ -151,15 +164,12 @@ function getMembers() {
             teamName: "デジタルイノベーションHub",
             member: [
                 {
-                    shokuinId: "A868492",
                     shokuinName: "い_伊藤　優"
                 },
                 {
-                    shokuinId: "A367920",
                     shokuinName: "ふ_藤田　真吾"
                 },
                 {
-                    shokuinId: "A845433",
                     shokuinName: "は_原田　真吾"
                 }
             ]
@@ -167,6 +177,11 @@ function getMembers() {
         {
             teamId: "105",
             teamName: "情報システム部",
+            member: []
+        },
+        {
+            teamId: "999",
+            teamName: "テスト部",
             member: []
         }
     ];
@@ -178,7 +193,7 @@ function getMembers() {
     return parsedData;
 }
 
-// async function getMember() {
+// async function getMemberLists() {
 //     // 1. 送信するクエリパラメータを作成
 //     const params = new URLSearchParams({
 //         action: 'getMembers'

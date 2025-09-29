@@ -15,8 +15,32 @@
     padding: 24px 20px 0;
 }
 
-.mer_inputList>li:not(:first-child) {
+.mer_inputList {
     padding-top: 24px;
+}
+
+.mer_inputList>li {
+    position: relative;
+    width: 100%;
+    padding: 24px;
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(8px);
+}
+
+.mer_inputList>li:not(:first-child) {
+    margin-top: 24px;
+}
+
+.mer_inputItemArea+.mer_inputItemArea {
+    padding-top: 24px;
+}
+
+.mer_crossBtn {
+    position: absolute;
+    top: 24px;
+    right: 24px;
 }
 
 .mer_inputItem {

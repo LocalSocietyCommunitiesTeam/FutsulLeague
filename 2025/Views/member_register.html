@@ -28,25 +28,31 @@
 
         <!-- 入力セクション -->
         <section class="mer_InputSec">
+            <p class="c_typo_headerM c_typo_WHT">チーム</p>
+            <p id="mer_departmentName" class="c_typo_bodyM c_typo_WHT"></p>
             <ul id="mer_inputList" class="mer_inputList">
                 <li>
-                    <p class="c_typo_headerM c_typo_WHT">チーム</p>
-                    <p class="c_typo_bodyM c_typo_WHT">営業企画部</p>
-                </li>
-                <li>
-                    <p class="c_typo_headerM c_typo_WHT">職員番号</p>
-                    <div class="mer_inputItem">
-                        <div class="mer_textField_width200"><input id="mer_shokuinNum1" class="c_textField" type="text"
-                                placeholder="A123456" pattern="[A-Z]\d{6}"
-                                title="半角大文字英字1字と半角数字6桁で入力してください (例: A123456)" maxlength="7"></div>
+                    <div class="mer_crossBtn">
+                        <div class="c_textLink c_textLink_WHT"><a href="javascript:void(0);">
+                                <p class="headerS">削除</p><img class="c_textLink_icon_right"
+                                    src="../futsul_files/p_image/cross_circle.svg" alt="削除">
+                            </a></div>
                     </div>
-                </li>
-                <li>
-                    <p class="c_typo_headerM c_typo_WHT">氏名</p>
-                    <div class="mer_inputItem">
-                        <div class="mer_textField_width280"><input id="mer_name1" class="c_textField" type="text"
-                                placeholder="め_明安　太郎" pattern="^[ぁ-ん]_.*　.*$"
-                                title="ひらがな1字 + _ + 任意の文字列1字以上 + 全角スペース + 任意の文字列1字以上で入力してください (例: め_明安　太郎)"></div>
+                    <div class="mer_inputItemArea">
+                        <p class="c_typo_headerM c_typo_WHT">職員番号</p>
+                        <div class="mer_inputItem">
+                            <div class="mer_textField_width200"><input class="c_textField mer_shokuinNum"
+                                    name="mer_shokuinNum1" type="text" placeholder="A123456" pattern="[A-Z]\d{6}"
+                                    title="半角大文字英字1字と半角数字6桁で入力してください (例: A123456)" maxlength="7"></div>
+                        </div>
+                    </div>
+                    <div class="mer_inputItemArea">
+                        <p class="c_typo_headerM c_typo_WHT">氏名</p>
+                        <div class="mer_inputItem">
+                            <div class="mer_textField_width280"><input class="c_textField mer_name" name="mer_name1"
+                                    type="text" placeholder="め_明安　太郎" pattern="^[ぁ-ん]_.*　.*$"
+                                    title="ひらがな1字 + _ + 任意の文字列1字以上 + 全角スペース + 任意の文字列1字以上で入力してください (例: め_明安　太郎)"></div>
+                        </div>
                     </div>
                 </li>
             </ul>
@@ -66,7 +72,7 @@
         <!-- ボタンセクション -->
         <section class="mer_btnSec">
             <div class="c_textLink c_textLink_WHT"><a href="javascript:history.back();">
-                    <p>← 戻る</p>
+                    <p class="c_typo_headerS">← 戻る</p>
                 </a></div>
         </section>
     </main>
