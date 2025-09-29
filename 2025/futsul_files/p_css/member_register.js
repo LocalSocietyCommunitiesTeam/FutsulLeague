@@ -8,18 +8,8 @@ window.addEventListener('DOMContentLoaded', function () {
         exp.innerText = '参加メンバーを編集してください。';
     }
 
-    const textField = document.getElementsByClassName('c_textField');
-    for (let i = 0; i < textField.length; i++) {
-        textField[i].addEventListener('blur', function () {
-            if (this.id.startsWith('mer_shokuinNum')) {
-                this.value = convertFullwidthAlphanumericToHalfwidth(this.value);
-                this.value = convertToLowercaseToUppercase(this.value);
-            } else if (this.id.startsWith('mer_name')) {
-                this.value = convertFullwidthUnderscoreToHalfwidth(this.value);
-                this.value = convertHalfwidthSpaceToFullwidth(this.value);
-            }
-        });
-    }
+    // 自動入力
+    autoInputValue();
 
     // メンバーを追加リンク押下時の処理
     const addLink = document.getElementById('mer_addLink');
@@ -36,5 +26,22 @@ window.addEventListener('DOMContentLoaded', function () {
         nameClone.getElementsByClassName('c_textField')[0].value = '';
         ul.appendChild(shokuinNumClone);
         ul.appendChild(nameClone);
+        autoInputValue();
     });
 });
+
+// 自動入力処理
+function autoInputValue() {
+    const textField = document.getElementsByClassName('c_textField');
+    for (let i = 0; i < textField.length; i++) {
+        textField[i].addEventListener('blur', function () {
+            if (this.id.startsWith('mer_shokuinNum')) {
+                this.value = convertFullwidthAlphanumericToHalfwidth(this.value);
+                this.value = convertToLowercaseToUppercase(this.value);
+            } else if (this.id.startsWith('mer_name')) {
+                this.value = convertFullwidthUnderscoreToHalfwidth(this.value);
+                this.value = convertHalfwidthSpaceToFullwidth(this.value);
+            }
+        });
+    }
+}
