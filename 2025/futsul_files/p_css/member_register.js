@@ -2,99 +2,99 @@
 var members = getMembers(getQuery('teamId'));
 
 // メンバー情報取得（仮データ）
-// function getMembers(teamId) {
-//     const data = {
-//         teamName: "営業企画部",
-//         member: [
-//             {
-//                 shokuinId: "A864192",
-//                 shokuinName: "み_水野　大樹"
-//             },
-//             {
-//                 shokuinId: "A481773",
-//                 shokuinName: "ゆ_行光　隆昌"
-//             },
-//             {
-//                 shokuinId: "A811534",
-//                 shokuinName: "た_髙橋　祐貴"
-//             },
-//             {
-//                 shokuinId: "A810514",
-//                 shokuinName: "お_太田　竜司"
-//             },
-//             {
-//                 shokuinId: "A853704",
-//                 shokuinName: "く_窪田　航介"
-//             },
-//             {
-//                 shokuinId: "A868574",
-//                 shokuinName: "い_岩政　亮汰"
-//             }
-//         ]
-//     };
+function getMembers(teamId) {
+    const data = {
+        teamName: "営業企画部",
+        member: [
+            {
+                shokuinId: "A864192",
+                shokuinName: "み_水野　大樹"
+            },
+            {
+                shokuinId: "A481773",
+                shokuinName: "ゆ_行光　隆昌"
+            },
+            {
+                shokuinId: "A811534",
+                shokuinName: "た_髙橋　祐貴"
+            },
+            {
+                shokuinId: "A810514",
+                shokuinName: "お_太田　竜司"
+            },
+            {
+                shokuinId: "A853704",
+                shokuinName: "く_窪田　航介"
+            },
+            {
+                shokuinId: "A868574",
+                shokuinName: "い_岩政　亮汰"
+            }
+        ]
+    };
 
-//     const jsonData = JSON.stringify(data);
+    const jsonData = JSON.stringify(data);
 
-//     const parsedData = JSON.parse(jsonData);
+    const parsedData = JSON.parse(jsonData);
 
-//     return parsedData;
-// }
+    return parsedData;
+}
 
 // メンバー情報取得（サーバーデータ）
-async function getMembers(teamId) {
-    // 1. 送信するクエリパラメータを作成
-    const params = new URLSearchParams({
-        action: 'getMembers',
-        teamId: teamId
-    });
+// async function getMembers(teamId) {
+//     // 1. 送信するクエリパラメータを作成
+//     const params = new URLSearchParams({
+//         action: 'getMembers',
+//         teamId: teamId
+//     });
 
-    // クエリパラメータを結合した完全なURL
-    const fullUrl = GAS_WEB_APP_URL + '?' + params.toString();
+//     // クエリパラメータを結合した完全なURL
+//     const fullUrl = GAS_WEB_APP_URL + '?' + params.toString();
 
-    try {
-        // 2. fetch APIでサーバーにデータを取得
-        const response = await fetch(fullUrl);
-        // const response = await fetch(fullUrl, {
-        //     headers: {
-        //         // リクエストボディがJSONであることを明示
-        //         'Content-Type': 'application/json',
-        //     }
-        // });
+//     try {
+//         // 2. fetch APIでサーバーにデータを取得
+//         const response = await fetch(fullUrl);
+//         // const response = await fetch(fullUrl, {
+//         //     headers: {
+//         //         // リクエストボディがJSONであることを明示
+//         //         'Content-Type': 'application/json',
+//         //     }
+//         // });
 
-        // --- エラー処理 (1): HTTPステータスエラーのチェック ---
-        // response.ok はステータスコードが 200-299 の範囲内であれば true
-        if (!response.ok) {
-            // ステータスコードがエラー（4xx, 5xxなど）の場合
-            const errorText = `HTTPエラーが発生しました。ステータス: ${response.status} (${response.statusText})`;
+//         // --- エラー処理 (1): HTTPステータスエラーのチェック ---
+//         // response.ok はステータスコードが 200-299 の範囲内であれば true
+//         if (!response.ok) {
+//             // ステータスコードがエラー（4xx, 5xxなど）の場合
+//             const errorText = `HTTPエラーが発生しました。ステータス: ${response.status} (${response.statusText})`;
 
-            // サーバーからのレスポンスボディもあれば取得して詳細情報としてログに出力
-            try {
-                const errorData = await response.json();
-                console.error('GASサーバーからの詳細エラー:', errorData);
-            } catch (e) {
-                // JSON解析が失敗しても、HTTPステータスエラーとして処理を続行
-                console.warn('エラーレスポンスボディのJSON解析に失敗しました。');
-            }
+//             // サーバーからのレスポンスボディもあれば取得して詳細情報としてログに出力
+//             try {
+//                 const errorData = await response.json();
+//                 console.error('GASサーバーからの詳細エラー:', errorData);
+//             } catch (e) {
+//                 // JSON解析が失敗しても、HTTPステータスエラーとして処理を続行
+//                 console.warn('エラーレスポンスボディのJSON解析に失敗しました。');
+//             }
 
-            // エラーを投げてcatchブロックで捕捉させる
-            throw new Error(errorText);
-        }
+//             // エラーを投げてcatchブロックで捕捉させる
+//             throw new Error(errorText);
+//         }
 
-        // 3. レスポンスボディをJSONとして解析
-        const data = await response.json();
-        window.alert(data);
+//         // 3. レスポンスボディをJSONとして解析
+//         const data = await response.json();
+//         window.alert(data);
 
-        return data;
-    } catch (error) {
-        // --- エラー処理 (2): 通信中のエラーやthrowされたエラーの捕捉 ---
-        console.error('メンバー情報取得中に予期せぬエラーが発生しました。', error.message);
+//         return data;
+//     } catch (error) {
+//         // --- エラー処理 (2): 通信中のエラーやthrowされたエラーの捕捉 ---
+//         console.error('メンバー情報取得中に予期せぬエラーが発生しました。', error.message);
 
-        // ユーザーに表示するなど、適切なエラー通知処理をここに追加
-        // 例: document.getElementById('error-message').textContent = 'データの取得に失敗しました。';
+//         // ユーザーに表示するなど、適切なエラー通知処理をここに追加
+//         // 例: document.getElementById('error-message').textContent = 'データの取得に失敗しました。';
 
-        return null; // 失敗したことを示すため、nullを返す
-    }
-}
+//         return null; // 失敗したことを示すため、nullを返す
+//     }
+// }
 
 window.addEventListener('DOMContentLoaded', function () {
     const departmentName = document.getElementById('mer_departmentName');
