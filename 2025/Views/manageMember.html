@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Manage Member</title>
+    <link rel="stylesheet" href="../futsul_files/p_css/manageMember.css">
+
+</head>
+
+<body>
+    <header>
+        <div class="pt_manageMemb_logo">
+
+            <!-- Trophy Gold (emoji-like, refined stem & base) -->
+
+
+        </div>
+        <div class="c_typo_heading_lg_normal c_typo_color_white">選手登録</div>
+    </header>
+
+    <main>
+        <div class="pt_manageMemb_selectGroupSpace">
+            <div class="c_typo_heading_lg_bold c_typo_color_black">所属部を選択</div>
+            <div class="pt_manageMemb_groupPulldown">
+
+                <select class="c_typo_heading_md" id="departmentSelect"></select>
+            </div>
+
+        </div>
+
+
+        <div class="pt_manageMemb_addMemberSpace">
+            <div class="pt_manageMemb_addMemberBox">
+                <div class="pt_manageMemb_addMemberBoxTitle">
+                    <div class="pt_manageMemb_selectDepart c_typo_heading_lg_bold c_typo_color_darkBlue"
+                        id="pt_manageMemb_addMemberBox">
+                    </div>
+                    <div class="pt_manageMemb_textNew">
+                        <div class="c_typo_heading_lg_bold c_typo_color_darkBlue">・新規登録</div>
+                    </div>
+                </div>
+
+                <div class="pt_manageMemb_addMemberInputArea">
+                    <div class="pt_manageMemb_addMemberInputTitle">
+                        <div class="c_typo_heading_md c_typo_color_gray">職員コード</div>
+                    </div>
+                    <div class="pt_manageMemb_addMemberInputText">
+                        <input class="pt_manageMemb_addMemberInputField c_typo_color_gray" type="text"
+                            class="c_typo_heading_md" placeholder="例：A882710">
+                    </div>
+                    <div class="pt_manageMemb_addMemberInputTitle">
+                        <div class="c_typo_heading_md c_typo_color_gray">氏名</div>
+                    </div>
+                    <div class="pt_manageMemb_addMemberInputText">
+                        <input class="pt_manageMemb_addMemberInputField c_typo_color_gray" type="text"
+                            class="c_typo_heading_md" placeholder="例：め_明治　花子">
+                    </div>
+                </div>
+
+                <div class="pt_manageMemb_addMemberInputButtonArea">
+                    <button class="pt_manageMemb_addMemberButton c_typo_heading_md c_typo_color_white">登録</button>
+                </div>
+
+            </div>
+
+            <div class="pt_manageMemb_textShowMember">
+                <!-- メンバー数は動的に変化 -->
+                <div class="c_typo_heading_lg_bold c_typo_color_black">登録メンバー(1)</div>
+                <div class="pt_manageMemb_addedPerson">
+                    <div class="pt_manageMemb_addedPerson_left">
+                        <div class="pt_manageMemb_addedPersonItem c_typo_heading_md c_typo_color_black">め_明治　花子</div>
+                        <div class="pt_manageMemb_addedPersonItem c_typo_heading_sm c_typo_color_lightGray">A882710
+                        </div>
+                    </div>
+                    <div class="pt_manageMemb_addedPerson_right">
+                        <div href="#" class="pt_manageMemb_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_edit" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="編集">
+                                <path d="M3 17.25V21h3.75L18.81 8.94l-3.75-3.75L3 17.25z" stroke="currentColor"
+                                    stroke-width="1.5" fill="none" />
+                                <path d="M14.06 5.19l3.75 3.75M12 21h9" stroke="currentColor" stroke-width="1.5"
+                                    fill="none" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div href="#" class="pt_manageMemb_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_close" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="閉じる">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+
+
+    </main>
+
+    <script src="../futsul_files/p_css/manageMember.js"></script>
+</body>
+
+</html>
