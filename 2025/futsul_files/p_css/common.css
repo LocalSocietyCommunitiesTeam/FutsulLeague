@@ -92,4 +92,26 @@ body {
 
 .com_btnWidth280 {
     width: 280px;
+
 }
+
+/* Coming soon */
+.comingsoonArea {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-image: url("../p_image/grass_pc.jpg");
+}
+
+.comingsoon_typo {
+    font-weight: 700;
+    font-size: 36px;
+    line-height: 48px;
+    color: #FFFFFF;
+}
+
