@@ -1,15 +1,7 @@
 window.addEventListener('DOMContentLoaded', function () {
-  // プルダウン初期化
   initPulldown();
-  // メンバー数表示初期化
   updateMemberCount();
-  // 未選択メッセージ表示
   enableUnselectedMessage();
-
-  //**************************************************************
-  //DBからのデータ取得とカード生成は未実装
-  //カード生成イベントを追加(カードの形式は、addMember関数内に記載してます！)
-  //**************************************************************
 
   // 登録ボタンにイベント付与
   var addButton = document.querySelector(".pt_mgMem_addMemberButton");
@@ -23,6 +15,13 @@ window.addEventListener('DOMContentLoaded', function () {
     setCardEvents(card);
   });
 
+  // 部署選択プルダウンにイベント付与
+  var select = document.getElementById("departmentSelect");
+  if (select) {
+    select.addEventListener("change", function () {
+      filterMembers(select.value);
+    });
+  }
 });
 
 /* メンバー数をカウントして表示*/
