@@ -3,7 +3,7 @@ window.addEventListener('DOMContentLoaded', function () {
   initPulldown();
   updateMemberCount();
   filterMembers("");
-  
+
 
   // 初期表示時メンバーカード生成未実装
   //　DBからメンバー情報を取得してカードを生成する処理をここに追加予定
@@ -27,6 +27,12 @@ window.addEventListener('DOMContentLoaded', function () {
     select.addEventListener("change", function () {
       filterMembers(select.value);
     });
+    // プルダウン変更時にタイトルも更新
+    select.addEventListener("change", function () {
+      const teamName = document.getElementById("pt_mgMem_addMemberBox");
+      teamName.textContent = select.value + "・新規登録" || "選択してください";
+    });
+
   }
 });
 
@@ -77,8 +83,8 @@ function initPulldown() {
 
   // 入力欄とプルダウンの監視をまとめて登録
   const empIdInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0];
-  const nameInput  = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
-  const addButton  = document.querySelector(".pt_mgMem_addMemberButton");
+  const nameInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
+  const addButton = document.querySelector(".pt_mgMem_addMemberButton");
 
   [empIdInput, nameInput, select].forEach(el => {
     if (el) {
@@ -120,15 +126,15 @@ function addMember() {
 /* 登録ボタンの有効/無効を切り替える関数 */
 function toggleAddButton() {
   const empIdInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0];
-  const nameInput  = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
+  const nameInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
   const deptSelect = document.getElementById("departmentSelect");
-  const addButton  = document.querySelector(".pt_mgMem_addMemberButton");
+  const addButton = document.querySelector(".pt_mgMem_addMemberButton");
 
   if (!empIdInput || !nameInput || !deptSelect || !addButton) return;
 
   const empId = empIdInput.value.trim();
-  const name  = nameInput.value.trim();
-  const dept  = deptSelect.value.trim();
+  const name = nameInput.value.trim();
+  const dept = deptSelect.value.trim();
 
   // 部署 + 職員コード + 氏名 のすべて必須
   const isValid = empId && name && dept;
