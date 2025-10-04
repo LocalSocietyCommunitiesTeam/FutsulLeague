@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Pragma" content="no-cache">
+    <title>フットサルリーグ｜I/F</title>
+    <!-- 共通CSS -->
+    <link rel="stylesheet" href="../futsul_files/p_css/reset.css?20251010">
+    <link rel="stylesheet" href="../futsul_files/p_css/component.css?20251010">
+    <link rel="stylesheet" href="../futsul_files/p_css/common.css?20251010">
+    <!-- 画面個別CSS -->
+    <link rel="stylesheet" href="../futsul_files/p_css/interface.css?20251010">
+</head>
+
+<body>
+    <!-- ヘッダー -->
+    <header>
+        <h1>I/Fテスト</h1>
+    </header>
+
+    <!-- メイン -->
+    <main>
+        <ul class="btnList">
+            <li>
+                <input id="teamId" class="textField" type="number" placeholder="999" min="101" max="999" maxlength="3">
+                <a id="getTeamListBtn" class="btn" href="javascript:void(0);">チームリスト取得</a>
+                <div id="output" class="output">
+                    <p id="teamName" class="c_typo_bodyM c_typo_BLK01"></p>
+                    <ul id="memberList"></ul>
+                </div>
+            </li>
+            <li>
+                <p class="c_typo_headerM c_typo_BLK01">情報システム部</p>
+                <input id="shokuinId" class="textField" type="text" placeholder="A123456">
+                <input id="shokuinName" class="textField" type="text" placeholder="め_明安　太郎">
+
+                <a id="postMembersBtn" class="btn" href="javascript:void(0);">メンバー登録</a>
+                <div id="output" class="output">
+                    <p id="teamName" class="c_typo_bodyM c_typo_BLK01"></p>
+                    <ul id="memberList"></ul>
+                </div>
+            </li>
+        </ul>
+        <div class="errorArea">
+            <p id="error" class="error">エラーはありません</p>
+        </div>
+    </main>
+
+    <!-- 共通JS -->
+    <script src="../futsul_files/p_css/event.js?20251010"></script>
+    <script src="../futsul_files/p_css/common.js?20251010"></script>
+    <!-- 画面個別JS -->
+    <script src="../futsul_files/p_css/interface.js?20251010"></script>
+</body>
+
+</html>

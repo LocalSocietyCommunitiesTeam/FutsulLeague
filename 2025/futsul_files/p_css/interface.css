@@ -1,0 +1,88 @@
+/** APIテスト **/
+header {
+    padding: 12px 0;
+}
+
+h1 {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+main {
+    padding: 32px 20px 0;
+}
+
+.btnList>li {
+    padding: 16px;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+}
+
+.btnList>li:not(:first-child) {
+    margin-top: 24px;
+}
+
+.textField {
+    display: block;
+    width: 120px;
+    padding: 15px;
+    border: 1px solid #2E2E2E;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #2E2E2E;
+}
+
+.textField::placeholder {
+    color: #D9D9D9;
+}
+
+p+.textField,
+.textField+.textField {
+    margin-top: 16px;
+}
+
+.btn {
+    display: block;
+    width: 280px;
+    margin: 24px auto 0;
+    padding: 16px 0;
+    border-radius: 28px;
+    background-color: blue;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.btn:active {
+    background-color: rgba(0, 0, 255, 0.2);
+}
+
+.output {
+    padding-top: 16px;
+}
+
+.errorArea {
+    margin-top: 16px;
+    padding: 4px 16px;
+    border-radius: 16px;
+    background-color: rgb(183, 183, 255);
+}
+
+.errorFlg {
+    background-color: #ff9696;
+}
+
+.error {
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
