@@ -1,7 +1,13 @@
 window.addEventListener('DOMContentLoaded', function () {
+  // 初期化処理
   initPulldown();
   updateMemberCount();
-  enableUnselectedMessage();
+  filterMembers("");
+  
+
+  // 初期表示時メンバーカード生成未実装
+  //　DBからメンバー情報を取得してカードを生成する処理をここに追加予定
+  // createMemberCard(dept, empId, name)メソッドを使用
 
   // 登録ボタンにイベント付与
   var addButton = document.querySelector(".pt_mgMem_addMemberButton");
@@ -36,6 +42,7 @@ function updateMemberCount() {
 
 /*プルダウン（部署選択）を初期化*/
 function initPulldown() {
+  // 部署リストを定義
   var departments = [
     "営企", "法人事務オペ", "デジhub", "IT・デジ戦", "情シス",
     "金法業", "商サ開発", "地リレ", "業務", "営人",
@@ -50,52 +57,39 @@ function initPulldown() {
   // 一度クリア（重複防止）
   select.innerHTML = "";
 
-  // デフォルトの「選択してください」を先頭に追加
+  // デフォルトの「選択してください」を追加
   var defaultOption = document.createElement("option");
   defaultOption.value = "";
   defaultOption.textContent = "選択してください";
   defaultOption.selected = true;
   select.appendChild(defaultOption);
 
-  // 部署リストを追加
-  for (var i = 0; i < departments.length; i++) {
+  // 部署リストを選択肢として追加
+  departments.forEach(d => {
     var option = document.createElement("option");
-    option.value = departments[i];
-    option.textContent = departments[i];
+    option.value = d;
+    option.textContent = d;
     select.appendChild(option);
-  }
+  });
 
-  // 初期表示は一旦「選択してください」にしておく
+  // 初期表示
   teamName.textContent = "選択してください";
 
-  // 選択が変わったら表示を更新
-  select.addEventListener("change", function () {
-    teamName.textContent = select.value;
-  });
-}
+  // 入力欄とプルダウンの監視をまとめて登録
+  const empIdInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0];
+  const nameInput  = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
+  const addButton  = document.querySelector(".pt_mgMem_addMemberButton");
 
-function enableUnselectedMessage() {
-  var select = document.getElementById("departmentSelect");
-  var teamName = document.getElementById("pt_mgMem_addMemberBox");
-  var newLabel = document.getElementById("pt_mgMem_textNewLabel");
-
-  if (!select || !teamName || !newLabel) return;
-
-  // 初期状態（未選択時は「所属チームを選んでください」だけ）
-  teamName.textContent = "";
-  newLabel.textContent = "所属チームを選んでください";
-
-  // プルダウン選択時に更新
-  select.addEventListener("change", function () {
-    if (select.value === "") {
-      teamName.textContent = "";
-      newLabel.textContent = "新規登録";
-    } else {
-      teamName.textContent = select.value;
-      newLabel.textContent = "・新規登録";
+  [empIdInput, nameInput, select].forEach(el => {
+    if (el) {
+      el.addEventListener("input", toggleAddButton);
+      el.addEventListener("change", toggleAddButton);
     }
   });
+
+  toggleAddButton(); // 初期チェック
 }
+
 /* 部署でメンバーをフィルタリング */
 function addMember() {
   var select = document.getElementById("departmentSelect");
@@ -103,17 +97,51 @@ function addMember() {
   var empId = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value;
   var name = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value;
 
-  if (!dept) {
-    alert("部署を選択してください");
-    return;
-  }
-  if (!empId || !name) {
-    alert("職員コードと氏名を入力してください");
-    return;
-  }
+  // メンバーカードを生成（戻り値を受け取る）
+  var card = createMemberCard(dept, empId, name);
+
+  // メンバー一覧の末尾に追加
+  var memberList = document.querySelector(".pt_mgMem_textShowMember");
+  memberList.appendChild(card);
+
+  // 編集・削除イベントをセット
+  setCardEvents(card);
+
+  // 追加後のフィルタリングと人数更新
+  filterMembers(select.value);
 
 
-  // カード要素を作成
+  // 入力欄をリセット
+  document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
+  document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
+
+}
+
+/* 登録ボタンの有効/無効を切り替える関数 */
+function toggleAddButton() {
+  const empIdInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0];
+  const nameInput  = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1];
+  const deptSelect = document.getElementById("departmentSelect");
+  const addButton  = document.querySelector(".pt_mgMem_addMemberButton");
+
+  if (!empIdInput || !nameInput || !deptSelect || !addButton) return;
+
+  const empId = empIdInput.value.trim();
+  const name  = nameInput.value.trim();
+  const dept  = deptSelect.value.trim();
+
+  // 部署 + 職員コード + 氏名 のすべて必須
+  const isValid = empId && name && dept;
+
+  addButton.disabled = !isValid; // ← disabled属性で管理
+  addButton.classList.toggle("pt_mgMem_addMemberButton_disabled", !isValid);
+}
+
+
+
+/* メンバーカードを生成する関数 */
+function createMemberCard(dept, empId, name) {
+  // メンバーカードのHTMLを生成// カード要素を作成
   var card = document.createElement("div");
   card.className = "pt_mgMem_personCard";
   card.setAttribute("data-department", dept);
@@ -160,32 +188,8 @@ function addMember() {
 </div>
 
   `;
-
-  // メンバー一覧の末尾に追加
-  var memberList = document.querySelector(".pt_mgMem_textShowMember");
-  memberList.appendChild(card);
-
-  // 編集・削除イベントをセット
-  setCardEvents(card);
-
-  // 追加後のフィルタリングと人数更新
-  filterMembers(select.value);
-
-
-  // 入力欄をリセット
-  document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
-  document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
-
+  return card;
 }
-
-
-// 追加後のフィルタリングと人数更新
-filterMembers(select.value);
-
-// 入力欄をリセット
-document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
-document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
-
 
 // カードにイベントを付与する共通関数
 function setCardEvents(card) {
@@ -203,9 +207,12 @@ function setCardEvents(card) {
 
   // 編集アイコン（鉛筆）
   const editBtn = card.querySelector(".pt_mgMem_correctIcon");
+  //削除アイコン（バツ） ← HTMLでは pt_mgMem_deleteIcon
+  const deleteBtn = card.querySelector(".pt_mgMem_deleteIcon");
   // 完了アイコン（チェック） ← HTMLでは pt_mgMem_checkIcon
   const doneBtn = card.querySelector(".pt_mgMem_checkIcon");
   const nameDiv = card.querySelector(".pt_mgMem_personCard_left");
+
 
   if (editBtn && doneBtn) {
     // 編集開始（鉛筆押下）

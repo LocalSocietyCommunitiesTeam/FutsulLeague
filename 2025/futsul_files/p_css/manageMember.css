@@ -20,7 +20,6 @@ main {
 }
 
 /*プルダウン要素*/
-
 .pt_mgMem_groupPulldown {
     padding-top: 0.8rem;
     display: flex;
@@ -44,12 +43,10 @@ select {
     cursor: pointer;
 }
 
-
 select:focus {
     outline: none;
     border: 0.1rem solid #bfdfd8;
 }
-
 
 .pt_mgMem_selectGroupSpace {
 
@@ -61,10 +58,7 @@ select:focus {
 
 }
 
-.pt_mgMem_groupPulldown_Icon {}
-
 .pt_mgMem_addMemberSpace {
-
     margin-top: 1.2rem;
     border: 0.1rem solid #f0f0f0;
     border-radius: 1.2rem;
@@ -75,7 +69,6 @@ select:focus {
 
 .pt_mgMem_addMemberInputArea>.pt_mgMem_addMemberInputTitle {
     padding-top: 0.8rem;
-
 }
 
 .pt_mgMem_addMemberInputText {
@@ -100,12 +93,6 @@ select:focus {
     background-color: #edf9f6;
 }
 
-
-
-/* .pt_mgMem_addMemberBoxTitle {
-    display: flex;
-} */
-
 .pt_mgMem_addMemberInputButtonArea {
     display: flex;
     justify-content: center;
@@ -122,6 +109,13 @@ select:focus {
     padding: 0.4rem 0;
     width: 100%;
     cursor: pointer;
+    transition: 200ms;
+
+}
+.pt_mgMem_addMemberButton.pt_mgMem_addMemberButton_disabled{
+    background-color: #a0a0a0;
+    color: #434343;
+    transition: 200ms;
 }
 
 .pt_mgMem_textShowMember {
@@ -148,10 +142,10 @@ select:focus {
 
 .pt_mgMem_editNameInput{
     width: 10rem;
+    overflow-wrap: break-word;
     padding: 0.4rem;
     font-size: 12pt;
     color: #222222;
-    width: 100%;
     border: 2px solid #f0f0f0;
     border-radius: 0.4rem;
     background: #f0f0f0;
