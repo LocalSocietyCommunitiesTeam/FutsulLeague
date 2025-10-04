@@ -39,7 +39,8 @@ select {
     width: 100%;
     border: 2px solid #f0f0f0;
     border-radius: 0.8rem;
-    background: #ffff;
+    background-color: #edf9f6;
+    border: 0.1rem solid #bfdfd8;
     cursor: pointer;
 }
 
@@ -112,7 +113,8 @@ select:focus {
     transition: 200ms;
 
 }
-.pt_mgMem_addMemberButton.pt_mgMem_addMemberButton_disabled{
+
+.pt_mgMem_addMemberButton.pt_mgMem_addMemberButton_disabled {
     background-color: #a0a0a0;
     color: #434343;
     transition: 200ms;
@@ -141,7 +143,7 @@ select:focus {
     background-color: #edf9f6;
 }
 
-.pt_mgMem_editNameInput{
+.pt_mgMem_editNameInput {
     width: 10rem;
     overflow-wrap: break-word;
     padding: 0.4rem;
@@ -167,7 +169,7 @@ select:focus {
 }
 
 .pt_mgMem_deleteIcon svg {
-  pointer-events: none;
+    pointer-events: none;
 }
 
 .pt_mgMem_correctIcon {
