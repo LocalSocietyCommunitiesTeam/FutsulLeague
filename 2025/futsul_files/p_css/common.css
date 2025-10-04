@@ -1,15 +1,16 @@
 /** 画面共通 **/
 @font-face {
     font-family: "Noto Sans JP";
-    src: url(./NotoSansJP-Regular.otf) format("opentype");
+    src: url("./NotoSansJP-Regular.ttf") format("opentype");
     font-weight: 400;
 }
- 
+
 @font-face {
     font-family: "Noto Sans JP";
-    src: url(./NotoSansJP-Bold.otf) format("opentype");
+    src: url("./NotoSansJP-Bold.ttf") format("opentype");
     font-weight: 700;
 }
+
 body {
     background-image: url("../p_image/grass_sp.jpg");
     background-size: cover;

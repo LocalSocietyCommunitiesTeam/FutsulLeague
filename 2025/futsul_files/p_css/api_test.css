@@ -1,0 +1,50 @@
+/** APIテスト **/
+header {
+    padding: 12px 0;
+}
+
+h1 {
+    font-weight: 700;
+    font-size: 24px;
+    line-height: 32px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+main {
+    padding: 32px 20px 0;
+}
+
+.btnList>li:not(:first-child) {
+    padding-top: 24px;
+}
+
+.btn {
+    display: block;
+    width: 280px;
+    margin: 0 auto;
+    padding: 16px 0;
+    border-radius: 28px;
+    background-color: blue;
+    font-weight: 700;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+    text-align: center;
+}
+
+.btn:active {
+    background-color: rgba(0, 0, 255, 0.2);
+}
+
+.output {
+    padding-top: 16px;
+}
+
+.error {
+    margin-top: 24px;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    color: #FFFFFF;
+}
