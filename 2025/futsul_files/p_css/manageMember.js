@@ -1,7 +1,15 @@
 window.addEventListener('DOMContentLoaded', function () {
+  // プルダウン初期化
   initPulldown();
+  // メンバー数表示初期化
   updateMemberCount();
+  // 未選択メッセージ表示
   enableUnselectedMessage();
+
+  //**************************************************************
+  //DBからのデータ取得とカード生成は未実装
+  //カード生成イベントを追加(カードの形式は、addMember関数内に記載してます！)
+  //**************************************************************
 
   // 登録ボタンにイベント付与
   var addButton = document.querySelector(".pt_mgMem_addMemberButton");
