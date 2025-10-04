@@ -133,10 +133,9 @@ function toggleAddButton() {
   // 部署 + 職員コード + 氏名 のすべて必須
   const isValid = empId && name && dept;
 
-  addButton.disabled = !isValid; // ← disabled属性で管理
+  addButton.disabled = !isValid;
   addButton.classList.toggle("pt_mgMem_addMemberButton_disabled", !isValid);
-}
-
+} // ←★これを忘れてた
 
 
 /* メンバーカードを生成する関数 */
@@ -242,25 +241,35 @@ function setCardEvents(card) {
   }
 }
 
-/* 部署ごとにメンバーをフィルタリングして人数を更新 */
 function filterMembers(selectedDept) {
-  var cards = document.querySelectorAll(".pt_mgMem_personCard");
-  var visibleCount = 0;
+  const memberList = document.querySelector(".pt_mgMem_textShowMember");
+  const memberCountDisplay = document.getElementById("pt_mgMem_countMembers");
+  const cards = document.querySelectorAll(".pt_mgMem_personCard");
 
-  cards.forEach(function (card) {
-    var dept = card.getAttribute("data-department");
+  if (!memberList || !memberCountDisplay) return;
 
-    if (selectedDept === "" || dept === selectedDept) {
-      card.style.display = "flex"; // 表示
+  // ✅ プルダウン未選択時は非表示
+  if (!selectedDept) {
+    memberList.style.display = "none";
+    cards.forEach(c => (c.style.display = "none"));
+    memberCountDisplay.textContent = "";
+    return;
+  }
+
+  // ✅ 選択されたら再表示
+  memberList.style.display = "block";
+  let visibleCount = 0;
+
+  cards.forEach(card => {
+    const dept = card.getAttribute("data-department");
+    if (dept === selectedDept) {
+      card.style.display = "flex";
       visibleCount++;
     } else {
-      card.style.display = "none"; // 非表示
+      card.style.display = "none";
     }
   });
 
-  // 部署ごとの人数を表示
-  var memberCountDisplay = document.getElementById("pt_mgMem_countMembers");
-  if (memberCountDisplay) {
-    memberCountDisplay.textContent = visibleCount + "名";
-  }
+  memberCountDisplay.textContent = visibleCount + "名";
+
 }

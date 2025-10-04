@@ -119,6 +119,7 @@ select:focus {
 }
 
 .pt_mgMem_textShowMember {
+    display: none;
     padding-top: 1.2rem;
 }
 
