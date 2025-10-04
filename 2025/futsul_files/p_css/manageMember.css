@@ -1,0 +1,230 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Noto Sans JP', sans-serif;
+    background-color: #f5f6f6;
+}
+
+header {
+    padding-left: 20px;
+    width: 100%;
+    height: 48px;
+    background-color: #14788b;
+    display: flex;
+    align-items: center;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+main {
+    padding: 2.0rem;
+}
+
+/*プルダウン要素*/
+
+.pt_mgMem_groupPulldown {
+    padding-top: 0.8rem;
+    display: flex;
+    align-items: center;
+}
+
+label {
+    font-weight: bold;
+    margin-right: 0.5rem;
+    color: #136f82;
+}
+
+select {
+    -webkit-appearance: none;
+    /* Safari, Chrome */
+    padding: 0.8rem;
+    width: 100%;
+    border: 2px solid #f0f0f0;
+    border-radius: 0.8rem;
+    background: #ffff;
+    cursor: pointer;
+}
+
+
+select:focus {
+    outline: none;
+    border: 0.1rem solid #bfdfd8;
+}
+
+
+.pt_mgMem_selectGroupSpace {
+
+    border: 0.1rem solid #f0f0f0;
+    border-radius: 1.2rem;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    background-color: #FFFFFF;
+    padding: 1.2rem;
+
+}
+
+.pt_mgMem_groupPulldown_Icon {
+
+}
+
+.pt_mgMem_addMemberSpace {
+
+    margin-top: 1.2rem;
+    border: 0.1rem solid #f0f0f0;
+    border-radius: 1.2rem;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+    background-color: #FFFFFF;
+    padding: 1.2rem;
+}
+
+.pt_mgMem_addMemberInputArea>.pt_mgMem_addMemberInputTitle {
+    padding-top: 0.8rem;
+
+}
+
+.pt_mgMem_addMemberInputText {
+    padding-top: 0.4rem;
+    display: flex;
+    align-items: center;
+}
+
+.pt_mgMem_addMemberInputField {
+    font-size: 10pt;
+    padding: 0.4rem;
+    width: 100%;
+    border: 2px solid #f0f0f0;
+    border-radius: 0.4rem;
+    background: #f0f0f0;
+}
+
+.pt_mgMem_addMemberBox {
+    padding: 1.2rem;
+    border: 0.1rem solid #bfdfd8;
+    border-radius: 0.8rem;
+    background-color: #edf9f6;
+}
+
+
+
+/* .pt_mgMem_addMemberBoxTitle {
+    display: flex;
+} */
+
+.pt_mgMem_addMemberInputButtonArea {
+    display: flex;
+    justify-content: center;
+    padding: 1.2rem 2.4rem 0;
+}
+
+.pt_mgMem_addMemberButton {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #14788b;
+    border: none;
+    border-radius: 0.8rem;
+    padding: 0.4rem 0;
+    width: 100%;
+    cursor: pointer;
+}
+
+.pt_mgMem_textShowMember {
+    padding-top: 1.2rem;
+}
+
+.pt_mgMem_MemberNumFlex {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 0.4rem;
+    align-items: center;
+}
+
+.pt_mgMem_personCard {
+    margin-top: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem;
+    border: 0.1rem solid #bfdfd8;
+    border-radius: 0.8rem;
+    background-color: #edf9f6;
+}
+
+.pt_mgMem_personCard_right {
+    display: flex;
+    align-items: center;
+
+}
+
+/* なぜか個別に指定しないと反映されない */
+.pt_mgMem_ItemIcon:nth-child(1) {
+        color: #14788b;
+
+}
+
+.pt_mgMem_personCardItem:last-child {
+    padding-top: 0.2rem;
+}
+
+.pt_mgMem_ItemIcon:nth-child(2) {
+    padding-left: 0.8rem;
+    color: #14788b;
+}
+
+.pt_mgMem_ItemIcon:hover {
+    color: #a7c9d0; 
+    transition: 0.2s;
+    cursor: pointer;
+}
+
+/*フォント設定*/
+
+/* 見出し */
+
+.c_typo_heading_lg_normal {
+    font-size: 14pt;
+    font-weight: normal;
+    line-height: 1.3;
+}
+
+.c_typo_heading_lg_bold {
+    font-size: 14pt;
+    font-weight: 500;
+    line-height: 1.3;
+}
+
+.c_typo_heading_md {
+    font-size: 12pt;
+    font-weight: normal;
+    line-height: 1.4;
+}
+
+.c_typo_heading_sm {
+    font-size: 9pt;
+    font-weight: normal;
+    line-height: 1.4;
+}
+
+/* 色 */
+
+.c_typo_color_darkBlue {
+    color: #0f5b6a;
+}
+
+.c_typo_color_blue {
+    color: #14788b;
+}
+
+.c_typo_color_white {
+    color: #ffffff;
+}
+
+.c_typo_color_black {
+    color: #222222;
+}
+
+.c_typo_color_gray {
+    color: #434343;
+}
+
+.c_typo_color_lightGray {
+    color: #808080;
+}

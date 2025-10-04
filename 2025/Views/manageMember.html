@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Manage Member</title>
+    <link rel="stylesheet" href="../futsul_files/p_css/manageMember.css">
+
+</head>
+
+<body>
+    <header>
+        <div class="pt_mgMem_logo">
+
+        </div>
+        <div class="c_typo_heading_lg_normal c_typo_color_white">選手登録</div>
+    </header>
+
+    <main>
+
+        <!-- 所属チーム選択プルダウン -->
+        <div class="pt_mgMem_selectGroupSpace">
+            <div class="c_typo_heading_lg_bold c_typo_color_black">所属チームを選択</div>
+            <div class="pt_mgMem_groupPulldown">
+                <select class="c_typo_heading_md c_typo_color_gray" id="departmentSelect"></select>
+            </div>
+        </div>
+        <!-- メンバー追加フォーム -->
+        <div class="pt_mgMem_addMemberSpace">
+            <div class="pt_mgMem_addMemberBox">
+                <div class="pt_mgMem_addMemberBoxTitle">
+                    <span class="pt_mgMem_selectDepart c_typo_heading_lg_bold c_typo_color_darkBlue"
+                        id="pt_mgMem_addMemberBox"></span>
+                    <span class="c_typo_heading_lg_bold c_typo_color_darkBlue" id="pt_mgMem_textNewLabel"></span>
+                </div>
+                <div class="pt_mgMem_addMemberInputArea">
+                    <div class="pt_mgMem_addMemberInputTitle">
+                        <div class="c_typo_heading_md c_typo_color_gray">職員コード</div>
+                    </div>
+                    <div class="pt_mgMem_addMemberInputText">
+                        <input class="pt_mgMem_addMemberInputField c_typo_color_gray" type="text"
+                            class="c_typo_heading_md" placeholder="例：A882710">
+                    </div>
+                    <div class="pt_mgMem_addMemberInputTitle">
+                        <div class="c_typo_heading_md c_typo_color_gray">氏名</div>
+                    </div>
+                    <div class="pt_mgMem_addMemberInputText">
+                        <input class="pt_mgMem_addMemberInputField c_typo_color_gray" type="text"
+                            class="c_typo_heading_md" placeholder="例：め_明治　花子">
+                    </div>
+                </div>
+                <div class="pt_mgMem_addMemberInputButtonArea">
+                    <button class="pt_mgMem_addMemberButton c_typo_heading_md c_typo_color_white">登録</button>
+                </div>
+            </div>
+            <!-- メンバー表示 -->
+            <div class="pt_mgMem_textShowMember">
+                <div class="pt_mgMem_MemberNumFlex">
+                    <div class="c_typo_heading_lg_bold c_typo_color_black">登録メンバー</div>
+                    <div class="c_typo_heading_sm c_typo_color_lightGray" id="pt_mgMem_countMembers">3名</div>
+                </div>
+                <!-- data属性で情報を保持 -->
+                <div class="pt_mgMem_personCard" data-department="営企" data-employee-id="A882710" data-name="明治 花子">
+                    <div class="pt_mgMem_personCard_left c_typo_heading_md c_typo_color_black">め_明治　花子</div>
+                    <div class="pt_mgMem_personCard_right">
+                        <div href="#" class="pt_mgMem_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_edit" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="編集">
+                                <path d="M3 17.25V21h3.75L18.81 8.94l-3.75-3.75L3 17.25z" stroke="currentColor"
+                                    stroke-width="1.5" fill="none" />
+                                <path d="M14.06 5.19l3.75 3.75M12 21h9" stroke="currentColor" stroke-width="1.5"
+                                    fill="none" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div href="#" class="pt_mgMem_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_close" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="閉じる">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+                <div class="pt_mgMem_personCard" data-department="情シス" data-employee-id="A882711" data-name="安田　太郎">
+                    <div class="pt_mgMem_personCard_left c_typo_heading_md c_typo_color_black">や_安田　太郎</div>
+                    <div class="pt_mgMem_personCard_right">
+                        <div href="#" class="pt_mgMem_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_edit" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="編集">
+                                <path d="M3 17.25V21h3.75L18.81 8.94l-3.75-3.75L3 17.25z" stroke="currentColor"
+                                    stroke-width="1.5" fill="none" />
+                                <path d="M14.06 5.19l3.75 3.75M12 21h9" stroke="currentColor" stroke-width="1.5"
+                                    fill="none" stroke-linecap="round" />
+                            </svg>
+                        </div>
+                        <div href="#" class="pt_mgMem_ItemIcon c_typo_heading_md c_typo_color_white"><svg
+                                class="icon_close" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg" role="img" aria-label="閉じる">
+                                <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    </main>
+
+    <script src="../futsul_files/p_css/manageMember.js"></script>
+</body>
+
+</html>
