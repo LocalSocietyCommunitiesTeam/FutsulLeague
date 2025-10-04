@@ -147,9 +147,10 @@ select:focus {
 }
 
 .pt_mgMem_editNameInput{
+    width: 80%;
+    padding: 0.4rem;
     font-size: 12pt;
     color: #222222;
-    padding: 0.6rem;
     width: 100%;
     border: 2px solid #f0f0f0;
     border-radius: 0.4rem;
@@ -180,7 +181,7 @@ select:focus {
 }
 
 .pt_mgMem_deleteIcon {
-    padding-left: 0.4rem;
+    padding-left: 0.6rem;
     cursor: pointer;
 }
 

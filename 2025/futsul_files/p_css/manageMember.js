@@ -1,4 +1,4 @@
-window.addEventListener('DOMContentLoaded', function() {
+window.addEventListener('DOMContentLoaded', function () {
   initPulldown();
   updateMemberCount();
   enableUnselectedMessage();
@@ -11,7 +11,7 @@ window.addEventListener('DOMContentLoaded', function() {
     });
   }
   // 既存カードに編集・削除イベントをセット
-  document.querySelectorAll(".pt_mgMem_personCard").forEach(function(card) {
+  document.querySelectorAll(".pt_mgMem_personCard").forEach(function (card) {
     setCardEvents(card);
   });
 
@@ -30,8 +30,8 @@ function updateMemberCount() {
 /*プルダウン（部署選択）を初期化*/
 function initPulldown() {
   var departments = [
-    "営企", "法人事務オペ", "デジhub", "IT・デジ戦", "情シス", 
-    "金法業", "商サ開発", "地リレ", "業務", "営人", 
+    "営企", "法人事務オペ", "デジhub", "IT・デジ戦", "情シス",
+    "金法業", "商サ開発", "地リレ", "業務", "営人",
     "事務企", "事務オペ", "サ相談・CC", "ブラ戦", "監査"
   ];
 
@@ -62,7 +62,7 @@ function initPulldown() {
   teamName.textContent = "選択してください";
 
   // 選択が変わったら表示を更新
-  select.addEventListener("change", function() {
+  select.addEventListener("change", function () {
     teamName.textContent = select.value;
   });
 }
@@ -79,7 +79,7 @@ function enableUnselectedMessage() {
   newLabel.textContent = "所属チームを選んでください";
 
   // プルダウン選択時に更新
-  select.addEventListener("change", function() {
+  select.addEventListener("change", function () {
     if (select.value === "") {
       teamName.textContent = "";
       newLabel.textContent = "新規登録";
@@ -89,53 +89,21 @@ function enableUnselectedMessage() {
     }
   });
 }
-
-var select = document.getElementById("departmentSelect");
-var cards = document.querySelectorAll(".pt_mgMem_personCard");
-var memberCountDisplay = document.getElementById("pt_mgMem_countMembers");
-
-// 初期表示
-filterMembers(select.value);
-
-// プルダウン切り替え時
-select.addEventListener("change", function() {
-  filterMembers(select.value);
-});
-
-function filterMembers(selectedDept) {
-  //毎回最新のカードを取得する
-  var cards = document.querySelectorAll(".pt_mgMem_personCard"); 
-  var visibleCount = 0;
-
-  cards.forEach(function(card) {
-    var dept = card.getAttribute("data-department");
-
-    if (selectedDept === "" || dept === selectedDept) {
-      card.style.display = "flex";
-      visibleCount++;
-    } else {
-      card.style.display = "none";
-    }
-  });
-
-  memberCountDisplay.textContent = visibleCount + "名";
-}
-
-
+/* 部署でメンバーをフィルタリング */
 function addMember() {
   var select = document.getElementById("departmentSelect");
   var dept = select.value;
   var empId = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value;
   var name = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value;
 
-if (!dept) {
-  alert("部署を選択してください");
-  return;
-}
-if (!empId || !name) {
-  alert("職員コードと氏名を入力してください");
-  return;
-}
+  if (!dept) {
+    alert("部署を選択してください");
+    return;
+  }
+  if (!empId || !name) {
+    alert("職員コードと氏名を入力してください");
+    return;
+  }
 
 
   // カード要素を作成
@@ -196,18 +164,20 @@ if (!empId || !name) {
   // 追加後のフィルタリングと人数更新
   filterMembers(select.value);
 
+
   // 入力欄をリセット
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
+
 }
 
 
-  // 追加後のフィルタリングと人数更新
-  filterMembers(select.value);
+// 追加後のフィルタリングと人数更新
+filterMembers(select.value);
 
-  // 入力欄をリセット
-  document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
-  document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
+// 入力欄をリセット
+document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
+document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
 
 
 // カードにイベントを付与する共通関数
@@ -218,6 +188,9 @@ function setCardEvents(card) {
     delBtn.addEventListener("click", function () {
       card.remove();
       filterMembers(document.getElementById("departmentSelect").value);
+      //DB削除処理をここに追加する（empIdをキーに削除）
+      // const empId = card.getAttribute("data-employee-id");
+      // deleteFromDB(empId);
     });
   }
 
@@ -245,44 +218,35 @@ function setCardEvents(card) {
       card.setAttribute("data-name", newName);
       nameDiv.textContent = newName;
 
+      // TODO: DB更新処理をここに追加する（empId をキーに newName を保存）
+      // const empId = card.getAttribute("data-employee-id");
+      // updateDB(empId, newName);
+
       doneBtn.classList.add("pt_mgMem_hidden");
       editBtn.classList.remove("pt_mgMem_hidden");
     });
   }
 }
 
+/* 部署ごとにメンバーをフィルタリングして人数を更新 */
+function filterMembers(selectedDept) {
+  var cards = document.querySelectorAll(".pt_mgMem_personCard");
+  var visibleCount = 0;
 
-// 編集開始処理
-function startEdit(card) {
-  const nameDiv = card.querySelector(".pt_mgMem_personCard_left");
-  const currentName = card.getAttribute("data-name");
+  cards.forEach(function (card) {
+    var dept = card.getAttribute("data-department");
 
-  // 入力欄に差し替え
-  nameDiv.innerHTML = `
-    <input type="text" class="pt_mgMem_editNameInput" value="${currentName}" />
-  `;
-
-  // ✔ 完了ボタンを右側に追加
-  const rightArea = card.querySelector(".pt_mgMem_personCard_right");
-  let doneBtn = document.createElement("div");
-  doneBtn.className = "pt_mgMem_doneIcon c_typo_heading_md c_typo_color_white";
-  doneBtn.innerHTML = `
-    <svg class="pt_mgMem_ItemIcon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="完了">
-      <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </svg>
-  `;
-  rightArea.appendChild(doneBtn);
-
-  // 完了イベント
-  doneBtn.addEventListener("click", function () {
-    const newName = card.querySelector(".pt_mgMem_editNameInput").value.trim();
-    if (newName) {
-      card.setAttribute("data-name", newName);
-      nameDiv.textContent = newName;
+    if (selectedDept === "" || dept === selectedDept) {
+      card.style.display = "flex"; // 表示
+      visibleCount++;
     } else {
-      nameDiv.textContent = currentName;
+      card.style.display = "none"; // 非表示
     }
-    doneBtn.remove(); // 完了ボタンを消す
   });
+
+  // 部署ごとの人数を表示
+  var memberCountDisplay = document.getElementById("pt_mgMem_countMembers");
+  if (memberCountDisplay) {
+    memberCountDisplay.textContent = visibleCount + "名";
+  }
 }
