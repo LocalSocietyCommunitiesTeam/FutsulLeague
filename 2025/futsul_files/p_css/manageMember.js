@@ -1,9 +1,12 @@
-window.addEventListener('DOMContentLoaded', function () {
+// チームデータを定義
+var teamsData;
+
+window.addEventListener('DOMContentLoaded', async function () {
   // 初期化処理
+  await getTeams();
   initPulldown();
   updateMemberCount();
   filterMembers("");
-
 
   // 初期表示時メンバーカード生成未実装
   //　DBからメンバー情報を取得してカードを生成する処理をここに追加予定
@@ -25,12 +28,18 @@ window.addEventListener('DOMContentLoaded', function () {
   var select = document.getElementById("departmentSelect");
   if (select) {
     select.addEventListener("change", function () {
+      setMembers(select.value);
       filterMembers(select.value);
     });
     // プルダウン変更時にタイトルも更新
     select.addEventListener("change", function () {
       const teamName = document.getElementById("pt_mgMem_addMemberBox");
-      teamName.textContent = select.value + "・新規登録" || "選択してください";
+      for (let i = 0; i < teamsData.length; i++) {
+        if (teamsData[i].teamId == select.value) {
+          teamName.textContent = teamsData[i].omittedTeamName + "・新規登録" || "選択してください";
+          break;
+        }
+      }
     });
 
   }
@@ -48,13 +57,6 @@ function updateMemberCount() {
 
 /*プルダウン（部署選択）を初期化*/
 function initPulldown() {
-  // 部署リストを定義
-  var departments = [
-    "営企", "法人事務オペ", "デジhub", "IT・デジ戦", "情シス",
-    "金法業", "商サ開発", "地リレ", "業務", "営人",
-    "事務企", "事務オペ", "サ相談・CC", "ブラ戦", "監査"
-  ];
-
   var select = document.getElementById("departmentSelect");
   var teamName = document.getElementById("pt_mgMem_addMemberBox");
 
@@ -70,13 +72,13 @@ function initPulldown() {
   defaultOption.selected = true;
   select.appendChild(defaultOption);
 
-  // 部署リストを選択肢として追加
-  departments.forEach(d => {
-    var option = document.createElement("option");
-    option.value = d;
-    option.textContent = d;
+  // チームリストを選択肢として追加
+  for (let i = 0; i < teamsData.length; i++) {
+    const option = document.createElement("option");
+    option.value = teamsData[i].teamId;
+    option.textContent = teamsData[i].omittedTeamName;
     select.appendChild(option);
-  });
+  }
 
   // 初期表示
   teamName.textContent = "選択してください";
@@ -146,6 +148,7 @@ function toggleAddButton() {
 
 /* メンバーカードを生成する関数 */
 function createMemberCard(dept, empId, name) {
+  console.log(`createMemberCard(${dept}, ${empId}, ${name})`);
   // メンバーカードのHTMLを生成// カード要素を作成
   var card = document.createElement("div");
   card.className = "pt_mgMem_personCard";
@@ -153,46 +156,30 @@ function createMemberCard(dept, empId, name) {
   card.setAttribute("data-employee-id", empId);
   card.setAttribute("data-name", name);
 
-  card.innerHTML = `
-<div class="pt_mgMem_personCard_left c_typo_heading_md c_typo_color_black">
+  card.innerHTML =
+    `<div class="pt_mgMem_personCard_left c_typo_heading_md c_typo_color_black">
   ${name}
 </div>
 <div class="pt_mgMem_personCard_right">
   <!-- 完了アイコン（チェック） -->
-  <div href="#" class="pt_mgMem_checkIcon c_typo_heading_md pt_mgMem_hidden">
-    <svg class="pt_mgMem_ItemIcon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="完了">
-      <path d="M5 13l4 4L19 7"
-            stroke="currentColor" stroke-width="2" fill="none"
-            stroke-linecap="round" />
-    </svg>
-  </div>
+  <div href="javascript:void(0);" class="pt_mgMem_checkIcon c_typo_heading_md pt_mgMem_hidden"><svg class="pt_mgMem_ItemIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="完了">
+      <path d="M5 13l4 4L19 7" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" />
+    </svg></div>
 
   <!-- 編集アイコン（鉛筆） -->
-  <div href="#" class="pt_mgMem_correctIcon c_typo_heading_md">
-    <svg class="pt_mgMem_ItemIcon icon_edit" width="24" height="24" viewBox="0 0 24 24"
-         fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="編集">
+  <div href="javascript:void(0);" class="pt_mgMem_correctIcon c_typo_heading_md"><svg class="pt_mgMem_ItemIcon icon_edit" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="編集">
       <!-- ペン本体 -->
-      <path d="M3 17.25V21h3.75L18.81 8.94a1.5 1.5 0 0 0 0-2.12l-1.69-1.69a1.5 1.5 0 0 0-2.12 0L3 17.25z"
-            stroke="currentColor" stroke-width="1.5" fill="none" />
+      <path d="M3 17.25V21h3.75L18.81 8.94a1.5 1.5 0 0 0 0-2.12l-1.69-1.69a1.5 1.5 0 0 0-2.12 0L3 17.25z" stroke="currentColor" stroke-width="1.5" fill="none" />
       <!-- ペン先の線 -->
-      <path d="M13.5 6l4.5 4.5M12 21h9"
-            stroke="currentColor" stroke-width="1.5"
-            stroke-linecap="round" fill="none" />
-    </svg>
-  </div>
+      <path d="M13.5 6l4.5 4.5M12 21h9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none" />
+    </svg></div>
 
   <!-- 削除アイコン（バツ） -->
-  <div href="#" class="pt_mgMem_deleteIcon c_typo_heading_md c_typo_color_white">
-    <svg class="pt_mgMem_ItemIcon" width="24" height="24" viewBox="0 0 24 24" fill="none"
-         xmlns="http://www.w3.org/2000/svg" role="img" aria-label="閉じる">
-      <path d="M6 6l12 12M18 6L6 18"
-            stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
-    </svg>
-  </div>
-</div>
+  <div href="javascript:void(0);" class="pt_mgMem_deleteIcon c_typo_heading_md c_typo_color_white"><svg class="pt_mgMem_ItemIcon" width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="閉じる">
+      <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+    </svg></div>
+</div>`;
 
-  `;
   return card;
 }
 
@@ -247,6 +234,24 @@ function setCardEvents(card) {
   }
 }
 
+/* チーム名プルダウン選択時にメンバーカードを生成する処理 */
+function setMembers(selectedDept) {
+  console.log(`setMembers(${selectedDept})`);
+  for (let i = 0; i < teamsData.length; i++) {
+    console.log(`teamsData[${i}].teamId: ${teamsData[i].teamId}`);
+    console.log(`selectedDept: ${selectedDept}`);
+    if (teamsData[i].teamId == selectedDept) {
+      console.log('if');
+      for (let j = 0; j < teamsData[i].member.length; j++) {
+        createMemberCard(teamsData[i].teamId, teamsData[i].member[j].shokuinId, teamsData[i].member[j].shokuinName);
+      }
+      break;
+    } else {
+      console.log('else');
+    }
+  }
+}
+
 function filterMembers(selectedDept) {
   const memberList = document.querySelector(".pt_mgMem_textShowMember");
   const memberCountDisplay = document.getElementById("pt_mgMem_countMembers");
@@ -278,4 +283,101 @@ function filterMembers(selectedDept) {
 
   memberCountDisplay.textContent = visibleCount + "名";
 
+}
+
+/* DBからデータを取得 */
+async function getTeams() {
+  console.log('ローディング開始');
+  // showLoader();
+
+  // テスト用に仮データを定義
+  // teamsData = [
+  //   {
+  //     teamId: "101",
+  //     teamName: "テスト部１",
+  //     omittedTeamName: "テスト01",
+  //     member: [
+  //       {
+  //         shokuinId: "A000001",
+  //         shokuinName: "め_明安　太郎"
+  //       },
+  //       {
+  //         shokuinId: "A000002",
+  //         shokuinName: "め_明安　花子"
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     teamId: "102",
+  //     teamName: "テスト部２",
+  //     omittedTeamName: "テスト02",
+  //     member: [
+  //       {
+  //         shokuinId: "A000011",
+  //         shokuinName: "か_竈門　丹次郎"
+  //       },
+  //       {
+  //         shokuinId: "A000012",
+  //         shokuinName: "そ_孫　悟空"
+  //       },
+  //       {
+  //         shokuinId: "A000013",
+  //         shokuinName: "え_円堂　守"
+  //       },
+  //       {
+  //         shokuinId: "A000014",
+  //         shokuinName: "い_潔　世一"
+  //       },
+  //       {
+  //         shokuinId: "A000015",
+  //         shokuinName: "ご_五条　悟"
+  //       },
+  //       {
+  //         shokuinId: "A000016",
+  //         shokuinName: "え_江戸川　コナン"
+  //       },
+  //       {
+  //         shokuinId: "A000017",
+  //         shokuinName: "さ_坂田　銀時"
+  //       }
+  //     ]
+  //   },
+  //   {
+  //     teamId: "103",
+  //     teamName: "テスト部３",
+  //     omittedTeamName: "テスト03",
+  //     member: []
+  //   }
+  // ];
+
+  // クエリパラメータを付与したURLを作成
+  const params = new URLSearchParams({
+    action: "getTeams"
+  });
+
+  const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+  try {
+    console.log('try開始');
+    // GASエンドポイントへのGETリクエスト
+    const response = await fetch(newUrl);
+
+    // HTTPステータスコードをチェック
+    if (!response.ok) {
+      // エラーを表示
+      throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+    }
+
+    // レスポンスボディをJSONとしてパース
+    teamsData = await response.json();
+    console.log('teamsData', teamsData);
+    console.log('try終了');
+  } catch (error) {
+    console.log('catch開始');
+    console.log(`データ取得中にエラーが発生しました:${error}`);
+    console.log('catch終了');
+  } finally {
+    console.log('ローディング終了');
+    // hideLoader();
+  }
 }
