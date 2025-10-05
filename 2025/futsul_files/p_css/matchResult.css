@@ -225,22 +225,44 @@ body {
 }
 
 /* ===== フッター ===== */
-.footer {
-    display: flex;
-    gap: 1rem;
-    position: sticky;
+footer {
     bottom: 0;
-    background: #fff;
-    padding: 1rem;
-    box-shadow: 0 -2px 4px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    align-items: center;
+    background-color: #14788b;
+    color: #fff;
+    position: sticky;
+    z-index: 100;
 }
 
-.footer button {
+.menu-item {
     flex: 1;
-    padding: 0.8rem;
-    border-radius: 0.8rem;
-    font-weight: bold;
-    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+
+.menu-item i {
+    font-size: 24px;
+}
+
+.menu-item.active {
+    color: #fff;
+    /* 選択中の色 */
+}
+
+.menu-item:active {
+    color: #fff;
+    /* タップ時の色 */
 }
 
 .cancel-btn {

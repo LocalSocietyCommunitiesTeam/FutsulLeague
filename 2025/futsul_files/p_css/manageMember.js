@@ -22,18 +22,26 @@ window.addEventListener('DOMContentLoaded', function () {
   });
 
   // 部署選択プルダウンにイベント付与
-  var select = document.getElementById("departmentSelect");
-  if (select) {
-    select.addEventListener("change", function () {
-      filterMembers(select.value);
-    });
-    // プルダウン変更時にタイトルも更新
-    select.addEventListener("change", function () {
-      const teamName = document.getElementById("pt_mgMem_addMemberBox");
-      teamName.textContent = select.value + "・新規登録" || "選択してください";
-    });
+// 部署選択プルダウンにイベント付与
+var select = document.getElementById("departmentSelect");
+if (select) {
+  // メンバーの絞り込み
+  select.addEventListener("change", function () {
+    filterMembers(select.value);
+  });
 
-  }
+  // ✅ タイトル更新処理（修正版）
+  select.addEventListener("change", function () {
+    const teamName = document.getElementById("pt_mgMem_addMemberBox");
+
+    if (select.value === "" || select.value === "選択してください") {
+      teamName.textContent = "新規登録";
+    } else {
+      teamName.textContent = select.value + "・新規登録";
+    }
+  });
+}
+
 });
 
 /* メンバー数をカウントして表示*/
@@ -79,7 +87,7 @@ function initPulldown() {
   });
 
   // 初期表示
-  teamName.textContent = "選択してください";
+  teamName.textContent = "新規登録";
 
   // 入力欄とプルダウンの監視をまとめて登録
   const empIdInput = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0];
@@ -120,6 +128,9 @@ function addMember() {
   // 入力欄をリセット
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
+
+  // 登録ボタンを無効化
+  toggleAddButton();
 
 }
 
