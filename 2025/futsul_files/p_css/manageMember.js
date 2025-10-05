@@ -121,6 +121,9 @@ function addMember() {
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value = "";
   document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value = "";
 
+  // 登録ボタンを無効化
+  toggleAddButton();
+
 }
 
 /* 登録ボタンの有効/無効を切り替える関数 */
