@@ -24,7 +24,7 @@ window.addEventListener('DOMContentLoaded', async function () {
     setCardEvents(card);
   });
 
-  // 部署選択プルダウンにイベント付与
+  // チーム選択プルダウンにイベント付与
   var select = document.getElementById("departmentSelect");
   if (select) {
     select.addEventListener("change", function () {
@@ -55,7 +55,7 @@ function updateMemberCount() {
   };
 }
 
-/*プルダウン（部署選択）を初期化*/
+/*プルダウン（チーム選択）を初期化*/
 function initPulldown() {
   var select = document.getElementById("departmentSelect");
   var teamName = document.getElementById("pt_mgMem_addMemberBox");
@@ -148,7 +148,6 @@ function toggleAddButton() {
 
 /* メンバーカードを生成する関数 */
 function createMemberCard(dept, empId, name) {
-  console.log(`createMemberCard(${dept}, ${empId}, ${name})`);
   // メンバーカードのHTMLを生成// カード要素を作成
   var card = document.createElement("div");
   card.className = "pt_mgMem_personCard";
@@ -234,20 +233,22 @@ function setCardEvents(card) {
   }
 }
 
-/* チーム名プルダウン選択時にメンバーカードを生成する処理 */
+/* チーム選択プルダウン選択時にメンバーカードを生成する処理 */
 function setMembers(selectedDept) {
-  console.log(`setMembers(${selectedDept})`);
   for (let i = 0; i < teamsData.length; i++) {
-    console.log(`teamsData[${i}].teamId: ${teamsData[i].teamId}`);
-    console.log(`selectedDept: ${selectedDept}`);
     if (teamsData[i].teamId == selectedDept) {
-      console.log('if');
       for (let j = 0; j < teamsData[i].member.length; j++) {
-        createMemberCard(teamsData[i].teamId, teamsData[i].member[j].shokuinId, teamsData[i].member[j].shokuinName);
+        // メンバーカードを生成（戻り値を受け取る）
+        const card = createMemberCard(teamsData[i].teamId, teamsData[i].member[j].shokuinId, teamsData[i].member[j].shokuinName);
+        
+        // メンバー一覧の末尾に追加
+        const memberList = document.querySelector(".pt_mgMem_textShowMember");
+        memberList.appendChild(card);
+
+        // 編集・削除イベントをセット
+        setCardEvents(card);
       }
       break;
-    } else {
-      console.log('else');
     }
   }
 }
