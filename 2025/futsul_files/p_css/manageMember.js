@@ -209,23 +209,36 @@ function setCardEvents(card) {
     // 編集開始（鉛筆押下）
     editBtn.addEventListener("click", function () {
       const currentName = card.getAttribute("data-name");
-      nameDiv.innerHTML = `<input type="text" class="pt_mgMem_editNameInput" value="${currentName}" />`;
+      nameDiv.innerHTML = `<input type=\"text\" class=\"pt_mgMem_editNameInput\" value=\"${currentName}\" />`;
 
       editBtn.classList.add("pt_mgMem_hidden");
       doneBtn.classList.remove("pt_mgMem_hidden");
     });
 
     // 編集完了（チェック押下）
-    doneBtn.addEventListener("click", function () {
+    doneBtn.addEventListener("click", async function () {
       const input = card.querySelector(".pt_mgMem_editNameInput");
       const newName = input.value.trim() || card.getAttribute("data-name");
+      const empId = card.getAttribute("data-employee-id");
+      const dept = card.getAttribute("data-department");
 
       card.setAttribute("data-name", newName);
       nameDiv.textContent = newName;
 
-      // TODO: DB更新処理をここに追加する（empId をキーに newName を保存）
-      // const empId = card.getAttribute("data-employee-id");
-      // updateDB(empId, newName);
+      // クライアントの変数データを更新
+      for (let i = 0; i < teamsData.length; i++) {
+        if (teamsData[i].teamId == dept) {
+          for (let j = 0; j < teamsData[i].member.length; j++) {
+            if (teamsData[i].member[j].shokuinId == empId) {
+              teamsData[i].member[j].shokuinName = newName;
+              break;
+            }
+          }
+        }
+      }
+
+      // DBのメンバーデータを更新（empId をキーに newName と dept を保存）
+      await updateMember(empId, newName, dept);
 
       doneBtn.classList.add("pt_mgMem_hidden");
       editBtn.classList.remove("pt_mgMem_hidden");
@@ -240,7 +253,7 @@ function setMembers(selectedDept) {
       for (let j = 0; j < teamsData[i].member.length; j++) {
         // メンバーカードを生成（戻り値を受け取る）
         const card = createMemberCard(teamsData[i].teamId, teamsData[i].member[j].shokuinId, teamsData[i].member[j].shokuinName);
-        
+
         // メンバー一覧の末尾に追加
         const memberList = document.querySelector(".pt_mgMem_textShowMember");
         memberList.appendChild(card);
@@ -286,8 +299,9 @@ function filterMembers(selectedDept) {
 
 }
 
-/* DBからデータを取得 */
+/* DBからチームデータを取得 */
 async function getTeams() {
+  console.log('getTeams()');
   console.log('ローディング開始');
   // showLoader();
 
@@ -375,8 +389,52 @@ async function getTeams() {
     console.log('try終了');
   } catch (error) {
     console.log('catch開始');
-    console.log(`データ取得中にエラーが発生しました:${error}`);
+    console.error('データ取得中にエラーが発生しました,', error);
     console.log('catch終了');
+  } finally {
+    console.log('ローディング終了');
+    // hideLoader();
+  }
+}
+
+/* DBのメンバーデータを更新 */
+async function updateMember(empId, newName, dept) {
+  console.log(`updateMember(${empId}, ${newName}, ${dept})`);
+  console.log('ローディング開始');
+  // showLoader();
+
+  // クエリパラメータを付与したURLを作成
+  const params = new URLSearchParams({
+    action: "updateMember"
+  });
+
+  const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+  // 送信するデータをJavaScriptのオブジェクトとして準備
+  const dataToSend = {
+    shokuinId: empId,
+    shokuinName: newName,
+    teamId: dept
+  };
+
+  try {
+    const response = await fetch(newUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    // HTTPステータスコードをチェック
+    if (!response.ok) {
+      throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+    }
+
+    // GASからのレスポンスをJSONとして受け取る
+    const result = await response.json();
+  } catch (error) {
+    console.error("データ送信中にエラーが発生しました:", error);
   } finally {
     console.log('ローディング終了');
     // hideLoader();
