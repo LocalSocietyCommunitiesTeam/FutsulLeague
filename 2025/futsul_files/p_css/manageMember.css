@@ -181,6 +181,46 @@ select:focus {
     padding-left: 0.6rem;
     cursor: pointer;
 }
+/* ===== フッター ===== */
+footer {
+    bottom: 0;
+    width: 100%;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    padding: 10px 0;
+    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
+    align-items: center;
+    background-color: #14788b;
+    color: #fff;
+    position: sticky;
+    z-index: 100;
+}
+
+.menu-item {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+    text-decoration: none;
+    font-size: 12px;
+    transition: color 0.2s;
+}
+
+.menu-item i {
+    font-size: 24px;
+}
+
+.menu-item.active {
+    color: #fff;
+    /* 選択中の色 */
+}
+
+.menu-item:active {
+    color: #fff;
+    /* タップ時の色 */
+}
 
 /*フォント設定*/
 
