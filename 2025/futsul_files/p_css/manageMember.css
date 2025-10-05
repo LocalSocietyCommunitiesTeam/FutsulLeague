@@ -193,7 +193,7 @@ footer {
     align-items: center;
     background-color: #14788b;
     color: #fff;
-    position: sticky;
+    position: fixed;
     z-index: 100;
 }
 
