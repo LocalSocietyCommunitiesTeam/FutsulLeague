@@ -25,31 +25,32 @@ window.addEventListener('DOMContentLoaded', async function () {
   });
 
   // チーム選択プルダウンにイベント付与
-// 部署選択プルダウンにイベント付与
-var select = document.getElementById("departmentSelect");
-if (select) {
-  // メンバーの絞り込み
-  select.addEventListener("change", function () {
-    setMembers(select.value);
-    filterMembers(select.value);
-  });
+  // 部署選択プルダウンにイベント付与
+  var select = document.getElementById("departmentSelect");
+  if (select) {
+    // メンバーの絞り込み
+    select.addEventListener("change", function () {
+      setMembers(select.value);
+      filterMembers(select.value);
+    });
 
-  // ✅ タイトル更新処理（修正版）
-  select.addEventListener("change", function () {
-    const teamName = document.getElementById("pt_mgMem_addMemberBox");
+    // ✅ タイトル更新処理（修正版）
+    select.addEventListener("change", function () {
+      const teamName = document.getElementById("pt_mgMem_addMemberBox");
 
-    if (select.value === "" || select.value === "選択してください") {
-      teamName.textContent = "新規登録";
-    } else {
-      for (let i = 0; i < teamsData.length; i++) {
-        if (teamsData[i].teamId == select.value) {
-          teamName.textContent = teamsData[i].omittedTeamName + "・新規登録";
-          break;
+      if (select.value === "" || select.value === "選択してください") {
+        teamName.textContent = "新規登録";
+      } else {
+        for (let i = 0; i < teamsData.length; i++) {
+          if (teamsData[i].teamId == select.value) {
+            teamName.textContent = teamsData[i].omittedTeamName + "・新規登録";
+            break;
+          }
         }
       }
-    }
-  });
-}
+    });
+  }
+});
 
 /* メンバー数をカウントして表示*/
 function updateMemberCount() {
