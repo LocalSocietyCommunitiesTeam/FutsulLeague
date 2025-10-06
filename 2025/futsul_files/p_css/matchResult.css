@@ -14,6 +14,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #f5f6f6;
 }
 
 /* ===== ヘッダー ===== */
@@ -29,11 +30,6 @@ body {
     z-index: 100;
 }
 
-.header h1,
-.header h2 {
-    margin: 0 auto;
-    font-size: 1rem;
-}
 
 .back-btn {
     background: transparent;
