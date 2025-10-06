@@ -89,11 +89,13 @@ body {
 
 /* 状況タグ */
 .badge.status {
-    background: #d4ede8;
-    color: #136f82;
-    border-radius: 0.5rem;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
+    /* 修正: 背景色と枠線を削除してボタンのように見えないように */
+    background: transparent;
+    color: #136f82; /* メインカラーの一つを維持 */
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: 0.85rem; /* サイズを微調整 */
     font-weight: bold;
 }
 
