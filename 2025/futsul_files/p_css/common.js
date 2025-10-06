@@ -1,6 +1,7 @@
 /** 画面共通 **/
 var LEAGUE_NUMBER = 2;
-const GAS_WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbzJ7bDQUwOWk5GSKxbUTuoSKpH1bp_s1ZoqNbRQGaiOqCJ1FkfkdGFYKbYLr7PvYFS7fQ/exec'; // GASのウェブアプリURL
+// GASのウェブアプリURL
+var WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby_vM_PbaL0OJjbvqPUzM7zrRQR7Zaxf3T9z8r2s1vlTMTTaxPXYZpFuRdLihniV0Nocg/exec';
 
 // クエリストリングのvalueを取得する関数
 function getQuery(key) {

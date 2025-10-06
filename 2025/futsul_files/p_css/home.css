@@ -3,10 +3,8 @@ body {
     margin: 0;
     padding: 0;
     font-family: 'Noto Sans JP', sans-serif;
-}
-
-.home_body {
     background-image: url('../p_image/soccerground.jpeg');
+    overflow: hidden;
 }
 
 .home_header {
@@ -47,12 +45,6 @@ body {
     z-index: 100;
 }
 
-.header h1,
-.header h2 {
-    margin: 0 auto;
-    font-size: 1rem;
-}
-
 .back-btn {
     background: transparent;
     border: none;
@@ -87,4 +79,5 @@ body {
     transition: 0.2s;
     font-size: 24px;
     display: none;
+
 }   

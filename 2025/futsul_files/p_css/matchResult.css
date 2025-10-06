@@ -14,6 +14,7 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    background-color: #f5f6f6;
 }
 
 /* ===== ヘッダー ===== */
@@ -29,11 +30,6 @@ body {
     z-index: 100;
 }
 
-.header h1,
-.header h2 {
-    margin: 0 auto;
-    font-size: 1rem;
-}
 
 .back-btn {
     background: transparent;
@@ -93,11 +89,13 @@ body {
 
 /* 状況タグ */
 .badge.status {
-    background: #d4ede8;
-    color: #136f82;
-    border-radius: 0.5rem;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.75rem;
+    /* 修正: 背景色と枠線を削除してボタンのように見えないように */
+    background: transparent;
+    color: #136f82; /* メインカラーの一つを維持 */
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    font-size: 0.85rem; /* サイズを微調整 */
     font-weight: bold;
 }
 
@@ -236,7 +234,7 @@ footer {
     align-items: center;
     background-color: #14788b;
     color: #fff;
-    position: sticky;
+    position: fixed;
     z-index: 100;
 }
 
