@@ -1,6 +1,7 @@
-// ローディング表示
-window.addEventListener('load', () => {
- showLoader(); 
+//ローディング表示
+window.addEventListener('load', function() {
+  showLoader(); // ローディング表示
+
 });
 
 function showLoader() {
@@ -104,6 +105,8 @@ function showLoader() {
       <p class="c_dot">.</p>
       <p class="c_dot">.</p>
     </div>
+    </div>
+    </div>
   `;
   // HTML文字列を要素化して body 直下に追加
   document.body.insertAdjacentHTML("beforeend", loaderHTML);
@@ -114,6 +117,3 @@ function hideLoader() {
   const loader = document.querySelector('.c_loader-container');
   if (loader) loader.remove();
 }
-
-
-
