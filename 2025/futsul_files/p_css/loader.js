@@ -1,12 +1,12 @@
 //ローディング表示
-window.addEventListener('load', function() {
+window.addEventListener('load', function () {
   showLoader(); // ローディング表示
 
 });
 
 function showLoader() {
-  const loaderHTML = `
- <div class="c_loader-container">
+  const loaderHTML =
+    `<div class="c_loader-container">
     <div class="c_loader">
       <div class="c_spinner">
         <svg id="b" xmlns="http://www.w3.org/2000/svg" width="194.7519989013672" height="194.4669952392578"
@@ -16,7 +16,6 @@ function showLoader() {
               .d {
                 fill: #fff;
               }
-
               .e {
                 fill: #211715;
               }
@@ -115,5 +114,7 @@ function showLoader() {
 // ローディング非表示
 function hideLoader() {
   const loader = document.querySelector('.c_loader-container');
-  if (loader) loader.remove();
+  if (loader) {
+    loader.remove();
+  }
 }

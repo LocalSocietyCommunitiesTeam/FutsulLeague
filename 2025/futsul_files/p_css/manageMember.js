@@ -403,7 +403,7 @@ async function getTeams() {
     console.log('catch終了');
   } finally {
     console.log('ローディング終了');
-    // hideLoader();
+    hideLoader();
   }
 }
 
@@ -411,7 +411,7 @@ async function getTeams() {
 async function updateMember(empId, newName, dept) {
   console.log(`updateMember(${empId}, ${newName}, ${dept})`);
   console.log('ローディング開始');
-  // showLoader();
+  showLoader();
 
   // クエリパラメータを付与したURLを作成
   const params = new URLSearchParams({
@@ -447,6 +447,6 @@ async function updateMember(empId, newName, dept) {
     console.error("データ送信中にエラーが発生しました:", error);
   } finally {
     console.log('ローディング終了');
-    // hideLoader();
+    hideLoader();
   }
 }
