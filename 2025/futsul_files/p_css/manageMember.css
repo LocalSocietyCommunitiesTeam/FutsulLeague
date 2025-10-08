@@ -18,7 +18,9 @@ body {
     z-index: 100;
 }
 main {
-    padding: 2.0rem 2.0rem 6.4rem;
+    padding-top: 2.0rem;
+    padding-left: 2.0rem;
+    padding-right: 2.0rem;
 }
 
 /*プルダウン要素*/
@@ -62,7 +64,7 @@ select:focus {
 }
 
 .pt_mgMem_addMemberSpace {
-    margin-top: 1.2rem;
+    margin-top: 36px;
     border: 0.1rem solid #f0f0f0;
     border-radius: 1.2rem;
     box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);

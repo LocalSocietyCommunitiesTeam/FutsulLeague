@@ -1,36 +1,4 @@
 /* === matchResult.css (修正版) === */
-
-body {
-    margin: 0;
-    padding: 0;
-    font-family: 'Noto Sans JP', sans-serif;
-    background-color: #f5f6f6;
-}
-
-.app-container {
-    max-width: 420px;
-    margin: 0 auto;
-    background-color: #fff;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: #f5f6f6;
-}
-
-/* ===== ヘッダー ===== */
-.header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    background-color: #14788b;
-    color: #fff;
-    padding: 0.8rem 1rem;
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-
 .back-btn {
     background: transparent;
     border: none;
@@ -56,20 +24,21 @@ body {
 
 .filter-btn {
     flex: 1;
-    border: 1px solid #bfdfd8;
+    border: 1px solid #316745;
     background-color: #fff;
-    color: #136f82;
+    color: #316745;
     border-radius: 1.2rem;
     padding: 0.4rem 0.8rem;
     font-weight: bold;
+    font-size: 0.8rem;
     text-align: center;
     transition: 0.2s;
 }
 
 .filter-btn.active {
-    background-color: #14788b;
+    background-color: #316745;
     color: #fff;
-    border-color: #14788b;
+    border-color: #316745;
 }
 
 /* ===== カード ===== */
@@ -91,11 +60,13 @@ body {
 .badge.status {
     /* 修正: 背景色と枠線を削除してボタンのように見えないように */
     background: transparent;
-    color: #136f82; /* メインカラーの一つを維持 */
+    color: #136f82;
+    /* メインカラーの一つを維持 */
     border: none;
     border-radius: 0;
     padding: 0;
-    font-size: 0.85rem; /* サイズを微調整 */
+    font-size: 0.85rem;
+    /* サイズを微調整 */
     font-weight: bold;
 }
 
@@ -220,47 +191,6 @@ body {
     border-radius: 0.6rem;
     font-weight: bold;
     margin-top: 8px;
-}
-
-/* ===== フッター ===== */
-footer {
-    bottom: 0;
-    width: 100%;
-    border-top: 1px solid #ddd;
-    display: flex;
-    justify-content: space-around;
-    padding: 10px 0;
-    box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.05);
-    align-items: center;
-    background-color: #14788b;
-    color: #fff;
-    position: fixed;
-    z-index: 100;
-}
-
-.menu-item {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    color: #fff;
-    text-decoration: none;
-    font-size: 12px;
-    transition: color 0.2s;
-}
-
-.menu-item i {
-    font-size: 24px;
-}
-
-.menu-item.active {
-    color: #fff;
-    /* 選択中の色 */
-}
-
-.menu-item:active {
-    color: #fff;
-    /* タップ時の色 */
 }
 
 .cancel-btn {

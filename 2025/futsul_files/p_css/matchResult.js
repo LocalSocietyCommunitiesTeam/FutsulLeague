@@ -206,16 +206,6 @@
     const startDateTimeStr = `${match.date.replace(/-/g, "/")} ${match.startTime}`;
     const endDateTimeStr = `${match.date.replace(/-/g, "/")} ${match.endTime}`;
     match.status = calcStatus(startDateTimeStr, endDateTimeStr);
-    document.getElementById("match-status").textContent = match.status;
-
-    // 戻る/キャンセルボタン機能
-    document.getElementById("back-to-list").addEventListener("click", () => {
-      location.href = "matchResult.html";
-    });
-
-    document
-      .getElementById("cancel-entry")
-      .addEventListener("click", () => (location.href = "matchResult.html"));
 
     // チームセレクトボックス
     const t1Sel = document.getElementById("team1-select");

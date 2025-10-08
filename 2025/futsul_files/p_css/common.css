@@ -11,6 +11,7 @@
     font-weight: 700;
 }
 
+/* ボディ */
 body {
     background-image: url("../p_image/grass_sp.jpg");
     background-size: cover;
@@ -34,7 +35,18 @@ body {
     flex-direction: column;
 }
 
+/* ヘッダー */
+.com_header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 20px;
+    background-color: #316745;
+}
+
+/* メイン */
 .com_main {
+    padding-bottom: 64px;
     flex-grow: 1;
 }
 
@@ -116,4 +128,3 @@ body {
     line-height: 48px;
     color: #FFFFFF;
 }
-

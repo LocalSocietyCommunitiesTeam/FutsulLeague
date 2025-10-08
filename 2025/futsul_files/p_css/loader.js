@@ -113,8 +113,13 @@ function showLoader() {
 
 // ローディング非表示
 function hideLoader() {
-  const loader = document.querySelector('.c_loader-container');
+  console.log('hideLoader()');
+  const loader = document.getElementsByClassName('c_loader-container')[0];
   if (loader) {
-    loader.remove();
+    console.log('loaderあり');
+    // loader.remove();
+    loader.parentElement.removeChild(loader);
+  } else {
+    console.log('loaderなし');
   }
 }

@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>試合結果一覧</title>
-     <!-- 共通CSS -->
+    <!-- 共通CSS -->
     <link rel="stylesheet" href="../futsul_files/p_css/reset.css?20251010">
     <link rel="stylesheet" href="../futsul_files/p_css/component.css?20251010">
     <link rel="stylesheet" href="../futsul_files/p_css/common.css?20251010">
@@ -13,14 +13,15 @@
     <link rel="stylesheet" href="../futsul_files/p_css/matchResult.css" />
 </head>
 
-<body>
-    <div id="app" class="app-container">
-        <section id="match-list-view" class="view active">
-            <header class="header">
-                <h1>⚽ フットサルリーグ</h1>
-                <span class="badge">試合結果</span>
-            </header>
+<body class="com_body_flex">
+    <!-- ヘッダー -->
+    <header class="com_header">
+        <h1 class="c_typo_headerL c_typo_WHT">⚽ フットサルリーグ</h1>
+        <p class="c_typo_headerM c_typo_WHT">対戦表</p>
+    </header>
 
+    <main class="com_main">
+        <section id="match-list-view" class="view active">
             <!-- フィルタタブを囲むボックス -->
             <div class="filter-box">
                 <div class="filter-tabs">
@@ -33,24 +34,25 @@
 
             <div id="match-list-container" class="match-list"></div>
         </section>
-        <footer>
-            <a href="home.html" class="menu-item">
-                <!-- ホームアイコン -->
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M3 9.5L12 3l9 6.5V21a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1V9.5z" />
-                </svg>
-                <i class="fa-solid fa-house"></i> ホーム </a>
-            <a href="matchResult.html" class="menu-item active">
-                <!-- トロフィーアイコン --> <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor"
-                    viewBox="0 0 24 24">
-                    <path
-                        d="M17 2H7a1 1 0 0 0-1 1v2a5 5 0 0 0 4 4.9V14H8a4 4 0 0 0-4 4v2h16v-2a4 4 0 0 0-4-4h-2V9.9A5 5 0 0 0 18 5V3a1 1 0 0 0-1-1zM8 4h1v3.8A3 3 0 0 1 8 6V4zm8 0v2a3 3 0 0 1-1 2.8V4h1z" />
-                </svg> <i class="fa-solid fa-trophy"></i> 試合結果 </a>
-            <a href="manageMember.html" class="menu-item"> <i class="fa-solid fa-user">
-                <!-- ユーザーアイコン --> <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="currentColor" viewBox="0 0 24 24"> <path d="M12 12c2.8 0 5-2.2 5-5s-2.2-5-5-5-5 2.2-5 5 2.2 5 5 5zm0 2c-3.3 0-10 1.7-10 5v3h20v-3c0-3.3-6.7-5-10-5z"/> </svg>
-            </i> メンバー登録 </a>
-        </footer>
-    </div>
+    </main>
+
+    <!-- ナビゲーション -->
+    <nav class="com_nav">
+        <ul class="com_navList">
+            <li><a class="com_navBtn" href="./home.html"><img class="com_navIcon"
+                        src="../futsul_files/p_image/home.svg?20251010" alt="ホーム">
+                    <p class="c_typo_headerXXS c_typo_BLK01 c_typo_center">ホーム</p>
+                </a></li>
+            <li><a class="com_navBtn" href="./matchResult.html"><img class="com_navIcon"
+                        src="../futsul_files/p_image/battle.svg?20251010" alt="対戦表">
+                    <p class="c_typo_headerXXS c_typo_BLK01 c_typo_center">対戦表</p>
+                </a></li>
+            <li><a class="com_navBtn com_navBtn" href="./manageMember.html"><img class="com_navIcon"
+                        src="../futsul_files/p_image/member.svg?20251010" alt="メンバー">
+                    <p class="c_typo_headerXXS c_typo_BLK01 c_typo_center">メンバー登録</p>
+                </a></li>
+        </ul>
+    </nav>
 
     <script src="../futsul_files/p_css/matchResult.js"></script>
 </body>
