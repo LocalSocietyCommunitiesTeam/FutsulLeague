@@ -107,6 +107,7 @@ body {
     width: 100vw;
     height: 100vh;
     background-image: url("../p_image/grass_pc.jpg");
+    z-index: 1000;
 }
 
 .comingsoon_typo {

@@ -313,67 +313,7 @@ function filterMembers(selectedDept) {
 async function getTeams() {
   console.log('getTeams()');
   console.log('ローディング開始');
-  // showLoader();
-
-  // テスト用に仮データを定義
-  // teamsData = [
-  //   {
-  //     teamId: "101",
-  //     teamName: "テスト部１",
-  //     omittedTeamName: "テスト01",
-  //     member: [
-  //       {
-  //         shokuinId: "A000001",
-  //         shokuinName: "め_明安　太郎"
-  //       },
-  //       {
-  //         shokuinId: "A000002",
-  //         shokuinName: "め_明安　花子"
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     teamId: "102",
-  //     teamName: "テスト部２",
-  //     omittedTeamName: "テスト02",
-  //     member: [
-  //       {
-  //         shokuinId: "A000011",
-  //         shokuinName: "か_竈門　丹次郎"
-  //       },
-  //       {
-  //         shokuinId: "A000012",
-  //         shokuinName: "そ_孫　悟空"
-  //       },
-  //       {
-  //         shokuinId: "A000013",
-  //         shokuinName: "え_円堂　守"
-  //       },
-  //       {
-  //         shokuinId: "A000014",
-  //         shokuinName: "い_潔　世一"
-  //       },
-  //       {
-  //         shokuinId: "A000015",
-  //         shokuinName: "ご_五条　悟"
-  //       },
-  //       {
-  //         shokuinId: "A000016",
-  //         shokuinName: "え_江戸川　コナン"
-  //       },
-  //       {
-  //         shokuinId: "A000017",
-  //         shokuinName: "さ_坂田　銀時"
-  //       }
-  //     ]
-  //   },
-  //   {
-  //     teamId: "103",
-  //     teamName: "テスト部３",
-  //     omittedTeamName: "テスト03",
-  //     member: []
-  //   }
-  // ];
+  showLoader();
 
   // クエリパラメータを付与したURLを作成
   const params = new URLSearchParams({
@@ -395,14 +335,11 @@ async function getTeams() {
 
     // レスポンスボディをJSONとしてパース
     teamsData = await response.json();
-    console.log('teamsData', teamsData);
-    console.log('try終了');
   } catch (error) {
-    console.log('catch開始');
-    console.error('データ取得中にエラーが発生しました,', error);
-    console.log('catch終了');
+    window.alert(`データ取得中にエラーが発生しました。\n電波状況を確認してください。\n\n${error}`);
+    window.location = './home.html'; 
   } finally {
-    console.log('ローディング終了');
+    // ローダーの非表示
     hideLoader();
   }
 }
