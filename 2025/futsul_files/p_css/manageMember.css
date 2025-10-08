@@ -91,6 +91,12 @@ select:focus {
     background: #FFFFFF;
 }
 
+.pt_mgMem_addMemberInputField:disabled {
+    background-color: #a0a0a0;
+    cursor: none;
+    pointer-events: none;
+}
+
 .pt_mgMem_addMemberBox {
     padding: 1.2rem;
     border: 0.1rem solid #bfdfd8;

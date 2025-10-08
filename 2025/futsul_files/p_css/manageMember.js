@@ -14,11 +14,11 @@ window.addEventListener('DOMContentLoaded', async function () {
 
   // 登録ボタンにイベント付与
   var addButton = document.querySelector(".pt_mgMem_addMemberButton");
-  if (addButton) {
-    addButton.addEventListener("click", function () {
+  addButton.addEventListener("click", function () {
+    if (addButton && !addButton.disabled) {
       addMember();
-    });
-  }
+    }
+  });
   // 既存カードに編集・削除イベントをセット
   document.querySelectorAll(".pt_mgMem_personCard").forEach(function (card) {
     setCardEvents(card);
@@ -30,6 +30,7 @@ window.addEventListener('DOMContentLoaded', async function () {
   if (select) {
     // メンバーの絞り込み
     select.addEventListener("change", function () {
+      activeInput(select.value);
       setMembers(select.value);
       filterMembers(select.value);
     });
@@ -106,14 +107,28 @@ function initPulldown() {
 }
 
 /* 部署でメンバーをフィルタリング */
-function addMember() {
+async function addMember() {
+  console.log('addMember()');
   var select = document.getElementById("departmentSelect");
   var dept = select.value;
   var empId = document.querySelectorAll(".pt_mgMem_addMemberInputField")[0].value;
-  var name = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value;
+  var empName = document.querySelectorAll(".pt_mgMem_addMemberInputField")[1].value;
+
+  await createMember(empId, empName, dept);
+
+  // クライアントの変数データを作成
+  for (let i = 0; i < teamsData.length; i++) {
+    if (teamsData[i].teamId == dept) {
+      let newMember = {
+        shokuinId: empId,
+        shokuinName: empName
+      }
+      teamsData[i].member.push(newMember);
+    }
+  }
 
   // メンバーカードを生成（戻り値を受け取る）
-  var card = createMemberCard(dept, empId, name);
+  var card = createMemberCard(dept, empId, empName);
 
   // メンバー一覧の末尾に追加
   var memberList = document.querySelector(".pt_mgMem_textShowMember");
@@ -198,27 +213,34 @@ function setCardEvents(card) {
   const delBtn = card.querySelector(".pt_mgMem_deleteIcon");
   if (delBtn) {
     delBtn.addEventListener("click", async function () {
-      card.remove();
-      filterMembers(document.getElementById("departmentSelect").value);
       //DB削除処理をここに追加する（empIdをキーに削除）
       const empId = card.getAttribute("data-employee-id");
-      const empName = input.value.trim() || card.getAttribute("data-name");
+      const empName = card.getAttribute("data-name");
       const dept = card.getAttribute("data-department");
-
-      // クライアントの変数データを更新
-      for (let i = 0; i < teamsData.length; i++) {
-        if (teamsData[i].teamId == dept) {
-          for (let j = 0; j < teamsData[i].member.length; j++) {
-            if (teamsData[i].member[j].shokuinId == empId) {
-              teamsData[i].member[j].shokuinName = empName;
-              break;
-            }
-          }
-        }
-      }
 
       // DBのメンバーデータを削除
       await deleteMember(empId, empName, dept);
+
+      // クライアントの変数データを更新
+      let newTeamsData = [];
+      for (let i = 0; i < teamsData.length; i++) {
+        let newTeamData = {
+          teamId: teamsData[i].teamId,
+          teamName: teamsData[i].teamName,
+          omittedTeamName: teamsData[i].omittedTeamName,
+          member: []
+        };
+        for (let j = 0; j < teamsData[i].member.length; j++) {
+          if (teamsData[i].member[j].shokuinId != empId) {
+            newTeamData.member.push(teamsData[i].member[j]);
+          }
+        }
+        newTeamsData.push(newTeamData);
+      }
+      teamsData = newTeamsData;
+
+      card.remove();
+      filterMembers(document.getElementById("departmentSelect").value);
 
       doneBtn.classList.add("pt_mgMem_hidden");
       editBtn.classList.remove("pt_mgMem_hidden");
@@ -272,6 +294,20 @@ function setCardEvents(card) {
       doneBtn.classList.add("pt_mgMem_hidden");
       editBtn.classList.remove("pt_mgMem_hidden");
     });
+  }
+}
+
+/* チーム選択プルダウン選択時に入力欄を活性化する処理 */
+function activeInput(value) {
+  const shokuinNumInput = document.getElementsByClassName('pt_mgMem_addMemberInputField')[0];
+  const shokuinNameInput = document.getElementsByClassName('pt_mgMem_addMemberInputField')[1];
+
+  if (value) {
+    shokuinNumInput.disabled = false;
+    shokuinNameInput.disabled = false;
+  } else {
+    shokuinNumInput.disabled = true;
+    shokuinNameInput.disabled = true;
   }
 }
 
@@ -356,6 +392,48 @@ async function getTeams() {
     window.location = './home.html';
   } finally {
     // ローダーの非表示
+    hideLoader();
+  }
+}
+
+async function createMember(empId, newName, dept) {
+  showLoader();
+
+  // クエリパラメータを付与したURLを作成
+  const params = new URLSearchParams({
+    action: "createMember"
+  });
+
+  const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+  // 送信するデータをJavaScriptのオブジェクトとして準備
+  const dataToSend = {
+    shokuinId: empId,
+    shokuinName: newName,
+    teamId: dept
+  };
+
+  try {
+    const response = await fetch(newUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    // HTTPステータスコードをチェック
+    if (!response.ok) {
+      throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+    }
+
+    // GASからのレスポンスをJSONとして受け取る
+    const result = await response.json();
+  } catch (error) {
+    window.alert(`データ取得中にエラーが発生しました。\n電波状況を確認してください。\n\n${error}`);
+    window.location = './home.html';
+  } finally {
+    console.log('ローディング終了');
     hideLoader();
   }
 }
