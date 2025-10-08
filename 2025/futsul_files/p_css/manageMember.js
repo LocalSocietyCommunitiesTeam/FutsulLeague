@@ -197,18 +197,37 @@ function setCardEvents(card) {
   // 削除イベント
   const delBtn = card.querySelector(".pt_mgMem_deleteIcon");
   if (delBtn) {
-    delBtn.addEventListener("click", function () {
+    delBtn.addEventListener("click", async function () {
       card.remove();
       filterMembers(document.getElementById("departmentSelect").value);
       //DB削除処理をここに追加する（empIdをキーに削除）
-      // const empId = card.getAttribute("data-employee-id");
-      // deleteFromDB(empId);
+      const empId = card.getAttribute("data-employee-id");
+      const empName = input.value.trim() || card.getAttribute("data-name");
+      const dept = card.getAttribute("data-department");
+
+      // クライアントの変数データを更新
+      for (let i = 0; i < teamsData.length; i++) {
+        if (teamsData[i].teamId == dept) {
+          for (let j = 0; j < teamsData[i].member.length; j++) {
+            if (teamsData[i].member[j].shokuinId == empId) {
+              teamsData[i].member[j].shokuinName = empName;
+              break;
+            }
+          }
+        }
+      }
+
+      // DBのメンバーデータを削除
+      await deleteMember(empId, empName, dept);
+
+      doneBtn.classList.add("pt_mgMem_hidden");
+      editBtn.classList.remove("pt_mgMem_hidden");
     });
   }
 
   // 編集アイコン（鉛筆）
   const editBtn = card.querySelector(".pt_mgMem_correctIcon");
-  //削除アイコン（バツ） ← HTMLでは pt_mgMem_deleteIcon
+  // 削除アイコン（バツ） ← HTMLでは pt_mgMem_deleteIcon
   const deleteBtn = card.querySelector(".pt_mgMem_deleteIcon");
   // 完了アイコン（チェック） ← HTMLでは pt_mgMem_checkIcon
   const doneBtn = card.querySelector(".pt_mgMem_checkIcon");
@@ -311,8 +330,6 @@ function filterMembers(selectedDept) {
 
 /* DBからチームデータを取得 */
 async function getTeams() {
-  console.log('getTeams()');
-  console.log('ローディング開始');
   showLoader();
 
   // クエリパラメータを付与したURLを作成
@@ -323,7 +340,6 @@ async function getTeams() {
   const newUrl = `${WEB_APP_URL}?${params.toString()}`;
 
   try {
-    console.log('try開始');
     // GASエンドポイントへのGETリクエスト
     const response = await fetch(newUrl);
 
@@ -337,7 +353,7 @@ async function getTeams() {
     teamsData = await response.json();
   } catch (error) {
     window.alert(`データ取得中にエラーが発生しました。\n電波状況を確認してください。\n\n${error}`);
-    window.location = './home.html'; 
+    window.location = './home.html';
   } finally {
     // ローダーの非表示
     hideLoader();
@@ -346,8 +362,6 @@ async function getTeams() {
 
 /* DBのメンバーデータを更新 */
 async function updateMember(empId, newName, dept) {
-  console.log(`updateMember(${empId}, ${newName}, ${dept})`);
-  console.log('ローディング開始');
   showLoader();
 
   // クエリパラメータを付与したURLを作成
@@ -381,9 +395,51 @@ async function updateMember(empId, newName, dept) {
     // GASからのレスポンスをJSONとして受け取る
     const result = await response.json();
   } catch (error) {
-    console.error("データ送信中にエラーが発生しました:", error);
+    window.alert(`データ取得中にエラーが発生しました。\n電波状況を確認してください。\n\n${error}`);
+    window.location = './home.html';
   } finally {
     console.log('ローディング終了');
+    hideLoader();
+  }
+}
+
+async function deleteMember(empId, empName, dept) {
+  showLoader();
+
+  // クエリパラメータを付与したURLを作成
+  const params = new URLSearchParams({
+    action: "deleteMember"
+  });
+
+  const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+  // 送信するデータをJavaScriptのオブジェクトとして準備
+  const dataToSend = {
+    shokuinId: empId,
+    shokuinName: empName,
+    teamId: dept
+  };
+
+  try {
+    const response = await fetch(newUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      },
+      body: JSON.stringify(dataToSend)
+    });
+
+    // HTTPステータスコードをチェック
+    if (!response.ok) {
+      throw new Error(`HTTPエラー! ステータス: ${response.status}`);
+    }
+
+    // GASからのレスポンスをJSONとして受け取る
+    const result = await response.json();
+  } catch (error) {
+    window.alert(`データ取得中にエラーが発生しました。\n電波状況を確認してください。\n\n${error}`);
+    window.location = './home.html';
+  } finally {
     hideLoader();
   }
 }
