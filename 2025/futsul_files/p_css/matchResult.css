@@ -3,23 +3,23 @@
     background: transparent;
     border: none;
     color: #fff;
-    font-size: 1.4rem;
+    font-size: 22px;
     cursor: pointer;
 }
 
 /* ===== フィルタタブ（タブUI） ===== */
 .filter-box {
     background: #edf9f6;
-    margin: 1rem;
-    padding: 1rem;
-    border-radius: 0.8rem;
+    margin: 16px;
+    padding: 16px;
+    border-radius: 12px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
 .filter-tabs {
     display: flex;
     justify-content: space-between;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .filter-btn {
@@ -27,10 +27,10 @@
     border: 1px solid #316745;
     background-color: #fff;
     color: #316745;
-    border-radius: 1.2rem;
-    padding: 0.4rem 0.8rem;
+    border-radius: 20px;
+    padding: 6px 12px;
     font-weight: bold;
-    font-size: 0.8rem;
+    font-size: 12px;
     text-align: center;
     transition: 0.2s;
 }
@@ -44,10 +44,10 @@
 /* ===== カード ===== */
 .card {
     background: #fff;
-    border-radius: 1rem;
+    border-radius: 16px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
-    margin: 1rem;
+    padding: 16px;
+    margin: 16px;
 }
 
 .flex-between {
@@ -65,7 +65,7 @@
     border: none;
     border-radius: 0;
     padding: 0;
-    font-size: 0.85rem;
+    font-size: 14px;
     /* サイズを微調整 */
     font-weight: bold;
 }
@@ -75,9 +75,9 @@
     background-color: #edf9f6;
     border: 1px solid #bfdfd8;
     color: #14788b;
-    font-size: 0.8rem;
-    border-radius: 0.6rem;
-    padding: 0.3rem 0.6rem;
+    font-size: 12px;
+    border-radius: 10px;
+    padding: 5px 10px;
     cursor: pointer;
 }
 
@@ -86,24 +86,24 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 1rem;
+    gap: 16px;
     text-align: center;
 }
 
 .score {
-    font-size: 1.6rem;
+    font-size: 26px;
     font-weight: bold;
     color: #14788b;
 }
 
 .vs {
-    font-size: 1.2rem;
+    font-size: 20px;
     color: #666;
 }
 
 /* ===== 入力フォーム ===== */
 .form-container {
-    padding: 1rem;
+    padding: 16px;
     flex: 1;
     overflow-y: auto;
 }
@@ -112,28 +112,28 @@
     display: block;
     font-weight: bold;
     color: #136f82;
-    margin-bottom: 0.4rem;
+    margin-bottom: 6px;
 }
 
 .card input,
 .card select,
 .card button {
-    font-size: 1rem;
+    font-size: 16px;
     box-sizing: border-box;
 }
 
 /* ===== 日時入力カード ===== */
 .datetime {
     display: flex;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 .datetime input[type="date"],
 .datetime button {
     flex: 1;
-    padding: 0.8rem;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 0.6rem;
+    border-radius: 10px;
     width: 100%;
     text-align: center;
 }
@@ -141,24 +141,24 @@
 /* ===== 会場入力 ===== */
 #venue-input {
     width: 100%;
-    padding: 0.8rem;
+    padding: 12px;
     border: 1px solid #ddd;
-    border-radius: 0.6rem;
+    border-radius: 10px;
 }
 
 /* ===== 得点者セクション ===== */
 .goal-section {
     background: #fff;
-    border-radius: 1rem;
+    border-radius: 16px;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-    padding: 1rem;
+    padding: 16px;
 }
 
 .goal-entry {
     display: flex;
     align-items: center;
-    gap: 0.4rem;
-    margin-bottom: 0.6rem;
+    gap: 6px;
+    margin-bottom: 10px;
     flex-wrap: nowrap;
 }
 
@@ -167,19 +167,19 @@
     flex: 1;
     min-width: 0;
     box-sizing: border-box;
-    padding: 0.6rem;
+    padding: 10px;
     border: 1px solid #ddd;
-    border-radius: 0.6rem;
+    border-radius: 10px;
 }
 
 .goal-entry input[type="number"] {
-    max-width: 4rem;
+    max-width: 64px;
 }
 
 .goal-entry button {
     background: #eee;
-    border-radius: 0.5rem;
-    padding: 0.4rem 0.6rem;
+    border-radius: 8px;
+    padding: 6px 10px;
 }
 
 .add-btn {
@@ -187,8 +187,8 @@
     background: #edf9f6;
     border: 1px solid #bfdfd8;
     color: #136f82;
-    padding: 0.6rem;
-    border-radius: 0.6rem;
+    padding: 10px;
+    border-radius: 10px;
     font-weight: bold;
     margin-top: 8px;
 }
@@ -223,8 +223,8 @@
 
 .modal-content {
     background: #fff;
-    padding: 1rem;
-    border-radius: 0.8rem;
+    padding: 16px;
+    border-radius: 12px;
     width: 80%;
     max-width: 300px;
 }
@@ -233,13 +233,13 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
 }
 
 /* ===== レスポンシブ ===== */
 @media (max-width: 420px) {
     .card {
-        margin: 0.8rem;
-        padding: 0.8rem;
+        margin: 12px;
+        padding: 12px;
     }
 }
