@@ -1,62 +1,64 @@
 // matchResult.js (完全修正版 - 部署対抗フットサル向け)
 
-(function () {
-  // 部署対抗フットサルリーグのデータ構造に合わせて修正
-  const matchesData = [
-    {
-      matchId: 53,
-      round: 26,
-      matchStartTime: "2025/10/10 19:15",
-      matchEndTime: "2025/10/10 19:25",
-      courtName: "クラブハウス側",
-      homeTeamName: "営企",
-      awayTeamName: "情シス",
-      homeScore: 3,
-      awayScore: 2,
-      // 部署対抗では得点者情報は不要だが、データ構造を維持するため空で定義
-      team1Goalscorers: [{ playerName: "仮", goals: 3 }], 
-      team2Goalscorers: [{ playerName: "仮", goals: 2 }],
-    },
-    {
-      matchId: 54,
-      round: 27,
-      matchStartTime: "2025/10/10 19:30",
-      matchEndTime: "2025/10/10 19:40",
-      courtName: "真ん中",
-      homeTeamName: "地リレ",
-      awayTeamName: "ブラ戦",
-      homeScore: 1,
-      awayScore: 4,
-      team1Goalscorers: [{ playerName: "仮", goals: 1 }],
-      team2Goalscorers: [{ playerName: "仮", goals: 4 }],
-    },
-    {
-      matchId: 55,
-      round: 28,
-      matchStartTime: "2026/01/01 10:00", // 未来の日時で「予定」をテスト
-      matchEndTime: "2026/01/01 10:10",
-      courtName: "北コート",
-      homeTeamName: "総務",
-      awayTeamName: "経理",
-      homeScore: 0,
-      awayScore: 0,
-      team1Goalscorers: [],
-      team2Goalscorers: [],
-    },
-    {
-      matchId: 56,
-      round: 29,
-      matchStartTime: "2025/10/06 09:35", // 現在時刻（例: 2025/10/06 09:40:41 JST）を含む日時で「進行中」をテスト
-      matchEndTime: "2025/10/06 09:45",
-      courtName: "南コート",
-      homeTeamName: "開発",
-      awayTeamName: "広報",
-      homeScore: 1,
-      awayScore: 1,
-      team1Goalscorers: [{ playerName: "仮", goals: 1 }],
-      team2Goalscorers: [{ playerName: "仮", goals: 1 }],
-    },
-  ];
+// 部署対抗フットサルリーグのデータ構造に合わせて修正
+// const matchesData = [
+//   {
+//     matchId: 53,
+//     round: 26,
+//     matchStartTime: "2025/10/10 19:15",
+//     matchEndTime: "2025/10/10 19:25",
+//     courtName: "クラブハウス側",
+//     homeTeamName: "営企",
+//     awayTeamName: "情シス",
+//     homeScore: 3,
+//     awayScore: 2,
+//     // 部署対抗では得点者情報は不要だが、データ構造を維持するため空で定義
+//     team1Goalscorers: [{ playerName: "仮", goals: 3 }], 
+//     team2Goalscorers: [{ playerName: "仮", goals: 2 }],
+//   },
+//   {
+//     matchId: 54,
+//     round: 27,
+//     matchStartTime: "2025/10/10 19:30",
+//     matchEndTime: "2025/10/10 19:40",
+//     courtName: "真ん中",
+//     homeTeamName: "地リレ",
+//     awayTeamName: "ブラ戦",
+//     homeScore: 1,
+//     awayScore: 4,
+//     team1Goalscorers: [{ playerName: "仮", goals: 1 }],
+//     team2Goalscorers: [{ playerName: "仮", goals: 4 }],
+//   },
+//   {
+//     matchId: 55,
+//     round: 28,
+//     matchStartTime: "2026/01/01 10:00", // 未来の日時で「予定」をテスト
+//     matchEndTime: "2026/01/01 10:10",
+//     courtName: "北コート",
+//     homeTeamName: "総務",
+//     awayTeamName: "経理",
+//     homeScore: 0,
+//     awayScore: 0,
+//     team1Goalscorers: [],
+//     team2Goalscorers: [],
+//   },
+//   {
+//     matchId: 56,
+//     round: 29,
+//     matchStartTime: "2025/10/06 09:35", // 現在時刻（例: 2025/10/06 09:40:41 JST）を含む日時で「進行中」をテスト
+//     matchEndTime: "2025/10/06 09:45",
+//     courtName: "南コート",
+//     homeTeamName: "開発",
+//     awayTeamName: "広報",
+//     homeScore: 1,
+//     awayScore: 1,
+//     team1Goalscorers: [{ playerName: "仮", goals: 1 }],
+//     team2Goalscorers: [{ playerName: "仮", goals: 1 }],
+//   },
+// ];
+
+window.addEventListener('DOMContentLoaded', async function () {
+  const matchesData = await getAllMatchSchedule();
 
   // プレイヤーデータは今回不要だが、得点者入力で仮に必要になるため一部残す
   const players = [
@@ -86,8 +88,10 @@
       round: `第${m.round}節`,
       status: calcStatus(m.matchStartTime, m.matchEndTime),
       date: m.matchStartTime.split(" ")[0].replace(/\//g, "-"), // date: YYYY-MM-DD
-      startTime: m.matchStartTime.split(" ")[1],
-      endTime: m.matchEndTime.split(" ")[1],
+      // startTime: m.matchStartTime.split(" ")[1],
+      startTime: m.startHour + ":" + m.startMinute,
+      // endTime: m.matchEndTime.split(" ")[1],
+      endTime: m.endHour + ":" + m.endMinute,
       team1: m.homeTeamName,
       team2: m.awayTeamName,
       team1Score: m.homeScore,
@@ -99,7 +103,7 @@
     saveMatches(initialMatches);
     return initialMatches;
   }
-  
+
   function saveMatches(matches) {
     localStorage.setItem("matches", JSON.stringify(matches));
   }
@@ -121,10 +125,10 @@
     let matches = loadMatches();
     // 画面表示前に最新のステータスに更新
     matches = matches.map(m => {
-        const startDateTimeStr = `${m.date.replace(/-/g, "/")} ${m.startTime}`;
-        const endDateTimeStr = `${m.date.replace(/-/g, "/")} ${m.endTime}`;
-        m.status = calcStatus(startDateTimeStr, endDateTimeStr);
-        return m;
+      const startDateTimeStr = `${m.date.replace(/-/g, "/")} ${m.startTime}`;
+      const endDateTimeStr = `${m.date.replace(/-/g, "/")} ${m.endTime}`;
+      m.status = calcStatus(startDateTimeStr, endDateTimeStr);
+      return m;
     });
     saveMatches(matches); // 更新したステータスを保存
 
@@ -154,7 +158,7 @@
           // 修正: 日付不要、試合時間はHH:MM〜HH:MM、得点者表示不要
           div.innerHTML = `
             <div class="flex-between">
-              <span class="badge status">${m.status}</span>
+              <!-- <span class="badge status">${m.status}</span> -->
               <button class="edit-btn" data-id="${m.id}">編集</button>
             </div>
             <p style="font-size: 0.9rem; color: #666;">${m.startTime}〜${m.endTime}</p>
@@ -220,11 +224,11 @@
     // 試合日時表示 (例: 10/10 19:15〜19:25)
     const [month, day] = match.date.substring(5).split('-'); // YYYY-MM-DD から MM-DD
     dateTimeDisplay.textContent = `${month}/${day} ${match.startTime}〜${match.endTime}`;
-    
+
     // 会場表示
     venueDisplay.textContent = match.venue;
     venueInput.value = match.venue; // hidden inputに値を保持
-    
+
     // 節の値を保持 (ヘッダー表示用)
     roundHiddenInput.value = match.round;
 
@@ -244,7 +248,7 @@
     // チーム選択変更時の得点者リスト/スコア更新
     t1Sel.addEventListener("change", renderGoals);
     t2Sel.addEventListener("change", renderGoals);
-    
+
     // チーム名の表示を更新
     function updateTeamNames() {
       document.getElementById("team1-name").textContent = t1Sel.value;
@@ -287,17 +291,15 @@
           <select data-team="${team}" data-index="${i}">
             <option value="">選手を選択</option>
             ${list
-              .map(
-                (p) =>
-                  `<option value="${p.name}" ${
-                    p.name === g.playerName ? "selected" : ""
-                  }>${p.name}</option>`
-              )
-              .join("")}
+            .map(
+              (p) =>
+                `<option value="${p.name}" ${p.name === g.playerName ? "selected" : ""
+                }>${p.name}</option>`
+            )
+            .join("")}
           </select>
-          <input type="number" data-team="${team}" data-index="${i}" value="${
-          g.goals
-        }" min="1">
+          <input type="number" data-team="${team}" data-index="${i}" value="${g.goals
+          }" min="1">
           <button class="remove-btn" data-team="${team}" data-index="${i}">×</button>
         `;
         area.appendChild(div);
@@ -371,11 +373,11 @@
       match.team2 = t2Sel.value;
       match.team1Goalscorers = team1Goals;
       match.team2Goalscorers = team2Goals;
-      
+
       // スコアを再計算
       match.team1Score = team1Goals.reduce((s, g) => s + g.goals, 0);
       match.team2Score = team2Goals.reduce((s, g) => s + g.goals, 0);
-      
+
       // ステータスを最新に更新
       const newStartDateTimeStr = `${match.date.replace(/-/g, "/")} ${match.startTime}`;
       const newEndDateTimeStr = `${match.date.replace(/-/g, "/")} ${match.endTime}`;
@@ -384,8 +386,39 @@
       saveMatches(matches);
       location.href = "matchResult.html";
     };
-    
+
     // 初回ロード時にもチーム名を表示
     updateTeamNames();
   }
-})();
+});
+// チームリストを取得
+async function getAllMatchSchedule() {
+  // クエリパラメータを付与したURLを作成
+  const params = new URLSearchParams({
+    action: "getAllMatchSchedule",
+  });
+
+  const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+  try {
+    console.log('try');
+    // GASエンドポイントへのGETリクエスト
+    const response = await fetch(newUrl);
+
+    // HTTPステータスコードをチェック
+    if (!response.ok) {
+      // エラーを表示
+      showError(`HTTPエラー! ステータス: ${response.status}`);
+    }
+
+    // レスポンスボディをJSONとしてパース
+    const data = await response.json();
+    console.log('data');
+    console.log(data);
+
+    return data;
+  } catch (error) {
+    console.log('catch');
+    showError(`データ取得中にエラーが発生しました:${error}`);
+  }
+}

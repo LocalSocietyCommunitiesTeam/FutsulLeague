@@ -85,3 +85,35 @@ window.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// チームリストを取得
+async function getAllMatchSchedule() {
+    // クエリパラメータを付与したURLを作成
+    const params = new URLSearchParams({
+        action: "getAllMatchSchedule",
+    });
+
+    const newUrl = `${WEB_APP_URL}?${params.toString()}`;
+
+    try {
+        console.log('try');
+        // GASエンドポイントへのGETリクエスト
+        const response = await fetch(newUrl);
+
+        // HTTPステータスコードをチェック
+        if (!response.ok) {
+            // エラーを表示
+            showError(`HTTPエラー! ステータス: ${response.status}`);
+        }
+
+        // レスポンスボディをJSONとしてパース
+        const data = await response.json();
+        console.log('data');
+        console.log(data);
+
+        return data;
+    } catch (error) {
+        console.log('catch');
+        showError(`データ取得中にエラーが発生しました:${error}`);
+    }
+}
