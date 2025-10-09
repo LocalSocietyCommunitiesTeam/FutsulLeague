@@ -14,6 +14,8 @@
     padding: 16px;
     border-radius: 12px;
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    /* ToDo：試合ステータス絞り込み */
+    display: none;
 }
 
 .filter-tabs {
