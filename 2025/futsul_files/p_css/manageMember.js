@@ -353,9 +353,9 @@ function filterMembers(selectedDept) {
   cards.forEach(card => {
     const dept = card.getAttribute("data-department");
     if (dept === selectedDept) {
-      if (card.getAttribute("style") !== "display: none;"){
-      		visibleCount++;
-	    }
+      if (card.getAttribute("style") !== "display: none;") {
+        visibleCount++;
+      }
     } else {
       card.style.display = "none";
     }
