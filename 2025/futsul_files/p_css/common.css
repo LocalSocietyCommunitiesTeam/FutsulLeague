@@ -118,13 +118,16 @@ body {
     left: 0;
     width: 100vw;
     height: 100vh;
-    background-image: url("../p_image/grass_pc.jpg");
+    /* background-image: url("../p_image/grass_pc.jpg"); */
     z-index: 1000;
+    pointer-events: none;
 }
 
 .comingsoon_typo {
     font-weight: 700;
-    font-size: 36px;
-    line-height: 48px;
-    color: #FFFFFF;
+    font-size: 32px;
+    line-height: 42px;
+    /* color: #FFFFFF; */
+    color: red;
+    text-align: center;
 }
