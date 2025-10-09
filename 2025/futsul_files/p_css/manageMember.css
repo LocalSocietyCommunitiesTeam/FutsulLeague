@@ -30,13 +30,13 @@ main {
     align-items: center;
 }
 
-/*
+
 label {
     font-weight: bold;
-    margin-right: 0.5rem;
+    margin-right: 8px;
     color: #136f82;
 }
-*/
+
 
 select {
     -webkit-appearance: none;
