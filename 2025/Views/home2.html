@@ -4,41 +4,117 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Pragma" content="no-cache">
-    <title>フットサルリーグ｜ホーム</title>
+    <title>フットサルリーグ｜ホーム2</title>
     <!-- 共通CSS -->
     <link rel="stylesheet" href="../futsul_files/p_css/reset.css?20251010">
-    <link rel="stylesheet" href="../futsul_files/p_css/component.css?20251010">
-    <link rel="stylesheet" href="../futsul_files/p_css/common.css?20251010">
-    <!-- 画面個別CSS -->
-    <link rel="stylesheet" href="../futsul_files/p_css/home.css?20251010">
+    <style>
+        .com_body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            background-image: url("../futsul_files/p_image/futsul_court.jpg");
+            background-position: center;
+            background-repeat: no-repeat;
+            background-size: cover;
+        }
+
+        .com_header {
+            padding: 16px 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .com_main {
+            flex-grow: 1;
+
+        }
+
+        .com_footer {
+            padding: 16px 0;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .c_typo_headerXL {
+            font-size: 24px;
+            line-height: 36px;
+            font-weight: 700;
+        }
+
+        .c_typo_headerL {
+            font-size: 18px;
+            line-height: 26px;
+            font-weight: 700;
+        }
+
+        .c_typo_headerM {
+            font-size: 16px;
+            line-height: 24px;
+            font-weight: 700;
+        }
+
+        .c_typo_headerS {
+            font-size: 14px;
+            line-height: 20px;
+            font-weight: 700;
+        }
+
+        .c_typo_WHT {
+            color: #2E2E2E;
+        }
+
+        .c_typo_center {
+            text-align: center;
+        }
+
+        .hm_btnSec {
+            padding: 48px 20px;
+        }
+
+        .hm_btnList>li:not(:first-child) {
+            padding-top: 24px;
+        }
+
+        .hm_btn {
+            display: block;
+            background-color: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border-radius: 24px;
+            padding: 24px;
+        }
+    </style>
 </head>
 
-<body class="com_body com_body_flex">
-    <!-- ヘッダー -->
-    <header class="header">
-        <h1>⚽ フットサルリーグ</h1>
-        <span class="badge">ホーム</span>
+<body class="com_body">
+    <header class="com_header">
+        <h1 class="c_typo_headerXL c_typo_WHT c_typo_center">ホーム2</h1>
     </header>
-    <!-- <header class="home_header">
-        <h1 class="c_typo_headerXL c_typo_WHT c_typo_center">フットサルリーグ</h1>
-    </header> -->
 
-    <!-- メイン -->
-    <main class="com_main home_main">
-        <ul>
-            <li><a href="./match2.html">参加者</a></li>
-            <li><a href="./masterLogin2.html">管理者</a></li>
-        </ul>
+    <main class="com_main">
+        <section class="hm_btnSec">
+            <ul class="hm_btnList">
+                <li><a href="./match2.html" class="hm_btn">
+                        <p class="c_typo_headerM c_typo_WHT">参加者　→</p>
+                    </a></li>
+                <li><a href="./masterLogin.html" class="hm_btn">
+                        <p class="c_typo_headerM c_typo_WHT">管理者　→</p>
+                    </a></li>
+            </ul>
+        </section>
     </main>
 
-    <!-- フッター -->
-    <footer class="home_footer">
-        <p class="com_typo_footer">&copy; 2025 フットサルリーグ. All rights reserved.</p>
+    <footer class="com_footer">
+        <p class="c_typo_headerS c_typo_WHT c_typo_center">&copy; 2025 フットサルリーグ. All rights reserved.</p>
     </footer>
-
-    <!-- 共通JS -->
-    <script src="../futsul_files/p_css/event.js?20251010"></script>
 </body>
 
 </html>
