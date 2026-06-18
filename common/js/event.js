@@ -1,4 +1,4 @@
-/* ===== システムパーツ集（マイスター） JS 2_61  ====== */
+/* ===== システムパーツ集 JS 2_61  ====== */
 // ダイアログ系共通
 // bodyScroll設定
 function setBodyScroll() {
@@ -14,12 +14,8 @@ function setBodyScroll() {
     if (document.body.classList.contains("c_bodyScroll")) {
         document.body.classList.add("c_bodyScroll_sec");
     } else {
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
         // 表示位置の指定用
-        document.body.style.top = '-' + window.pageYOffset / rootfont + 'rem';
+        document.body.style.top = '-' + window.pageYOffset + 'px';
         document.body.classList.add("c_bodyScroll");
     };
 }
@@ -35,7 +31,6 @@ function clearBodyScroll() {
         'c_dialog02_isShow',
         'c_cfmDialog_isShow',
         'c_loading01_isShow',
-        'c_loading02_isShow',
     ];
 
     // isShowクラスを持つ要素の数をカウント
@@ -65,12 +60,8 @@ function clearBodyScroll() {
 function c_scrollMove() {
     let scrollMove = document.body.style.getPropertyValue('top');
     if (scrollMove != '') {
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
         scrollMove = scrollMove.replace('-', '');
-        scrollMove = scrollMove.replace('rem', '') * rootfont;
+        scrollMove = scrollMove.replace('px', '');
         document.body.style.removeProperty('top');
         // スクロール位置を戻す
         window.scrollTo(0, scrollMove);
@@ -94,18 +85,14 @@ if (!document.getElementsByClassName('c_acc').length) {
     /* コンテンツ部分の高さ設定（外部呼び出し用） */
     // 引数：target：該当のアコーディオン親要素（c_accクラスのあるタグ）
     function c_acc_setHeight(target) {
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
         // HTML要素内には該当クラス名を持つ要素は1つのみのため配列0番目を指定
         const contentsHeight = target.getElementsByClassName('c_acc_invis')[0];
         // アコーディオンを閉じるクラスを持っているかで判定
         if (target.getElementsByClassName('c_acc_isClose').length) {
-            contentsHeight.setAttribute('style', 'max-height:0rem');
+            contentsHeight.setAttribute('style', 'max-height:0px');
         } else {
             // 内容部分の高さを中身分の高さに設定
-            contentsHeight.setAttribute('style', 'max-height:' + ((contentsHeight.firstElementChild.offsetHeight / rootfont) + 1) + 'rem')
+            contentsHeight.setAttribute('style', 'max-height:' + ((contentsHeight.firstElementChild.offsetHeight) + 10) + 'px')
         }
     }
     /* 初期の開閉状態を設定 */
@@ -114,6 +101,7 @@ if (!document.getElementsByClassName('c_acc').length) {
     function setLoadedAccordion(target) {
         // 見出し部分のコレクションを取得
         const accVis = document.getElementsByClassName('c_acc_vis');
+
         // コンテンツ部分の高さ設定前のbodyの高さ
         const beforeBody = document.body.offsetHeight;
 
@@ -155,17 +143,12 @@ if (!document.getElementsByClassName('c_acc').length) {
 
     /* コンテンツ部分の高さ設定 */
     function setAccordinnHeight(accContent) {
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
-
         if (accContent.parentElement.classList.contains('c_acc_isClose')) {
-            accContent.nextElementSibling.setAttribute('style', 'max-height:0rem');
+            accContent.nextElementSibling.setAttribute('style', 'max-height:0px');
         } else {
             // 内容部分の高さを中身分の高さに設定
             // コンテンツに対して余裕を持たせるために少し大きい値を設定
-            accContent.nextElementSibling.setAttribute('style', 'max-height:' + ((accContent.nextElementSibling.firstElementChild.offsetHeight / rootfont) + 1) + 'rem')
+            accContent.nextElementSibling.setAttribute('style', 'max-height:' + ((accContent.nextElementSibling.firstElementChild.offsetHeight) + 10) + 'px')
         }
     }
 
@@ -208,9 +191,9 @@ if (!document.getElementsByClassName('c_acc').length) {
         }
     });
 
+    // アコーディオンにイベント登録
     // 見出し部分のコレクションを取得
     const accVis = document.getElementsByClassName('c_acc_vis');
-    // アコーディオンにイベント登録
     for (let i = 0; i < accVis.length; i++) {
         accVis[i].addEventListener('click', function () {
             clickAcordion(this);
@@ -250,12 +233,8 @@ if (!document.getElementsByClassName('c_acc02').length) {
                 moreAreaHeight = moreAreaHeight + moreArea[i].getBoundingClientRect().height;
             }
         }
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
         // 表示エリアの高さを設定
-        setHeihgt.style.height = (initArea.getBoundingClientRect().height + moreAreaHeight) / rootfont + 'rem';
+        setHeihgt.style.height = initArea.getBoundingClientRect().height + moreAreaHeight + 'px';
     }
 
     /* コンテンツエリアの表示 */
@@ -368,10 +347,12 @@ if (!document.getElementsByClassName('c_acc02').length) {
             acc02Close.addEventListener('click', function () {
                 c_acc02_isClose(this.parentElement.parentElement);
                 setTimeout(function () {
-                    const accMoreView = acc02Close.parentElement.parentElement.getElementsByClassName('c_acc02_MoreView');
-                    for (let i = 0; accMoreView.length > i; i++) {
-                        if (!accMoreView[i].classList.contains('c_acc02_isView')) {
-                            accMoreView[i].style.visibility = 'hidden';
+                    if (acc02Close.classList.contains('c_acc02_hidden')) {
+                        const accMoreView = acc02Close.parentElement.parentElement.getElementsByClassName('c_acc02_MoreView');
+                        for (let i = 0; accMoreView.length > i; i++) {
+                            if (!accMoreView[i].classList.contains('c_acc02_isView')) {
+                                accMoreView[i].style.visibility = 'hidden';
+                            }
                         }
                     }
                 }, 400);
@@ -393,16 +374,15 @@ if (!document.getElementsByClassName('c_acc02').length) {
 }
 
 /** コンポーネント：Dialog **/
-// フォントサイズ取り込み
 if (!document.getElementsByClassName('c_modal01').length) {
     //該当の要素がない場合は処理を行なわない
 } else {
-
     // ダイアログ表示処理
     function showModalDialog01(targetDialogArea) {
         targetDialogArea.getElementsByClassName('c_modal01_textArea')[0].scrollTop = 0;
         // ダイアログウィンドウ表示
         targetDialogArea.classList.add('c_modal01_isShow');
+
         // 背景固定
         setBodyScroll();
         // 高さ設定
@@ -411,21 +391,13 @@ if (!document.getElementsByClassName('c_modal01').length) {
 
     // ダイアログ非表示処理
     function closeModalDialog01(targetDialogArea) {
-        // ダイアログウィンドウ非表示
         targetDialogArea.classList.remove('c_modal01_isShow');
-        // スクロール位置を戻すための処理
         clearBodyScroll();
     }
 
     // ダイアログ表示時用 高さ設定処理
     function setMaxHeightModal01(targetDialogArea) {
-
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
-
-        const modalMaxHeight = 56;
+        const modalMaxHeight = 680;
         targetArea = targetDialogArea.getElementsByClassName('c_modal01_textArea')[0];
         let dialogHeight;
         // IEかどうかで取得元を変える
@@ -434,19 +406,21 @@ if (!document.getElementsByClassName('c_modal01').length) {
         } else {
             dialogHeight = window.innerHeight;
         }
-        // iOSではheightがvhの場合、アドレスバーが表示エリアに含まれないためこちらでheightを指定
-        targetDialogArea.style.height = dialogHeight / rootfont + 'rem';
-        // textAreaも上記同様の理由でmax-heightを指定
-        // 本来は6.4remだがスクロールバーの表示調整でCSS側の「dialog_inner」の上下paddingが6.2remのため計算値もあわせる
-        targetArea.style.maxHeight = ((dialogHeight / rootfont * 0.9) - 6.2) + 'rem';
-        // ダイアログのダイアログボックスの高さは最大56rem
-        // ただし、ウィンドウの高さの90%が上記の高さより小さい場合は、
+        //iphoneではheightがvhの場合、アドレスバーが表示エリアに含まれないためこちらでheightを指定
+        targetDialogArea.style.height = dialogHeight + 'px';
+        //textAreaも上記同様の理由でmax-heightを指定
+        //本来は64pxだがスクロールバーの表示調整でCSS側の「dialog_inner」の上下paddingが62pxのため計算値もあわせる
+        targetArea.style.maxHeight = ((dialogHeight * 0.9) - 62) + 'px';
+        // ダイアログのダイアログボックスの高さは最大680px
+        // ただし、PC時かつウィンドウの高さの90%が上記の高さより小さい場合は、
         // ウィンドウの90%をダイアログボックスの高さとする
-        if (dialogHeight / rootfont * 0.9 < modalMaxHeight) {
-            // 90%未満のときは指定したmax-heightを使用
-        } else {
-            // CSSで指定したmax-heightとするため削除
-            targetArea.style.removeProperty('max-height');
+        if (!window.matchMedia('(max-width: 760px)').matches) {
+            if (dialogHeight * 0.9 < modalMaxHeight) {
+                //90%未満のときは指定したmax-heightを使用
+            } else {
+                //CSSで指定したmax-heightとするため削除
+                targetArea.style.removeProperty('max-height');
+            }
         }
     }
 
@@ -498,11 +472,12 @@ if (!document.getElementsByClassName('c_modal01').length) {
     });
 }
 
-/** コンポーネント：Dialog02（ボタンエリア付ダイアログ） **/
+/** コンポーネント：btnAreaDialog **/
 // ボタンエリア付きダイアログ処理
 if (!document.getElementsByClassName('c_dialog02').length) {
     //該当の要素がない場合は処理を行なわない
 } else {
+
     // ダイアログ表示処理
     function showModalDialog02(targetDialogArea) {
         targetDialogArea.getElementsByClassName('c_dialog02_textArea')[0].scrollTop = 0;
@@ -517,24 +492,16 @@ if (!document.getElementsByClassName('c_dialog02').length) {
     // ダイアログ非表示処理
     function closeModalDialog02(targetDialogArea) {
         targetDialogArea.classList.remove('c_dialog02_isShow');
+        // スクロール位置を戻すための処理
         clearBodyScroll();
+
     }
 
     // ダイアログ表示時用 高さ設定処理
     function setMaxHeightDialog02(targetDialogArea) {
-
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
-
-        const targetArea = targetDialogArea.getElementsByClassName('c_dialog02_textArea')[0];
-        // 高さの再判定を実施するため削除
-        targetArea.style.removeProperty('max-height');
-
-        const targetHeight = targetArea.getBoundingClientRect().height / rootfont;
+        const modalMaxHeight = 680;
         const buttonArea = targetDialogArea.getElementsByClassName('c_dialog02_buttonArea')[0];
-        const buttonAreaHeight = buttonArea.getBoundingClientRect().height / rootfont;
+        const buttonAreaHeight = buttonArea.getBoundingClientRect().height;
         const textArea = targetDialogArea.getElementsByClassName('c_dialog02_textArea')[0];
         let dialogHeight;
         // IEかどうかで取得元を変える
@@ -544,25 +511,31 @@ if (!document.getElementsByClassName('c_dialog02').length) {
             dialogHeight = window.innerHeight;
         }
         // iOSではheightがvhの場合、アドレスバーが表示エリアに含まれないためこちらでheightを指定
-        targetDialogArea.style.height = dialogHeight / rootfont + 'rem';
+        targetDialogArea.style.height = dialogHeight + 'px';
         // textAreaも上記同様の理由でmax-heightを指定
-        // ただし、ウィンドウの高さの90%が上記の高さより小さい場合は、
-        // ウィンドウの90%をダイアログボックスの高さとする（上下padding、ボタン領域分を考慮）
-        if ((dialogHeight / rootfont * 0.9) < (targetHeight + buttonAreaHeight + 3.2)) {
-            targetArea.style.maxHeight = ((dialogHeight / rootfont * 0.9) - 3.2 - buttonAreaHeight) + 'rem';
+        textArea.style.maxHeight = ((dialogHeight * 0.9) - 32 - buttonAreaHeight) + 'px';
+        // ただし、PC時かつウィンドウの高さの90%が最大高さより小さい場合は、
+        // ウィンドウの90%をダイアログボックスの高さとする
+        if (!window.matchMedia('(max-width: 760px)').matches) {
+            if ((dialogHeight * 0.9) < modalMaxHeight) {
+                // 90%未満のときは指定したmax-heightを使用
+            } else {
+                // CSSで指定したmax-heightとするため削除
+                textArea.style.removeProperty('max-height');
+            }
         }
 
         // スクロールが出ているか否かによる表示切替
         // Edge(IE)ではサイズによってscrollHeightが1px大きくなることがあるため調整のため+1pxして判定を実施
-        if (targetArea.scrollHeight > (targetArea.clientHeight + 1)) {
+        if (textArea.scrollHeight > (textArea.clientHeight + 1)) {
             // ボタンエリアに影をつける
             buttonArea.classList.add("c_dialog02_buttonArea_shadow");
-            targetArea.classList.add("c_dialog02_scrollBottom");
-            targetArea.style.removeProperty('overflow-y');
+            textArea.classList.add("c_dialog02_scrollBottom");
+            textArea.style.removeProperty('overflow-y');
         } else {
             buttonArea.classList.remove("c_dialog02_buttonArea_shadow");
-            targetArea.classList.remove("c_dialog02_scrollBottom");
-            targetArea.style.overflowY = 'hidden';
+            textArea.classList.remove("c_dialog02_scrollBottom");
+            textArea.style.overflowY = 'hidden';
         }
     }
 
@@ -614,12 +587,13 @@ if (!document.getElementsByClassName('c_dialog02').length) {
     });
 }
 
-/** コンポーネント：Dialog03（確認ダイアログ） **/
+/** コンポーネント：confirmationDialog **/
 if (!document.getElementsByClassName('c_cfmDialog').length) {
     //該当の要素がない場合は処理を行なわない
 } else {
     // 確認ダイアログ表示処理
     function showCfmDialog(text, dialogSetting, buttonLeft, buttonRight) {
+
         const dlg = document.getElementsByClassName("c_cfmDialog")[0];
         // テキスト設定
         dlg.getElementsByClassName("c_cfmDialog_text")[0].innerText = text;
@@ -633,6 +607,7 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
         // 背景押下可否
         const bkScreen = dlg.getElementsByClassName('c_cfmDialog_modal')[0];
         bkScreen.getElementsByClassName('c_cfmDialog_textArea')[0].scrollTop = 0;
+
         if (dialogSetting.isClickableBackScreen) {
             bkScreen.classList.remove("c_cfmDialog_modal_disable");
         } else {
@@ -640,9 +615,9 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
         }
 
         // ボタン領域設定
-        // 左ボタン設定
+        // 上ボタン設定
         setBtnSetting(dlg.getElementsByClassName("c_cfmDialog_btnLeft")[0], buttonLeft);
-        // 右ボタン設定
+        // 下ボタン設定
         setBtnSetting(dlg.getElementsByClassName("c_cfmDialog_btnRight")[0], buttonRight);
 
         // 背景固定
@@ -655,7 +630,6 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
 
     // ダイアログ非表示処理
     function closeCfmDialog() {
-        // ダイアログウィンドウ非表示
         document.getElementsByClassName("c_cfmDialog")[0].classList.remove('c_cfmDialog_isShow');
         // 背景固定解除
         clearBodyScroll();
@@ -663,17 +637,10 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
 
     // ダイアログ表示時用 高さ設定処理
     function setMaxHeightCfmDialog(targetDialogArea) {
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
+        const modalMaxHeight = 680;
         const buttonArea = targetDialogArea.getElementsByClassName('c_cfmDialog_buttonArea')[0];
-        const buttonAreaHeight = buttonArea.offsetHeight / rootfont;
-
-        const targetArea = targetDialogArea.getElementsByClassName('c_cfmDialog_textArea')[0];
-        // max-heightの再判定を実施するため削除
-        targetArea.style.removeProperty('max-height');
-        const textAreaHeight = targetArea.offsetHeight / rootfont;
+        const buttonAreaHeight = buttonArea.offsetHeight;
+        const textArea = targetDialogArea.getElementsByClassName('c_cfmDialog_textArea')[0];
         let dialogHeight;
         // IEかどうかで取得元を変える
         if (c_isbrowserIE()) {
@@ -682,25 +649,30 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
             dialogHeight = window.innerHeight;
         }
         // iOSではheightがvhの場合、アドレスバーが表示エリアに含まれないためこちらでheightを指定
-        targetDialogArea.style.height = dialogHeight / rootfont + 'rem';
+        targetDialogArea.style.height = dialogHeight + 'px';
         // textAreaも上記同様の理由でmax-heightを指定
-        // ただし、ウィンドウの高さの90%が上記の高さより小さい場合は、
-        // ウィンドウの90%をダイアログボックスの高さとする（上下padding、ボタン領域分を考慮）
-        if ((dialogHeight / (rootfont * 0.9)) < (textAreaHeight + buttonAreaHeight + 3.2)) {
-            targetArea.style.maxHeight = ((dialogHeight / rootfont * 0.9) - 3.2 - buttonAreaHeight) + 'rem';
+        textArea.style.maxHeight = ((dialogHeight * 0.9) - 32 - buttonAreaHeight) + 'px';
+        // ただし、PC時かつウィンドウの高さの90%が最大高さより小さい場合は、
+        // ウィンドウの90%をダイアログボックスの高さとする
+        if (!window.matchMedia('(max-width: 760px)').matches) {
+            if ((dialogHeight * 0.9) < modalMaxHeight) {
+                // 90%未満のときは指定したmax-heightを使用
+            } else {
+                // CSSで指定したmax-heightとするため削除
+                textArea.style.removeProperty('max-height');
+            }
         }
-
         // スクロールが出ているか否かによる表示切替
         // Edge(IE)ではサイズによってscrollHeightが1px大きくなることがあるため調整のため+1pxして判定を実施
-        if (targetArea.scrollHeight > (targetArea.clientHeight + 1)) {
+        if (textArea.scrollHeight > (textArea.clientHeight + 1)) {
             // ボタンエリアに影をつける
             buttonArea.classList.add("c_cfmDialog_buttonArea_shadow");
-            targetArea.classList.add("c_cfmDialog_scrollBottom");
-            targetArea.style.removeProperty('overflow-y');
+            textArea.classList.add("c_cfmDialog_scrollBottom");
+            textArea.style.removeProperty('overflow-y');
         } else {
             buttonArea.classList.remove("c_cfmDialog_buttonArea_shadow");
-            targetArea.classList.remove("c_cfmDialog_scrollBottom");
-            targetArea.style.overflowY = 'hidden';
+            textArea.classList.remove("c_cfmDialog_scrollBottom");
+            textArea.style.overflowY = 'hidden';
         }
     }
 
@@ -783,6 +755,115 @@ if (!document.getElementsByClassName('c_cfmDialog').length) {
     });
 }
 
+/** コンポーネント：Dialog / Wide **/
+if (!document.getElementsByClassName('c_dialog04').length) {
+    // 該当の要素がない場合は処理を行なわない
+} else {
+
+    // ダイアログウィンドウの表示制御
+    const showModal = document.getElementsByClassName('c_dialog04_showModal');
+    for (let i = 0; i < showModal.length; i++) {
+        showModal[i].addEventListener('click', function () {
+            // Dialogを開く
+            c_dialog04_showForm(this.nextElementSibling);
+        })
+    }
+
+    // ダイアログ非表示処理
+    const lnk = document.getElementsByClassName('c_dialog04_closeArea');
+    for (let i = 0; i < lnk.length; i++) {
+        lnk[i].addEventListener('click', function () {
+            // Dialogを閉じる
+            const dlg = this.parentElement.parentElement;
+            c_dialog04_closeForm(dlg);
+        });
+
+        lnk[i].addEventListener('keydown', function (e) {
+            let clickEvent;
+            // クリックイベントの生成
+            if (c_isbrowserIE()) {
+                clickEvent = document.createEvent('Event');
+                clickEvent.initEvent('click', false, true);
+            } else {
+                clickEvent = new Event('click');
+            }
+
+            // Enterキー押下で該当項目を選択する
+            // keyCode : "13" （Enter）
+            if (e.keyCode == "13") {
+                this.dispatchEvent(clickEvent);
+            }
+        });
+    }
+
+    // Dialog_scrollイベント
+    const dlgW = document.getElementsByClassName('c_dialog04_textArea');
+    for (let i = 0; i < dlgW.length; i++) {
+        dlgW[i].addEventListener('scroll', function () {
+            // 「閉じる」テキストリンクエリア
+            const cls = this.parentElement.getElementsByClassName('c_dialog04_closeArea')[0];
+            // スクロール位置
+            if (this.scrollTop <= 0) {
+                // shadowを消す
+                cls.classList.remove('c_dialog04_shadow');
+            } else {
+                // shadowを付ける
+                cls.classList.add('c_dialog04_shadow');
+            }
+        });
+    }
+
+    // リサイズ時 高さ再設定
+    window.addEventListener('resize', function () {
+        const mdl = document.getElementsByClassName('c_dialog04_isShow');
+        for (let i = 0; i < mdl.length; i++) {
+            // 開いているDialogに対して高さを再設定する
+            c_dialog04_setFormHeight(mdl[i]);
+        }
+    });
+
+    // ダイアログ表示処理
+    function c_dialog04_showForm(targetDialogArea) {
+        // bodyScroll設定
+        setBodyScroll();
+
+        // フォームの高さを設定する
+        c_dialog04_setFormHeight(targetDialogArea);
+
+        // 情報入力フォームを一番上までスクロール
+        targetDialogArea.getElementsByClassName('c_dialog04_textArea')[0].scrollTop = 0;
+
+        // Dialog表示
+        targetDialogArea.classList.add('c_dialog04_isShow');
+    }
+
+    // ダイアログ非表示処理
+    function c_dialog04_closeForm(targetDialogArea) {
+        // 背景固定解除
+        document.body.classList.remove('c_bodyScroll');
+        c_scrollMove();
+
+        // 高さ指定を削除
+        targetDialogArea.style.removeProperty('height');
+
+        // Dialog非表示
+        targetDialogArea.classList.remove('c_dialog04_isShow');
+    }
+
+    // ダイアログ表示時用 高さ設定処理
+    function c_dialog04_setFormHeight(targetDialogArea) {
+        let dialogHeight;
+        // IEかどうかで取得元を変える
+        if (c_isbrowserIE()) {
+            dialogHeight = document.documentElement.clientHeight;
+        } else {
+            dialogHeight = window.innerHeight;
+        }
+        // スクロール可能な高さを設定
+        targetDialogArea.style.height = dialogHeight + 'px';
+    }
+}
+
 /** コンポーネント：Loader **/
 // Loading01の参考用JS
 //（使用する場合はコメントアウトは解除せずアプリ用のJSにコピーして使用すること）
@@ -800,7 +881,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
             let padding = c_loading01_setPadding(newLoaderFlag);
             const textArea = showLoader.getElementsByClassName('c_loading01_textArea')[0];
             const progressArea = showLoader.getElementsByClassName('c_loading01_progressArea')[0];
-            const height = showLoader.getElementsByClassName('c_loading01_svg')[0].getBoundingClientRect().height;
+            const height = showLoader.getElementsByClassName('c_loading01_gif')[0].getBoundingClientRect().height;
             // 画像と上下テキストの間の余白を再定義
             c_loading01_setTextArea(height, textArea, progressArea, padding);
         }
@@ -839,7 +920,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
         }
 
         // プログレスの数値が設定されていれば設定
-        if (progress != undefined && +progress >= 0 && progress != '') {
+        if (progress != undefined && +progress >= 0 && typeof progress == 'number') {
             loading.getElementsByClassName('c_loading01_progressNum')[0].innerText = progress;
             loading.classList.add('c_loading01_addProgress');
         } else {
@@ -864,9 +945,9 @@ if (!document.getElementsByClassName('c_loading01').length) {
     // 引数
     //imgSetFlag：ペンタンローダーフラグ
     function c_loading01_setPadding(imgSetFlag) {
-        let padding = 1.6;
-        if (imgSetFlag) {
-            padding = 2.4;
+        let padding = 16;
+        if (!window.matchMedia('(max-width: 760px)').matches && imgSetFlag) {
+            padding = 24;
         }
         return padding;
     }
@@ -878,16 +959,11 @@ if (!document.getElementsByClassName('c_loading01').length) {
     // imgSetFlag：ペンタンローダーフラグ
     function c_loading01_setImgSize(imgHeight, imgWidth, imgSetFlag) {
         // 画像の取得
-        const img = document.getElementsByClassName('c_loading01_svg')[0];
+        const img = document.getElementsByClassName('c_loading01_gif')[0];
         // テキストエリアの取得
         const textArea = document.getElementsByClassName('c_loading01_textArea')[0];
         // プログレスエリアの取得
         const progressArea = document.getElementsByClassName('c_loading01_progressArea')[0];
-
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
 
         // 画像からテキスト/プログレスエリアの間の余白
         let padding = c_loading01_setPadding(imgSetFlag);
@@ -898,7 +974,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
         // heightの値がない場合は画像サイズを取得して値を設定
         if (height) {
             // 画像の高さを設定
-            img.style.height = (height / rootfont) + 'rem';
+            img.style.height = height + 'px';
             // 画像の高さが設定されていたら処理を実行
             c_loading01_setTextArea(height, textArea, progressArea, padding);
         } else {
@@ -923,7 +999,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
             img.style.width = 'auto';
         }
         // 画像の横幅を設定
-        img.style.width = (width / rootfont) + 'rem';
+        img.style.width = width + 'px';
     }
 
     // テキストエリア/プログレスエリアの位置を設定
@@ -933,19 +1009,13 @@ if (!document.getElementsByClassName('c_loading01').length) {
     // progressArea：プログレスエリア
     // padding：画像とテキスト/プログレスエリアの間の余白
     function c_loading01_setTextArea(height, textArea, progressArea, padding) {
-
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
-
         //画像の縦幅を取得して2で割る
-        const imghalf = (height / 2) / rootfont;
+        const imghalf = height / 2;
 
         // テキストエリアの配置設定
-        textArea.style.bottom = 'calc(50% + ' + (imghalf + padding) + 'rem)';
+        textArea.style.bottom = 'calc(50% + ' + (imghalf + padding) + 'px)';
         // プログレスエリアの配置設定
-        progressArea.style.top = 'calc(50% + ' + (imghalf + padding) + 'rem)';
+        progressArea.style.top = 'calc(50% + ' + (imghalf + padding) + 'px)';
 
         // ローディング用モーダルの起動（ローディングが複数あることはないので固定指定）
         textArea.parentElement.classList.add('c_loading01_isShow');
@@ -1012,7 +1082,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
     // 引数2：text：部分ローダーに表示するテキスト（未設定は非表示）
     // 引数3：progress：進捗率の数値（未設定は非表示）
     // 引数4：zindex：z-indexの数値（未設定はCSSの値に準拠）
-    function showPartialLoader(targetId, text, progress, zindex) {
+    function showPartialLoader(targetId, text, progress, zindex, bool) {
         const loading = document.getElementById('c_loading01');
         let targetArea = document.getElementById(targetId);
 
@@ -1036,7 +1106,7 @@ if (!document.getElementsByClassName('c_loading01').length) {
         }
 
         // プログレスの数値が設定されていれば設定
-        if (progress != undefined && +progress >= 0) {
+        if (progress != undefined && +progress >= 0 && typeof progress == 'number') {
             cloneloading.getElementsByClassName('c_loading01_progressNum')[0].innerText = progress;
             cloneloading.classList.add('c_loading01_addProgress');
             // 部分表示用に幅設定を追加
@@ -1046,28 +1116,17 @@ if (!document.getElementsByClassName('c_loading01').length) {
         }
 
         // 画像のサイズを可変にする(最大幅は元画像サイズ)
-        let loadingSvg = cloneloading.getElementsByClassName('c_loading01_svg')[0];
-        loadingSvg.style.width = '4.8rem';
-        loadingSvg.style.height = 'auto';
-        loadingSvg.style.display = 'none';
-
-        loadingParent = loadingSvg.parentElement;
-        const pointDiv = document.createElement('div');
-        pointDiv.classList.add('c_loading02_ellipses');
-        const pointChild1 = document.createElement('div');
-        pointChild1.classList.add('c_loading02_dot');
-        const pointChild2 = document.createElement('div');
-        pointChild2.classList.add('c_loading02_dot');
-        const pointChild3 = document.createElement('div');
-        pointChild3.classList.add('c_loading02_dot');
-        pointDiv.appendChild(pointChild1);
-        pointDiv.appendChild(pointChild2);
-        pointDiv.appendChild(pointChild3);
-        loadingParent.appendChild(pointDiv);
+        let loadingGif = cloneloading.getElementsByClassName('c_loading01_gif')[0];
+        if (bool) {
+            loadingGif.style.width = '74px';
+        } else {
+            loadingGif.style.width = '48px';
+        }
+        loadingGif.style.height = 'auto';
 
         // Loader表示処理
         // ローディング用モーダルの起動（ローディングが複数あることはないので固定指定）
-        cloneloading.classList.add('c_loading02_isShow');
+        cloneloading.classList.add('c_loading01_isShow');
 
         // 高さ設定(iphoneでの高さ指定を考慮しJavascriptで設定)
         c_loading01_PartialSetheight(cloneloading);
@@ -1167,6 +1226,7 @@ if (!document.getElementsByClassName('c_notification_closeIcon').length) {
                 clickEvent = new Event('click');
             }
 
+            // EnterキーもしくはSpace押下で該当項目を選択する
             // keyCode : "13" （Enter）
             if (e.keyCode == "13") {
                 this.dispatchEvent(clickEvent);
@@ -1224,8 +1284,8 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
 
                 // チェックアイコンsvg生成
                 const checkSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-                checkSvg.setAttribute("width", "2.4rem");
-                checkSvg.setAttribute("height", "2.4rem");
+                checkSvg.setAttribute("width", "24");
+                checkSvg.setAttribute("height", "24");
                 checkSvg.setAttribute("viewBox", "0 0 24 24");
                 checkSvg.setAttribute("fill", "none");
                 const checkSvgPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -1250,8 +1310,8 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
                     hanreiDiv.classList.add("c_pullDown01_icon_hanrei");
                     // liに追加する凡例アイコンsvg生成
                     const hanreiSvg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-                    hanreiSvg.setAttribute("width", "2.4rem");
-                    hanreiSvg.setAttribute("height", "2.4rem");
+                    hanreiSvg.setAttribute("width", "24");
+                    hanreiSvg.setAttribute("height", "24");
                     hanreiSvg.setAttribute("viewBox", "0 0 24 24");
                     hanreiSvg.setAttribute("fill", "none");
                     const hanreiSvgPath1 = document.createElementNS('http://www.w3.org/2000/svg', 'path');
@@ -1291,7 +1351,6 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
 
                 // キー操作が行われたら処理を実行
                 newLi.addEventListener('keydown', function (e) {
-                    let clickEvent
                     // クリックイベントの生成
                     if (c_isbrowserIE()) {
                         clickEvent = document.createEvent('Event');
@@ -1356,15 +1415,15 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
             windowHeight = window.innerHeight;
         }
 
-        let rootfont = document.documentElement.style.fontSize.replace('px', '');
-        if (rootfont == '') {
-            rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-        }
-
         //リストボックスに横幅を設定
-        const pullDownMenuWidth = targetPullDownMenu.parentElement.getBoundingClientRect().width;
+        const pullDownMenuWidth = targetPullDownMenu.parentElement.offsetWidth;
         const listBoxWidth = targetPullDownMenu.parentElement.getElementsByClassName('c_pullDown01_listBox')[0];
-        listBoxWidth.style.width = pullDownMenuWidth / rootfont + "rem";
+
+        if (window.matchMedia('(max-width: 760px)').matches) {
+            listBoxWidth.style.width = pullDownMenuWidth * 0.9 + "px";
+        } else {
+            listBoxWidth.style.width = pullDownMenuWidth + "px";
+        }
 
         // プルダウンメニューの画面内のtop位置取得
         const pullDownMenuTop = targetPullDownMenu.getBoundingClientRect().top;
@@ -1383,17 +1442,18 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
 
         // プルダウンの上下余白を比較
         if (listAreaUpper > listArea) {
+
             // リストボックスの高さの最大値を設定
-            listBox.style.maxHeight = listAreaUpper / rootfont + "rem";
+            listBox.style.maxHeight = listAreaUpper + "px";
             const listHeight = listBox.offsetHeight;
             // プルダウンエリア最上部から余白8px上に表示
-            listBox.style.top = (pullDownMenuTop - listHeight - listMargin) / rootfont + "rem";
+            listBox.style.top = pullDownMenuTop - listHeight - listMargin + "px";
         } else {
             // 通常は下に伸びる
             // リストボックスの高さの最大値を設定
-            listBox.style.maxHeight = listArea / rootfont + "rem";
+            listBox.style.maxHeight = listArea + "px";
             // プルダウンエリア最上部からメニューの高さ＋余白8px下に表示
-            listBox.style.top = (pullDownMenuTop + listBoxPosition) / rootfont + "rem";
+            listBox.style.top = pullDownMenuTop + listBoxPosition + "px";
 
         }
     }
@@ -1476,7 +1536,7 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
         }
     });
 
-    // リストボックスOpen時にスクロールが発生したらリストボックスを非表示
+    //リストボックスOpen時にスクロールが発生したらリストボックスを非表示
     document.addEventListener('scroll', function () {
         const pulldown = document.getElementsByClassName('c_pullDown01');
         for (let i = 0; i < pulldown.length; i++) {
@@ -1487,31 +1547,29 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
 
             const margin = 8;
 
-            let rootfont = document.documentElement.style.fontSize.replace('px', '');
-            if (rootfont == '') {
-                rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-            }
             // listBoxがプルダウンの上下どちらに表示されているかを判定
             if (pullMenuRect.top > listBoxRect.top) {
                 // listBoxが上に表示されている場合
-                listBox.style.top = (pullMenuRect.top - listBoxRect.height - margin) / rootfont + "rem";
+                listBox.style.top = pullMenuRect.top - listBoxRect.height - margin + "px";
             } else {
                 // listBoxが下に表示されている場合
-                listBox.style.top = (pullMenuRect.top + margin + pullMenuRect.height) / rootfont + "rem";
+                listBox.style.top = pullMenuRect.top + margin + pullMenuRect.height + "px";
+
             }
 
             pulldown[i].classList.remove('c_pullDown01_isOpen');
         }
+
+
     });
 
     window.addEventListener('DOMContentLoaded', function () {
         const pullDownList = document.getElementsByClassName('c_pullDown01');
 
         for (let i = 0; i < pullDownList.length; i++) {
-
+            let clickEvent;
             // キー操作が行われたら処理を実行
             pullDownList[i].children[1].addEventListener('keydown', function (e) {
-                let clickEvent;
                 // クリックイベントの生成
                 if (c_isbrowserIE()) {
                     clickEvent = document.createEvent('Event');
@@ -1527,6 +1585,7 @@ if (!document.getElementsByClassName('c_pullDown01').length) {
                 }
             });
         }
+
     })
 
 }
@@ -1554,7 +1613,7 @@ if (!document.getElementsByClassName('c_pgb').length) {
     function progressMove() {
         // startOffsetにブラウザの内側の高さの半分の長さを設定
         let clHeight;
-        // IEによって使用する対象を変更
+        // IEによって使用する
         if (c_isbrowserIE()) {
             clHeight = document.documentElement.clientHeight;
         } else {
@@ -1629,12 +1688,10 @@ if (!document.getElementsByClassName('c_radio03').length) {
                 const opInput = opUnit[j].getElementsByTagName('input')[0];
                 // クリックイベントの登録
                 opInput.addEventListener('click', function () {
-
                     // クリックされたradioの親要素にc_radio03_opActiveクラスがあればすべてのチェックを削除
                     if (this.parentElement.classList.contains('c_radio03_opActive')) {
                         c_radio_clearOptional(this);
 
-                        // チェンジイベントの発行
                         let changeEvent;
                         if (c_isbrowserIE()) {
                             // IE
@@ -1655,7 +1712,6 @@ if (!document.getElementsByClassName('c_radio03').length) {
             }
         }
     }
-
     // チェック状態確認classのクリア関数
     //  引数１：c_radio03のinput要素
     function c_radio_clearOptional(radio) {
@@ -1770,7 +1826,6 @@ if (!document.getElementsByClassName('c_tabEllipse').length) {
         }
     }
 }
-
 /** コンポーネント：Button01 **/
 if (!document.getElementsByClassName('c_button01').length) {
     //該当の要素がない場合は処理を行なわない
@@ -1796,34 +1851,6 @@ if (!document.getElementsByClassName('c_button02').length) {
         // disableの場合、フォーカスを無効にする
         if (button[i].classList.contains('c_button02_disabled')) {
             button[i].children[0].setAttribute('tabindex', '-1');
-        }
-    }
-}
-
-/** コンポーネント：Button03 **/
-if (!document.getElementsByClassName('c_button03').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-
-    const button = document.getElementsByClassName('c_button03');
-    for (let i = 0; i < button.length; i++) {
-        // disableの場合、フォーカスを無効にする
-        if (button[i].classList.contains('c_button03_disabled')) {
-            button[i].children[0].setAttribute('tabindex', '-1');
-        }
-    }
-}
-
-/** コンポーネント：Button04 **/
-if (!document.getElementsByClassName('c_button04').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-
-    const button = document.getElementsByClassName('c_button04');
-    for (let i = 0; i < button.length; i++) {
-        // disableの場合、フォーカスを無効にする
-        if (button[i].children[0].classList.contains('c_button04_disabled')) {
-            button[i].children[0].children[0].setAttribute('tabindex', '-1');
         }
     }
 }
@@ -1890,7 +1917,7 @@ if (!document.getElementsByClassName('c_textField03').length) {
     }
 }
 
-/** コンポーネント：Text field（dropdown） **/
+/** コンポーネント：Text field（dropdown/date） **/
 if (!document.getElementsByClassName('c_textField04').length) {
     //該当の要素がない場合は処理を行なわない
 } else {
@@ -1966,94 +1993,6 @@ if (!document.getElementsByClassName('c_textField_textarea').length) {
     }
 }
 
-/** コンポーネント：Text field（Myster/input） **/
-if (!document.getElementsByClassName('c_textField07').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-    // 目のアイコンの処理
-    const passwordToggle = document.getElementsByClassName('c_textField07_pass');
-    for (let i = 0; i < passwordToggle.length; i++) {
-        // クリックイベント
-        passwordToggle[i].addEventListener('click', function () {
-            const input = this.parentElement.children[0];
-
-            // テキスト表示、目のアイコン表示
-            if (input.getAttribute('type') == 'password') {
-                this.classList.add('c_textField07_visible');
-                this.classList.remove('c_textField07_invisible');
-                input.setAttribute('type', 'text');
-            }
-
-            // テキスト非表示、目のアイコン（スラッシュ）表示
-            else {
-                input.setAttribute('type', 'password');
-                this.classList.add('c_textField07_invisible');
-                this.classList.remove('c_textField07_visible');
-            }
-        });
-    }
-}
-
-/** コンポーネント：Text field（Myster/dropdown） **/
-if (!document.getElementsByClassName('c_textField08_dropdown').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-    // ドロップダウンエリアを取得
-    const textFields = document.getElementsByClassName('c_textField08_dropdown');
-    for (let i = 0; i < textFields.length; i++) {
-        textFields[i].getElementsByClassName('c_textField08_inputText')[0].addEventListener('change', function () {
-            // クラスの付け替え
-            if (this.selectedIndex == 0) {
-                this.parentElement.classList.add('c_textField_NoSelected');
-            } else {
-                this.parentElement.classList.remove('c_textField_NoSelected');
-            }
-        });
-    }
-}
-
-/** コンポーネント：Text field（Myster/textarea） **/
-if (!document.getElementsByClassName('c_textField09_textarea').length) {
-    // 該当の要素がない場合は処理を行なわない
-} else {
-
-    // テキストエリアのactive設定
-    function textareaActive02(textarea) {
-        // textareaにフォーカスをあてる
-        textarea.focus();
-        // テキストエリアがデフォルトの場合は、active設定
-        if (textarea.parentElement.classList.contains('c_textField09_default')) {
-            textarea.parentElement.classList.add('c_textField09_active');
-        }
-    }
-
-    // textareaクリックイベント
-    const textareaArea = document.getElementsByClassName('c_textField09_textarea');
-    for (let i = 0; i < textareaArea.length; i++) {
-        textareaArea[i].addEventListener('click', function () {
-            // textareaの要素を取得
-            const textarea = this.getElementsByClassName('c_textField09_inputText')[0];
-            textareaActive02(textarea);
-        });
-    }
-
-    // textareaの要素を取得
-    const textarea = document.getElementsByClassName('c_textField09_inputText');
-    for (let i = 0; i < textarea.length; i++) {
-        // textareaのフォーカス時のイベント
-        textarea[i].addEventListener('focus', function () {
-            textareaActive02(this);
-        });
-
-        // textareaのフォーカス時以外のイベント
-        textarea[i].addEventListener('blur', function () {
-            // activeの設定解除
-            this.parentElement.classList.remove('c_textField09_active');
-
-        });
-    }
-}
-
 /** コンポーネント：Text link02 **/
 if (!document.getElementsByClassName('c_textLink02').length) {
     //該当の要素がない場合は処理を行なわない
@@ -2069,20 +2008,7 @@ if (!document.getElementsByClassName('c_textLink02').length) {
     }
 }
 
-/** コンポーネント：Text link03 **/
-if (!document.getElementsByClassName('c_textLink03').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
 
-    const textlink03 = document.getElementsByClassName('c_textLink03');
-    for (let i = 0; i < textlink03.length; i++) {
-
-        // disableの場合、フォーカスを無効にする
-        if (textlink03[i].classList.contains('c_textLink03_disabled')) {
-            textlink03[i].children[0].setAttribute('tabindex', '-1');
-        }
-    }
-}
 
 /** コンポーネント：Toast **/
 if (!document.getElementsByClassName('c_toast01').length) {
@@ -2325,6 +2251,7 @@ if (!document.getElementsByClassName('c_toast01').length) {
             // ×アイコン押下直後にトースト非表示（フェードアウト）
             fadeOutToast01(this.parentElement.parentElement);
         });
+
         // フォーカス対応
         closeBtn[i].addEventListener('keydown', function (e) {
             // クリックイベントの生成
@@ -2342,7 +2269,6 @@ if (!document.getElementsByClassName('c_toast01').length) {
             }
         });
     }
-
 }
 
 /** コンポーネント：Tooltip **/
@@ -2352,15 +2278,17 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
 
     c_tooltipSetPosition();
 
-    // テキストエリアの位置設定処理 
-    // 画面外にテキストエリアが表示される場合の処理
+    // テキストエリアの位置設定処理
     function setBalloon() {
         // ツールチップアイコン
         const tooltip = document.getElementsByClassName('c_tooltips01');
         for (let i = 0; i < tooltip.length; i++) {
 
-            // 最小マージン
-            const margin = 24;
+            // 最小マージン(SP:20px、PC:32px)
+            let margin = 32;
+            if (window.matchMedia('(max-width: 760px)').matches) {
+                margin = 20;
+            }
 
             // 吹き出しのテキストエリア
             const textArea = tooltip[i].lastElementChild;
@@ -2370,10 +2298,6 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
 
             // 画面の横幅
             const screenWidth = document.documentElement.clientWidth;
-            let rootfont = document.documentElement.style.fontSize.replace('px', '');
-            if (rootfont == '') {
-                rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-            }
 
             // テキストエリアの横幅を取得
             const textAreaWidth = textArea.offsetWidth;
@@ -2398,15 +2322,16 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
             // 右にはみ出している場合
             // 画面サイズよりテキストエリアのrightの値が大きければ位置を調整
             if (rightRect > screenWidth) {
+
                 // 画面幅より吹き出しのright+margin+8(テキストエリアのradius)が大きい値ならテキストエリアの移動を停止
                 if (screenWidth > trianglePosition.right + margin + 8) {
                     // テキストエリアを左に移動
                     // 画面幅 - (margin + テキストエリアの幅)
-                    textArea.style.left = (screenWidth - (margin + textAreaWidth)) / rootfont + "rem";
+                    textArea.style.left = screenWidth - (margin + textAreaWidth) + "px";
                 } else {
                     // 吹き出しからテキストエリアがずれる場合は移動を停止
                     // 吹き出しのleft + 吹き出しの横幅 + テキストエリアのradius - テキストエリアの横幅
-                    textArea.style.left = ((trianglePosition.left + triangleWidth + 8) - textAreaWidth) / rootfont + "rem";
+                    textArea.style.left = (trianglePosition.left + triangleWidth + 8) - textAreaWidth + "px";
                 }
             }
 
@@ -2418,11 +2343,11 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
                 // marginの値より吹き出しのleftが低い値ならテキストエリアの移動を停止
                 if (margin < trianglePosition.left) {
                     // marginの値を確保して右にずれる
-                    textArea.style.left = margin / rootfont + 'rem';
+                    textArea.style.left = margin + "px";
                 } else {
                     // 右にずれる位置の限界値を設定
                     //吹き出しの位置-radius（8px）
-                    textArea.style.left = (trianglePosition.left - 8) / rootfont + 'rem';
+                    textArea.style.left = trianglePosition.left - 8 + "px";
                 }
             }
         }
@@ -2447,36 +2372,28 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
             } else {
                 tooltipRect = tooltipIcon.getBoundingClientRect();
             }
-
             // ツールチップアイコンの高さ
             const IconWidth = tooltipRect.width;
-
             // テキストエリアの横幅を取得
             const textAreaWidth = textArea.offsetWidth;
             // テキストエリアの高さを取得
             const textAreaHeight = textArea.offsetHeight;
 
-            const trianglePosition = triangle.getBoundingClientRect();
-
-            let rootfont = document.documentElement.style.fontSize.replace('px', '');
-            if (rootfont == '') {
-                rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-            }
             // 吹き出しの高さ
-            const trianglHeight = 1.6 * rootfont;
+            const trianglHeight = 16;
 
             //  ツールチップのTopを計算
             if (tooltip[i].classList.contains('c_tooltips01_top')) {
-                triangle.style.top = tooltipRect.bottom / rootfont + 'rem';
-                textArea.style.top = (tooltipRect.bottom + trianglHeight) / rootfont + 'rem';
+                triangle.style.top = tooltipRect.bottom + 'px';
+                textArea.style.top = tooltipRect.bottom + trianglHeight + 'px';
             } else {
-                triangle.style.top = (tooltipRect.top - trianglHeight) / rootfont + 'rem';
-                textArea.style.top = (tooltipRect.top - (textAreaHeight + trianglHeight)) / rootfont + 'rem';
+                triangle.style.top = tooltipRect.top - trianglHeight + 'px';
+                textArea.style.top = tooltipRect.top - (textAreaHeight + trianglHeight) + 'px';
             }
 
             // ツールチップのLeftを計算
-            triangle.style.left = (tooltipRect.left + IconWidth / 2 - triangle.offsetWidth / 2) / rootfont + 'rem';
-            textArea.style.left = (tooltipRect.left + IconWidth / 2 - textAreaWidth / 2) / rootfont + 'rem';
+            triangle.style.left = tooltipRect.left + IconWidth / 2 - triangle.offsetWidth / 2 + 'px';
+            textArea.style.left = tooltipRect.left + IconWidth / 2 - textAreaWidth / 2 + 'px';
         }
     }
 
@@ -2540,6 +2457,7 @@ if (!document.getElementsByClassName('c_tooltips01').length) {
                 this.dispatchEvent(clickEvent);
             }
         });
+
     }
 }
 
@@ -2572,28 +2490,19 @@ window.addEventListener('DOMContentLoaded', function () {
 
                 // チェンジイベントの発行
                 let changeEvent;
-                let clickEvent;
                 if (c_isbrowserIE()) {
                     // IE
                     changeEvent = document.createEvent('Event');
                     changeEvent.initEvent('change', false, false);
-                    clickEvent = document.createEvent('Event');
-                    clickEvent.initEvent('click', false, false);
                 } else {
                     // IE以外
                     changeEvent = new Event('change');
-                    clickEvent = new Event('click');
                 }
-
-                if (!this.parentElement.classList.contains('c_radio03_opActive')) {
-                    this.previousElementSibling.dispatchEvent(changeEvent);
-                }
-                this.previousElementSibling.dispatchEvent(clickEvent);
+                this.previousElementSibling.dispatchEvent(changeEvent);
             }
         });
     }
 })
-
 
 /** コンポーネント：CheckBox01 **/
 // チェックボックスの取得
@@ -2643,6 +2552,283 @@ window.addEventListener('DOMContentLoaded', function () {
         });
     }
 })
+
+/** コンポーネント：pager **/
+if (!document.getElementsByClassName('c_pager').length) {
+    //該当の要素がない場合は処理を行なわない
+} else {
+
+    window.addEventListener('DOMContentLoaded', c_pager_disfocus);
+    window.addEventListener('load', c_pager_setPd);
+    window.addEventListener('resize', c_pager_setPd);
+
+
+    // 各ページ数の間の余白を設定
+    function c_pager_setPd() {
+        // SPサイズ時のみ実行
+        if (window.matchMedia('(max-width: 760px)').matches) {
+            const pager = document.getElementsByClassName('c_pager');
+            for (let i = 0; pager.length > i; i++) {
+                const pagerArea = pager[i].children;
+                const pagerDots = pager[i].getElementsByClassName('c_pager_none');
+
+                // スタイルの初期化
+                for (let v = 0; pagerArea.length > v; v++) {
+                    if (pagerArea[v].classList.contains('c_pager_area_pd')) {
+                        pagerArea[v].classList.remove('c_pager_area_pd');
+                    }
+                }
+
+                // スタイルの設定
+                for (let c = 0; pagerArea.length > c; c++) {
+                    // 該当のクラスを持っているかつ3点リーダーの要素が二つとも表示されるときに実行
+                    if (pagerDots.length == 0 && pagerArea[c].classList.contains('c_pager_typo_omission')) {
+                        // 3点リーダー要素の左余白を8pxに設定
+                        pagerArea[c].classList.add('c_pager_area_pd');
+                        // 3点リーダーの右隣り要素の左余白を8pxに設定
+                        pagerArea[c + 1].classList.add('c_pager_area_pd');
+                    }
+                }
+            }
+        } else {
+            const spPd = document.getElementsByClassName('c_pager_area_pd');
+            if (spPd) {
+                for (let i = 0; spPd.length > i; i++) {
+                    spPd[i].classList.remove('c_pager_area_pd');
+                }
+            }
+
+        }
+    }
+
+    function c_pager_disfocus() {
+        const pager = document.getElementsByClassName('c_pager');
+        for (let i = 0; pager.length > i; i++) {
+            const pagerArea = pager[i].children;
+            for (let c = 0; pagerArea.length > c; c++) {
+                // 一度tabindexを削除する
+                pagerArea[c].children[0].removeAttribute('tabindex');
+                // 該当要素がdisabledもしくはドットならフォーカスを無効
+                if (pagerArea[c].classList.contains('c_pager_disabled') || pagerArea[c].classList.contains('c_pager_typo_omission')) {
+                    pagerArea[c].children[0].setAttribute('tabindex', '-1');
+                }
+            }
+        }
+    }
+
+    // ページャーの表示制御
+    // 第1引数（activepage）：アクティブなページ番号、数値で指定
+    // 第2引数（totalpage）：総ページ数、数値で指定
+    // 第3引数（targetid）：対象となるPagerのID（c_pagerクラスのあるタグが対象）、文字列で指定、未指定の場合は最初に定義されているpagerを対象とする
+    // 第4引数（singlePageDisp）：単ページの場合にpagerを表示するかを指定、true/falseで指定、未指定の場合は表示（true）
+    function c_pager_transition(activepage, totalpage, targetid, singlePageDisp) {
+        let pagerSection;
+        // 第3引数の有無で取得するpagerを切り替える
+        if (targetid == undefined || targetid == '') {
+            pagerSection = document.getElementsByClassName('c_pager')[0];
+        }
+        else {
+            pagerSection = document.getElementById(targetid);
+        }
+        pagerSection.classList.remove('c_pager_none');
+        const Firstpage = 1;
+        const LastPage = totalpage;
+        // アクティブページの初期化（c_pager_disabledの削除）
+        const pagerArea = pagerSection.getElementsByClassName('c_pager_area');
+        for (let i = 0; i < pagerArea.length; i++) {
+            pagerArea[i].classList.remove('c_pager_disabled');
+            pagerArea[i].classList.remove('c_pager_none');
+        }
+        // ページャーの表示対象の選定
+        // 末尾ページを設定
+        pagerArea[7].getElementsByTagName('p')[0].innerText = totalpage;
+        // activepageが1の位置により判定
+        switch (activepage) {
+            case 1:
+            case 2:
+            case 3:
+                if (activepage == 1) {
+                    // 左矢印と1ページ目（pageAreaの0,1）をグレーアウト
+                    pagerArea[0].classList.add('c_pager_disabled');
+                    pagerArea[1].classList.add('c_pager_disabled');
+                    // 1ページの時のみテキストの設定が異なる
+                    pagerArea[3].getElementsByTagName('p')[0].innerText = Firstpage + 1;
+                    pagerArea[4].getElementsByTagName('p')[0].innerText = Firstpage + 2;
+                    pagerArea[5].getElementsByTagName('p')[0].innerText = Firstpage + 3;
+                }
+                else {
+                    // 3つ目の数字（pageAreaの4）をグレーアウト
+                    pagerArea[4].classList.add('c_pager_disabled');
+                    // 1ページ目がアクティブ以外はactivePage-1,activepage,activepage+1を設定
+                    pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
+                    pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
+                    pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
+                }
+
+                // 非表示にするタグ設定
+                pagerArea[2].classList.add('c_pager_none');
+                if (activepage == 2) {
+                    // ページ数によって表示するものを決める(pageAreaの2,3を非表示)
+                    pagerArea[3].classList.add('c_pager_none');
+
+                }
+                else {
+                    // ページ数によって表示するものを決める(pageAreaの2,5を非表示)
+                    pagerArea[5].classList.add('c_pager_none');
+                }
+                break;
+            case totalpage - 2:
+            case totalpage - 1:
+            case totalpage:
+                // アクティブページの設定
+                if (activepage == totalpage) {
+                    // 右矢印（pageAreaの8）と末尾数字（pageAreaの7）
+                    pagerArea[8].classList.add('c_pager_disabled');
+                    pagerArea[7].classList.add('c_pager_disabled');
+                    // 末尾ページの時のみテキストの設定が異なる
+                    pagerArea[3].getElementsByTagName('p')[0].innerText = LastPage - 3;
+                    pagerArea[4].getElementsByTagName('p')[0].innerText = LastPage - 2;
+                    pagerArea[5].getElementsByTagName('p')[0].innerText = LastPage - 1;
+                }
+                else {
+                    // 3つ目の数字（pageAreaの4）をグレーアウト
+                    pagerArea[4].classList.add('c_pager_disabled');
+                    // 末尾ページ目がアクティブ以外はactivePage-1,activepage,activepage+1を設定
+                    pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
+                    pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
+                    pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
+                }
+                // 非表示にするタグ設定
+                pagerArea[6].classList.add('c_pager_none');
+                if (activepage == (totalpage - 1)) {
+                    // ページ数によって表示するものを決める(pageAreaの5,6を非表示)
+                    pagerArea[5].classList.add('c_pager_none');
+                }
+                else {
+                    // ページ数によって表示するものを決める(pageAreaの3,6を非表示)
+                    pagerArea[3].classList.add('c_pager_none');
+                }
+                break;
+            default:
+                // アクティブページの設定
+                // 3つ目の数字（pageAreaの4）をグレーアウト
+                pagerArea[4].classList.add('c_pager_disabled');
+                // 通常時はactivePage-1,activepage,activepage+1を設定
+                pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
+                pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
+                pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
+        }
+        // 総件数が5ページ以内の制御
+        if (totalpage <= 5) {
+            // 「・・・」の要素（pagerAreaの2,6）は非表示
+            if (!pagerArea[2].classList.contains('c_pager_none')) {
+                pagerArea[2].classList.add('c_pager_none');
+            }
+            if (!pagerArea[6].classList.contains('c_pager_none')) {
+                pagerArea[6].classList.add('c_pager_none');
+            }
+            switch (totalpage) {
+                case 5:
+                    // アクティブなページによってページ設定を見直す
+                    if (activepage == 2) {
+                        pagerArea[3].classList.add('c_pager_disabled');
+                        pagerArea[4].classList.remove('c_pager_disabled');
+                        pagerArea[3].classList.remove('c_pager_none');
+                        pagerArea[3].getElementsByTagName('p')[0].innerText = activepage;
+                        pagerArea[4].getElementsByTagName('p')[0].innerText = activepage + 1;
+                        pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 2;
+                    }
+                    else if (activepage == (totalpage - 1)) {
+                        pagerArea[4].classList.remove('c_pager_disabled');
+                        pagerArea[5].classList.add('c_pager_disabled');
+                        pagerArea[5].classList.remove('c_pager_none');
+                        pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 2;
+                        pagerArea[4].getElementsByTagName('p')[0].innerText = activepage - 1;
+                        pagerArea[5].getElementsByTagName('p')[0].innerText = activepage;
+                    } else if (activepage == totalpage) {
+                        pagerArea[3].classList.remove('c_pager_none');
+                        pagerArea[5].classList.remove('c_pager_none');
+                    } else {
+                        pagerArea[5].classList.remove('c_pager_none');
+                    }
+                    break;
+                // 4件の場合は特別な制御不要なためスキップ
+                case 3:
+                    if (!pagerArea[4].classList.contains('c_pager_none')) {
+                        if (activepage != 2) {
+                            pagerArea[4].classList.add('c_pager_none');
+                        }
+                    }
+                    if (activepage == totalpage) {
+                        pagerArea[7].classList.add('c_pager_disabled');
+                        pagerArea[8].classList.add('c_pager_disabled');
+                    }
+                    if (!pagerArea[5].classList.contains('c_pager_none')) {
+                        pagerArea[5].classList.add('c_pager_none');
+                    }
+                    break;
+                case 2:
+                    if (!pagerArea[3].classList.contains('c_pager_none')) {
+                        pagerArea[3].classList.add('c_pager_none');
+                    }
+                    if (!pagerArea[4].classList.contains('c_pager_none')) {
+                        pagerArea[4].classList.add('c_pager_none');
+                    }
+                    if (!pagerArea[5].classList.contains('c_pager_none')) {
+                        pagerArea[5].classList.add('c_pager_none');
+                    }
+                    if (activepage == totalpage) {
+                        if (!pagerArea[7].classList.contains('c_pager_disabled')) {
+                            pagerArea[7].classList.add('c_pager_disabled');
+                            pagerArea[8].classList.add('c_pager_disabled');
+                        }
+                    }
+                    break;
+                case 1:
+                    // 第4引数の設定内容によって表示方法を分岐
+                    if (singlePageDisp || singlePageDisp == undefined) {
+                        if (!pagerArea[3].classList.contains('c_pager_none')) {
+                            pagerArea[3].classList.add('c_pager_none');
+                        }
+                        if (!pagerArea[4].classList.contains('c_pager_none')) {
+                            pagerArea[4].classList.add('c_pager_none');
+                        }
+                        if (!pagerArea[5].classList.contains('c_pager_none')) {
+                            pagerArea[5].classList.add('c_pager_none');
+                        }
+                        if (!pagerArea[7].classList.contains('c_pager_none')) {
+                            pagerArea[7].classList.add('c_pager_none');
+                        }
+                        if (!pagerArea[8].classList.contains('c_pager_disabled')) {
+                            pagerArea[8].classList.add('c_pager_disabled');
+                        }
+                    }
+                    else {
+                        pagerSection.classList.add('c_pager_none');
+                    }
+                    break;
+            }
+        }
+        // フォーカスの設定
+        c_pager_disfocus();
+    }
+}
+
+/** コンポーネント：Call **/
+if (!document.getElementsByClassName('c_call01').length) {
+    //該当の要素がない場合は処理を行なわない
+} else {
+
+    window.addEventListener('DOMContentLoaded', function () {
+        const call = document.getElementsByClassName('c_call01');
+
+        for (let i = 0; i < call.length; i++) {
+            // フォーカス無効
+            call[i].children[0].setAttribute('tabindex', '-1');
+        };
+    });
+
+}
 
 // 以下はシステムパーツ集（storybook）未掲載またはold_global部品
 /** コンポーネント：チェックボックスボタン **/
@@ -3236,63 +3422,56 @@ if (!document.getElementsByClassName('c_radio').length) {
         }
     };
 }
+// ナビゲーションがある場合のみ処理を実施する
+if (!document.getElementsByClassName('c_myhNav01').length) {
 
-/** コンポーネント：Floating01 Menu **/
-if (!document.getElementsByClassName('c_floating01').length) {
-    //該当の要素がない場合は処理を行なわない
+}
+else {
+    /** ナビゲーション ： Navigation **/
+    function HeaderLinkMenuOpenClick(target) {
+        target.getElementsByClassName('c_myhNav01_MenuOpen')[0].classList.add("c_myhNav01_sphidden");
+        target.getElementsByClassName('c_myhNav01_MenuClose')[0].classList.remove("c_myhNav01_sphidden");
+        target.getElementsByClassName('c_myhNav01_MenuLinksArea')[0].classList.remove("c_myhNav01_sphidden");
+    }
+    function HeaderLinkMenuCloseClick(target) {
+        target.getElementsByClassName('c_myhNav01_MenuOpen')[0].classList.remove("c_myhNav01_sphidden");
+        target.getElementsByClassName('c_myhNav01_MenuClose')[0].classList.add("c_myhNav01_sphidden");
+        target.getElementsByClassName('c_myhNav01_MenuLinksArea')[0].classList.add("c_myhNav01_sphidden");
+    }
+
+    const navHeader = document.getElementsByClassName('c_myhNav01');
+    for (let i = 0; i < navHeader.length; i++) {
+        // ハンバーガーメニューを開くための要素取得（ナビゲーション内では一意のclass名となるため配列0番目を取得）
+        const navMenuOpen = navHeader[i].getElementsByClassName('c_myhNav01_MenuOpen')[0];
+        // ハンバーガーメニューを閉じるための要素取得（ナビゲーション内では一意のclass名となるため配列0番目を取得）
+        const navMenuClose = navHeader[i].getElementsByClassName('c_myhNav01_MenuClose')[0];
+        // クリック時にメニューを開く処理を実施
+        navMenuOpen.addEventListener('click', function () {
+            HeaderLinkMenuOpenClick(this.parentElement.parentElement.parentElement);
+        });
+        // クリック時にメニューを閉じる処理を実施
+        navMenuClose.addEventListener('click', function () {
+            HeaderLinkMenuCloseClick(this.parentElement.parentElement.parentElement);
+        });
+    }
+}
+
+/** コンポーネント：Navigation02 **/
+if (!document.getElementsByClassName('c_myhNav02').length) {
+    //ヘッダーがある場合のみ実施
 } else {
-
-    document.addEventListener('DOMContentLoaded', function () {
-
-        // 入力ボタン押下時のイベント
-        const btn = document.getElementsByClassName('c_floating01_btn')[0];
-        btn.addEventListener('click', function () {
-            if (this.parentElement.classList.contains('c_floating01_show')) {
-                this.parentElement.classList.remove('c_floating01_show');
+    window.addEventListener('DOMContentLoaded', function () {
+        const nav = document.getElementsByClassName('c_myhNav02')[0];
+        const navIcon = document.getElementsByClassName('c_myhNav02_menuIcon')[0];
+        navIcon.addEventListener('click', function () {
+            if (nav.classList.contains('c_myhNav02_isOpen')) {
+                nav.classList.remove('c_myhNav02_isOpen');
             } else {
-                this.parentElement.classList.add('c_floating01_show');
-            }
-
-            // リストの取得
-            const ul = document.getElementsByClassName(('c_floating01_list'))[0];
-
-            // ルートフォントの取得
-            let rootfont = document.documentElement.style.fontSize.replace('px', '');
-            if (rootfont == '') {
-                rootfont = getComputedStyle(document.documentElement).fontSize.replace('px', '');
-            }
-
-            // リストの行数が9行以上であればリスト内でスクロールさせる
-            if (ul.children.length > 8) {
-                let contentHeight = 0;
-                // 各リストの高さを取得してリストボックスの高さを設定
-                for (let i = 0; 8 > i; i++) {
-                    contentHeight = contentHeight + ul.children[i].clientHeight;
-                }
-                ul.style.height = contentHeight / rootfont + "rem";
+                nav.classList.add('c_myhNav02_isOpen');
             }
         });
 
-        // 画面外エリア押下時のイベント
-        const out = document.getElementsByClassName('c_floating01_outSideClose')[0];
-        out.addEventListener('click', function () {
-            if (this.parentElement.classList.contains('c_floating01_show')) {
-                this.parentElement.classList.remove('c_floating01_show');
-            }
-        });
-
-        // リストボックスOpen時にスクロールが発生したらリストボックスを非表示
-        document.addEventListener('scroll', function () {
-            const listBox = document.getElementsByClassName('c_floating01');
-            for (let i = 0; i < listBox.length; i++) {
-                if (listBox[i].children[0].classList.contains('c_floating01_show')) {
-                    listBox[i].children[0].classList.remove('c_floating01_show');
-                }
-            }
-        });
-
-        // フォーカス対応
-        btn.addEventListener('keydown', function (e) {
+        nav.addEventListener('keydown', function (e) {
             let clickEvent;
             // クリックイベントの生成
             if (c_isbrowserIE()) {
@@ -3302,11 +3481,13 @@ if (!document.getElementsByClassName('c_floating01').length) {
                 clickEvent = new Event('click');
             }
 
+            // Enterキー押下で該当項目を選択する
             // keyCode : "13" （Enter）
             if (e.keyCode == "13") {
                 this.dispatchEvent(clickEvent);
             }
         });
+
     });
 }
 
@@ -3352,342 +3533,4 @@ if (!document.getElementsByClassName('c_toggle01').length) {
             });
         }
     })
-}
-
-/** コンポーネント：pager **/
-if (!document.getElementsByClassName('c_pager').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-
-    window.addEventListener('DOMContentLoaded', c_pager_disfocus);
-
-    function c_pager_disfocus() {
-        const pager = document.getElementsByClassName('c_pager');
-        for (let i = 0; pager.length > i; i++) {
-            const pagerArea = pager[i].children;
-            for (let c = 0; pagerArea.length > c; c++) {
-                // 一度tabindexを削除する
-                pagerArea[c].children[0].removeAttribute('tabindex');
-                // 該当要素がdisabledもしくはドットならフォーカスを無効
-                if (pagerArea[c].classList.contains('c_pager_disabled') || pagerArea[c].classList.contains('c_pager_typo_omission')) {
-                    pagerArea[c].children[0].setAttribute('tabindex', '-1');
-                }
-            }
-        }
-    }
-    // ページャーの表示制御
-    // 第1引数（activepage）：アクティブなページ番号、数値で指定
-    // 第2引数（totalpage）：総ページ数、数値で指定
-    // 第3引数（targetid）：対象となるPagerのID（c_pagerクラスのあるタグが対象）、文字列で指定、未指定の場合は最初に定義されているpagerを対象とする
-    // 第4引数（singlePageDisp）：単ページの場合にpagerを表示するかを指定、true/falseで指定、未指定の場合は表示（true）
-    function c_pager_transition(activepage, totalpage, targetid, singlePageDisp) {
-        let pagerSection;
-        // 第3引数の有無で取得するpagerを切り替える
-        if (targetid == undefined || targetid == '') {
-            pagerSection = document.getElementsByClassName('c_pager')[0];
-        }
-        else {
-            pagerSection = document.getElementById(targetid);
-        }
-        pagerSection.classList.remove('c_pager_none');
-        const Firstpage = 1;
-        const LastPage = totalpage;
-        // アクティブページの初期化（c_pager_disabledの削除）
-        const pagerArea = pagerSection.getElementsByClassName('c_pager_area');
-        for (let i = 0; i < pagerArea.length; i++) {
-            pagerArea[i].classList.remove('c_pager_disabled');
-            pagerArea[i].classList.remove('c_pager_none');
-        }
-        // ページャーの表示対象の選定
-        // 末尾ページを設定
-        pagerArea[7].getElementsByTagName('p')[0].innerText = totalpage;
-        // activepageが1の位置により判定
-        switch (activepage) {
-            case 1:
-            case 2:
-            case 3:
-                if (activepage == 1) {
-                    // 左矢印と1ページ目（pageAreaの0,1）をグレーアウト
-                    pagerArea[0].classList.add('c_pager_disabled');
-                    pagerArea[1].classList.add('c_pager_disabled');
-                    // 1ページの時のみテキストの設定が異なる
-                    pagerArea[3].getElementsByTagName('p')[0].innerText = Firstpage + 1;
-                    pagerArea[4].getElementsByTagName('p')[0].innerText = Firstpage + 2;
-                    pagerArea[5].getElementsByTagName('p')[0].innerText = Firstpage + 3;
-                }
-                else {
-                    // 3つ目の数字（pageAreaの4）をグレーアウト
-                    pagerArea[4].classList.add('c_pager_disabled');
-                    // 1ページ目がアクティブ以外はactivePage-1,activepage,activepage+1を設定
-                    pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
-                    pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
-                    pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
-                }
-
-                // 非表示にするタグ設定
-                pagerArea[2].classList.add('c_pager_none');
-                if (activepage == 2) {
-                    // ページ数によって表示するものを決める(pageAreaの2,3を非表示)
-                    pagerArea[3].classList.add('c_pager_none');
-
-                }
-                else {
-                    // ページ数によって表示するものを決める(pageAreaの2,5を非表示)
-                    pagerArea[5].classList.add('c_pager_none');
-                }
-                break;
-            case totalpage - 2:
-            case totalpage - 1:
-            case totalpage:
-                // アクティブページの設定
-                if (activepage == totalpage) {
-                    // 右矢印（pageAreaの8）と末尾数字（pageAreaの7）
-                    pagerArea[8].classList.add('c_pager_disabled');
-                    pagerArea[7].classList.add('c_pager_disabled');
-                    // 末尾ページの時のみテキストの設定が異なる
-                    pagerArea[3].getElementsByTagName('p')[0].innerText = LastPage - 3;
-                    pagerArea[4].getElementsByTagName('p')[0].innerText = LastPage - 2;
-                    pagerArea[5].getElementsByTagName('p')[0].innerText = LastPage - 1;
-                }
-                else {
-                    // 3つ目の数字（pageAreaの4）をグレーアウト
-                    pagerArea[4].classList.add('c_pager_disabled');
-                    // 末尾ページ目がアクティブ以外はactivePage-1,activepage,activepage+1を設定
-                    pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
-                    pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
-                    pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
-                }
-                // 非表示にするタグ設定
-                pagerArea[6].classList.add('c_pager_none');
-                if (activepage == (totalpage - 1)) {
-                    // ページ数によって表示するものを決める(pageAreaの5,6を非表示)
-                    pagerArea[5].classList.add('c_pager_none');
-                }
-                else {
-                    // ページ数によって表示するものを決める(pageAreaの3,6を非表示)
-                    pagerArea[3].classList.add('c_pager_none');
-                }
-                break;
-            default:
-                // アクティブページの設定
-                // 3つ目の数字（pageAreaの4）をグレーアウト
-                pagerArea[4].classList.add('c_pager_disabled');
-                // 通常時はactivePage-1,activepage,activepage+1を設定
-                pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 1;
-                pagerArea[4].getElementsByTagName('p')[0].innerText = activepage;
-                pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 1;
-        }
-        // 総件数が5ページ以内の制御
-        if (totalpage <= 5) {
-            // 「・・・」の要素（pagerAreaの2,6）は非表示
-            if (!pagerArea[2].classList.contains('c_pager_none')) {
-                pagerArea[2].classList.add('c_pager_none');
-            }
-            if (!pagerArea[6].classList.contains('c_pager_none')) {
-                pagerArea[6].classList.add('c_pager_none');
-            }
-            switch (totalpage) {
-                case 5:
-                    // アクティブなページによってページ設定を見直す
-                    if (activepage == 2) {
-                        pagerArea[3].classList.add('c_pager_disabled');
-                        pagerArea[4].classList.remove('c_pager_disabled');
-                        pagerArea[3].classList.remove('c_pager_none');
-                        pagerArea[3].getElementsByTagName('p')[0].innerText = activepage;
-                        pagerArea[4].getElementsByTagName('p')[0].innerText = activepage + 1;
-                        pagerArea[5].getElementsByTagName('p')[0].innerText = activepage + 2;
-                    }
-                    else if (activepage == (totalpage - 1)) {
-                        pagerArea[4].classList.remove('c_pager_disabled');
-                        pagerArea[5].classList.add('c_pager_disabled');
-                        pagerArea[5].classList.remove('c_pager_none');
-                        pagerArea[3].getElementsByTagName('p')[0].innerText = activepage - 2;
-                        pagerArea[4].getElementsByTagName('p')[0].innerText = activepage - 1;
-                        pagerArea[5].getElementsByTagName('p')[0].innerText = activepage;
-                    } else if (activepage == totalpage) {
-                        pagerArea[3].classList.remove('c_pager_none');
-                        pagerArea[5].classList.remove('c_pager_none');
-                    } else {
-                        pagerArea[5].classList.remove('c_pager_none');
-                    }
-                    break;
-                // 4件の場合は特別な制御不要なためスキップ
-                case 3:
-                    if (!pagerArea[4].classList.contains('c_pager_none')) {
-                        if (activepage != 2) {
-                            pagerArea[4].classList.add('c_pager_none');
-                        }
-                    }
-                    if (activepage == totalpage) {
-                        pagerArea[7].classList.add('c_pager_disabled');
-                        pagerArea[8].classList.add('c_pager_disabled');
-                    }
-                    if (!pagerArea[5].classList.contains('c_pager_none')) {
-                        pagerArea[5].classList.add('c_pager_none');
-                    }
-                    break;
-                case 2:
-                    if (!pagerArea[3].classList.contains('c_pager_none')) {
-                        pagerArea[3].classList.add('c_pager_none');
-                    }
-                    if (!pagerArea[4].classList.contains('c_pager_none')) {
-                        pagerArea[4].classList.add('c_pager_none');
-                    }
-                    if (!pagerArea[5].classList.contains('c_pager_none')) {
-                        pagerArea[5].classList.add('c_pager_none');
-                    }
-                    if (activepage == totalpage) {
-                        if (!pagerArea[7].classList.contains('c_pager_disabled')) {
-                            pagerArea[7].classList.add('c_pager_disabled');
-                            pagerArea[8].classList.add('c_pager_disabled');
-                        }
-                    }
-                    break;
-                case 1:
-                    // 第4引数の設定内容によって表示方法を分岐
-                    if (singlePageDisp || singlePageDisp == undefined) {
-                        if (!pagerArea[3].classList.contains('c_pager_none')) {
-                            pagerArea[3].classList.add('c_pager_none');
-                        }
-                        if (!pagerArea[4].classList.contains('c_pager_none')) {
-                            pagerArea[4].classList.add('c_pager_none');
-                        }
-                        if (!pagerArea[5].classList.contains('c_pager_none')) {
-                            pagerArea[5].classList.add('c_pager_none');
-                        }
-                        if (!pagerArea[7].classList.contains('c_pager_none')) {
-                            pagerArea[7].classList.add('c_pager_none');
-                        }
-                        if (!pagerArea[8].classList.contains('c_pager_disabled')) {
-                            pagerArea[8].classList.add('c_pager_disabled');
-                        }
-                    }
-                    else {
-                        pagerSection.classList.add('c_pager_none');
-                    }
-                    break;
-            }
-        }
-        // フォーカスの設定
-        c_pager_disfocus();
-    }
-}
-
-/** コンポーネント：chip **/
-if (!document.getElementsByClassName('c_chip01').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-
-    window.addEventListener('DOMContentLoaded', function () {
-        // 画面内のchipを取得
-        const chip = document.getElementsByClassName('c_chip01_label');
-        for (let i = 0; chip.length > i; i++) {
-
-            // クリック操作時の処理
-            chip[i].addEventListener('click', function () {
-
-                // Filter用途の場合のみ実行
-                if (this.parentElement.classList.contains('c_chip01_filter')) {
-
-                    // selectedクラスを持っているかを確認
-                    if (this.classList.contains('c_chip01_selected')) {
-                        // selectedクラスを持っていればc_chip01_selectedクラスを削除
-                        this.classList.remove('c_chip01_selected');
-                    } else {
-                        // selectedクラスを持っていなければc_chip01_selectedクラスを追加
-                        this.classList.add('c_chip01_selected');
-                    }
-                }
-            })
-
-            // キーボード操作時の処理
-            chip[i].addEventListener('keydown', function (e) {
-                let clickEvent;
-
-                // 非活性状態の場合は操作を行わない
-                if (!this.parentElement.classList.contains('c_chip01_disabled')) {
-
-                    // クリックイベントの生成
-                    if (c_isbrowserIE()) {
-                        clickEvent = document.createEvent('Event');
-                        clickEvent.initEvent('click', false, true);
-                    } else {
-                        clickEvent = new Event('click');
-                    }
-
-                    // keyCode : "13" （Enter）
-                    if (e.keyCode == "13") {
-                        this.dispatchEvent(clickEvent);
-                    }
-                }
-            });
-        }
-    })
-}
-
-/** コンポーネント：Navigation **/
-if (!document.getElementsByClassName('c_mynavi_base').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-    window.addEventListener('DOMContentLoaded', function () {
-        // ボタンの取得
-        const btn = document.getElementsByClassName('c_mynavi_btn');
-
-        // 閉じるボタン or 戻るボタンの配置
-        c_mynavi_setBottom(btn);
-    });
-
-    // ボタンの配置を設定
-    // 引数
-    // btn c_mynavi_btnクラスを持つボタン要素
-    // closeBottom　再設定時に指定する閉じるボタンのbottom値
-    // returnBottom　再設定時に指定する戻るボタンのbottom値
-    function c_mynavi_setBottom(btn, closeBottom, returnBottom) {
-
-        for (let i = 0; btn.length > i; i++) {
-            let closeBtm = '';
-            // 閉じるボタンに設定するbottomの値を取得
-            if (closeBottom) {
-                closeBtm = closeBottom;
-            } else {
-                // 閉じるボタンのデータセットを取得
-                closeBtm = btn[i].parentElement.dataset.close_btm;
-            }
-
-            // 指定のクラス、データセットが設定されていれば高さを調整
-            if (btn[i].parentElement.classList.contains('c_mynavi_close') && closeBtm) {
-                btn[i].parentElement.style.bottom = closeBtm + 'rem';
-            }
-
-            let returnBtm = '';
-            // 戻るボタンに設定するbottomの値を取得
-            if (returnBottom) {
-                returnBtm = returnBottom;
-            } else {
-                // 戻るボタンのデータセットを取得
-                returnBtm = btn[i].parentElement.dataset.return_btm;
-            }
-
-            // 指定のクラス、データセットが設定されていれば高さを調整
-            if (btn[i].parentElement.classList.contains('c_mynavi_return')) {
-                btn[i].parentElement.style.bottom = returnBtm + 'rem';
-            }
-        }
-    }
-}
-
-/** コンポーネント：Call **/
-if (!document.getElementsByClassName('c_call01').length) {
-    //該当の要素がない場合は処理を行なわない
-} else {
-
-    window.addEventListener('DOMContentLoaded', function () {
-        const call = document.getElementsByClassName('c_call01');
-
-        for (let i = 0; i < call.length; i++) {
-            // フォーカス無効
-            call[i].children[0].setAttribute('tabindex', '-1');
-        };
-    });
-
 }

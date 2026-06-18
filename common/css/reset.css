@@ -1,4 +1,4 @@
-/* ===== システムパーツ集（マイスター） リセットCSS 2_61  ====== */
+/* ===== システムパーツ集 リセットCSS 2_61  ====== */
 
 /*! destyle.css v3.0.2 | MIT License | https://github.com/nicolas-cusan/destyle.css */
 
@@ -437,10 +437,4 @@ th {
 th {
     text-align: left;
     font-weight: bold;
-}
-
-#KibanTimePicker input[type="button"],
-#KBNbtnOK,
-#KBNbtnCancel {
-    text-align: center;
 }
