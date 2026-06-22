@@ -1,0 +1,1960 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>本社部対抗フットサルリーグアプリ</title>
+    <style>
+        /* ========== Reset & Base Styles ========== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'メイリオ', Meiryo, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== Color Variables (明治安田生命カラー) ========== */
+        :root {
+            --primary-green: #00A95F;
+            --primary-green-dark: #008A4E;
+            --primary-green-light: #E8F5EF;
+            --accent-yellow: #FFD700;
+            --accent-yellow-light: #FFF8DC;
+            --text-dark: #333333;
+            --text-light: #666666;
+            --white: #FFFFFF;
+            --gray-light: #F5F5F5;
+            --gray-border: #E0E0E0;
+            --danger: #DC3545;
+            --warning: #FFC107;
+            --info: #17A2B8;
+        }
+
+        /* ========== Header ========== */
+        .header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+            color: var(--white);
+            padding: 12px 16px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+        }
+
+        .header-content {
+            max-width: 480px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-title {
+            font-size: 16px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title .logo {
+            width: 28px;
+            height: 28px;
+            background: var(--accent-yellow);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+        }
+
+        .header-back {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 20px;
+            cursor: pointer;
+            padding: 8px;
+            display: none;
+        }
+
+        .header-back.visible {
+            display: block;
+        }
+
+        .header-login {
+            background: var(--accent-yellow);
+            color: var(--text-dark);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .header-login:hover {
+            background: #E6C200;
+            transform: scale(1.05);
+        }
+
+        .header-login.logged-in {
+            background: var(--white);
+            color: var(--primary-green);
+        }
+
+        /* ========== Main Container ========== */
+        .main-container {
+            max-width: 480px;
+            margin: 0 auto;
+            padding-top: 60px;
+            padding-bottom: 20px;
+            min-height: 100vh;
+            background: var(--white);
+        }
+
+        /* ========== Screen Management ========== */
+        .screen {
+            display: none;
+            padding: 16px;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ========== Year Carousel ========== */
+        .year-carousel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px 0;
+            background: var(--primary-green-light);
+            margin: -16px -16px 16px -16px;
+        }
+
+        .year-nav-btn {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .year-nav-btn:hover {
+            background: var(--primary-green-dark);
+            transform: scale(1.1);
+        }
+
+        .year-display {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--primary-green);
+            min-width: 120px;
+            text-align: center;
+        }
+
+        /* ========== Section Title ========== */
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-green);
+            margin-bottom: 16px;
+            padding-bottom: 8px;
+            border-bottom: 3px solid var(--accent-yellow);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: var(--primary-green);
+            border-radius: 2px;
+        }
+
+        /* ========== Tournament Card ========== */
+        .tournament-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tournament-card {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            border-radius: 12px;
+            padding: 16px;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .tournament-card:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 4px 12px rgba(0,169,95,0.15);
+            transform: translateY(-2px);
+        }
+
+        .tournament-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .tournament-name {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .tournament-status {
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+
+        .tournament-status.upcoming {
+            background: var(--accent-yellow-light);
+            color: #B8860B;
+        }
+
+        .tournament-status.ongoing {
+            background: var(--primary-green-light);
+            color: var(--primary-green);
+        }
+
+        .tournament-status.finished {
+            background: #E9ECEF;
+            color: var(--text-light);
+        }
+
+        .tournament-info {
+            display: flex;
+            gap: 16px;
+            font-size: 13px;
+            color: var(--text-light);
+        }
+
+        .tournament-info-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ========== Empty State ========== */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-light);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        .empty-state-text {
+            font-size: 14px;
+        }
+
+        /* ========== Admin Add Button ========== */
+        .admin-add-btn {
+            position: fixed;
+            bottom: 24px;
+            right: calc(50% - 220px);
+            width: 56px;
+            height: 56px;
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            border-radius: 50%;
+            font-size: 28px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,169,95,0.4);
+            transition: all 0.3s;
+            display: none;
+        }
+
+        .admin-add-btn.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .admin-add-btn:hover {
+            background: var(--primary-green-dark);
+            transform: scale(1.1);
+        }
+
+        /* ========== Tabs ========== */
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid var(--gray-border);
+            margin: -16px -16px 16px -16px;
+            padding: 0 16px;
+            background: var(--primary-green-light);
+        }
+
+        .tab {
+            flex: 1;
+            padding: 14px 8px;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+            color: var(--text-light);
+            background: none;
+            border: none;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .tab.active {
+            color: var(--primary-green);
+        }
+
+        .tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -2px;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: var(--primary-green);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ========== Match Card ========== */
+        .match-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .match-card {
+            background: var(--white);
+            border: 1px solid var(--gray-border);
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .match-card:hover {
+            border-color: var(--primary-green);
+            box-shadow: 0 4px 12px rgba(0,169,95,0.15);
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .match-number {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .match-status {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: bold;
+        }
+
+        .match-status.before {
+            background: var(--accent-yellow-light);
+            color: #B8860B;
+        }
+
+        .match-status.playing {
+            background: #FFE0E0;
+            color: var(--danger);
+            animation: pulse 1.5s infinite;
+        }
+
+        .match-status.finished {
+            background: #E9ECEF;
+            color: var(--text-light);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.6; }
+        }
+
+        .match-teams {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .match-team {
+            flex: 1;
+            text-align: center;
+        }
+
+        .match-team-name {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+        }
+
+        .match-team-label {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        .match-score {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 28px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .match-score-divider {
+            font-size: 20px;
+            color: var(--text-light);
+        }
+
+        /* ========== Ranking Table ========== */
+        .ranking-note {
+            background: var(--accent-yellow-light);
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            color: #B8860B;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .ranking-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+        }
+
+        .ranking-table th {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 10px 4px;
+            text-align: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        .ranking-table td {
+            padding: 10px 4px;
+            text-align: center;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .ranking-table tr:nth-child(even) {
+            background: var(--primary-green-light);
+        }
+
+        .ranking-table .rank-1 td:first-child { color: #FFD700; font-size: 16px; }
+        .ranking-table .rank-2 td:first-child { color: #C0C0C0; font-size: 16px; }
+        .ranking-table .rank-3 td:first-child { color: #CD7F32; font-size: 16px; }
+
+        .ranking-table .team-name {
+            text-align: left;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .table-scroll {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        /* ========== Personal Ranking ========== */
+        .personal-ranking-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border-bottom: 1px solid var(--gray-border);
+        }
+
+        .personal-rank {
+            width: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--primary-green);
+            text-align: center;
+        }
+
+        .personal-rank.gold { color: #FFD700; font-size: 22px; }
+        .personal-rank.silver { color: #C0C0C0; font-size: 22px; }
+        .personal-rank.bronze { color: #CD7F32; font-size: 22px; }
+
+        .personal-info {
+            flex: 1;
+            margin-left: 12px;
+        }
+
+        .personal-name {
+            font-weight: bold;
+            font-size: 14px;
+            color: var(--text-dark);
+        }
+
+        .personal-team {
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .personal-score {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--primary-green);
+        }
+
+        .personal-score-label {
+            font-size: 10px;
+            color: var(--text-light);
+        }
+
+        /* ========== Match Detail Screen ========== */
+        .match-detail-header {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-green-dark) 100%);
+            color: var(--white);
+            padding: 24px 16px;
+            margin: -16px -16px 16px -16px;
+            text-align: center;
+        }
+
+        .match-detail-teams {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        .match-detail-team {
+            text-align: center;
+        }
+
+        .match-detail-team-name {
+            font-size: 16px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .match-detail-team-label {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .match-detail-score {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .match-detail-score-num {
+            font-size: 48px;
+            font-weight: bold;
+        }
+
+        .match-detail-score-divider {
+            font-size: 32px;
+            opacity: 0.6;
+        }
+
+        .match-detail-status {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .match-detail-status.before { background: var(--accent-yellow); color: var(--text-dark); }
+        .match-detail-status.playing { background: var(--danger); color: var(--white); }
+        .match-detail-status.finished { background: rgba(255,255,255,0.2); color: var(--white); }
+
+        /* ========== Score Control ========== */
+        .score-control {
+            display: flex;
+            justify-content: center;
+            gap: 40px;
+            margin-bottom: 24px;
+        }
+
+        .score-control-team {
+            text-align: center;
+        }
+
+        .score-control-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .score-control-btns {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .score-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 2px solid var(--primary-green);
+            background: var(--white);
+            color: var(--primary-green);
+            font-size: 20px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .score-btn:hover {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        .score-btn:disabled {
+            border-color: var(--gray-border);
+            color: var(--gray-border);
+            cursor: not-allowed;
+        }
+
+        .score-display {
+            font-size: 32px;
+            font-weight: bold;
+            color: var(--primary-green);
+            min-width: 50px;
+        }
+
+        /* ========== Scorer List ========== */
+        .scorer-section {
+            margin-top: 24px;
+        }
+
+        .scorer-list {
+            background: var(--gray-light);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .scorer-item {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            background: var(--white);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .scorer-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .scorer-time {
+            width: 50px;
+            font-size: 12px;
+            color: var(--text-light);
+        }
+
+        .scorer-team-badge {
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 10px;
+            font-weight: bold;
+            margin-right: 8px;
+        }
+
+        .scorer-team-badge.home {
+            background: var(--primary-green-light);
+            color: var(--primary-green);
+        }
+
+        .scorer-team-badge.away {
+            background: var(--accent-yellow-light);
+            color: #B8860B;
+        }
+
+        .scorer-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .scorer-og {
+            font-size: 11px;
+            color: var(--danger);
+            font-weight: bold;
+        }
+
+        .add-scorer-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--accent-yellow);
+            color: var(--text-dark);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.3s;
+        }
+
+        .add-scorer-btn:hover {
+            background: #E6C200;
+        }
+
+        .add-scorer-btn:disabled {
+            background: var(--gray-border);
+            color: var(--text-light);
+            cursor: not-allowed;
+        }
+
+        /* ========== Admin Status Control ========== */
+        .admin-status-control {
+            margin-top: 24px;
+            padding: 16px;
+            background: var(--accent-yellow-light);
+            border-radius: 12px;
+            display: none;
+        }
+
+        .admin-status-control.visible {
+            display: block;
+        }
+
+        .admin-status-label {
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 8px;
+        }
+
+        .status-btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--primary-green);
+            background: var(--white);
+            color: var(--primary-green);
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .status-btn.active {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        /* ========== Team Member Screen ========== */
+        .team-select {
+            margin-bottom: 20px;
+        }
+
+        .team-select select {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid var(--gray-border);
+            border-radius: 8px;
+            font-family: 'メイリオ', Meiryo, sans-serif;
+            cursor: pointer;
+        }
+
+        .team-select select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .member-list {
+            background: var(--gray-light);
+            border-radius: 12px;
+            padding: 12px;
+        }
+
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: var(--white);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .member-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .member-number {
+            width: 30px;
+            height: 30px;
+            background: var(--primary-green);
+            color: var(--white);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 12px;
+        }
+
+        .member-name {
+            flex: 1;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .member-delete-btn {
+            background: var(--danger);
+            color: var(--white);
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .add-member-form {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .add-member-input {
+            flex: 1;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid var(--gray-border);
+            border-radius: 8px;
+            font-family: 'メイリオ', Meiryo, sans-serif;
+        }
+
+        .add-member-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .add-member-submit {
+            padding: 12px 20px;
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* ========== Modal ========== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 16px;
+            width: 100%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow: hidden;
+            animation: modalIn 0.3s ease;
+        }
+
+        @keyframes modalIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .modal-header {
+            background: var(--primary-green);
+            color: var(--white);
+            padding: 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--white);
+            font-size: 24px;
+            cursor: pointer;
+        }
+
+        .modal-body {
+            padding: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .modal-footer {
+            padding: 16px;
+            border-top: 1px solid var(--gray-border);
+            display: flex;
+            gap: 8px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .modal-btn.primary {
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+        }
+
+        .modal-btn.secondary {
+            background: var(--white);
+            color: var(--text-dark);
+            border: 2px solid var(--gray-border);
+        }
+
+        /* ========== Form Elements ========== */
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            color: var(--text-light);
+            margin-bottom: 6px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 14px;
+            border: 2px solid var(--gray-border);
+            border-radius: 8px;
+            font-family: 'メイリオ', Meiryo, sans-serif;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--primary-green);
+        }
+
+        /* ========== Player Select List ========== */
+        .player-select-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .player-select-team {
+            font-size: 12px;
+            color: var(--text-light);
+            padding: 8px 12px;
+            background: var(--gray-light);
+            font-weight: bold;
+        }
+
+        .player-select-item {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--gray-border);
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .player-select-item:hover {
+            background: var(--primary-green-light);
+        }
+
+        .player-select-item.selected {
+            background: var(--primary-green);
+            color: var(--white);
+        }
+
+        /* ========== Navigation Footer ========== */
+        .nav-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: var(--white);
+            border-top: 1px solid var(--gray-border);
+            display: flex;
+            justify-content: center;
+            padding: 8px 0;
+            z-index: 999;
+        }
+
+        .nav-footer-inner {
+            max-width: 480px;
+            width: 100%;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 8px 16px;
+            color: var(--text-light);
+            text-decoration: none;
+            font-size: 10px;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--primary-green);
+        }
+
+        .nav-item-icon {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        /* ========== Login Screen ========== */
+        .login-form {
+            max-width: 300px;
+            margin: 40px auto;
+            padding: 24px;
+            background: var(--white);
+            border-radius: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .login-title {
+            text-align: center;
+            font-size: 20px;
+            color: var(--primary-green);
+            margin-bottom: 24px;
+        }
+
+        .login-title-icon {
+            font-size: 48px;
+            display: block;
+            margin-bottom: 12px;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-green);
+            color: var(--white);
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        .login-btn:hover {
+            background: var(--primary-green-dark);
+        }
+
+        .login-error {
+            color: var(--danger);
+            font-size: 12px;
+            text-align: center;
+            margin-top: 12px;
+            display: none;
+        }
+
+        /* ========== Utility ========== */
+        .text-center { text-align: center; }
+        .mb-8 { margin-bottom: 8px; }
+        .mb-16 { margin-bottom: 16px; }
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <button class="header-back" id="btnBack" onclick="goBack()">←</button>
+            <div class="header-title">
+                <span class="logo">⚽</span>
+                <span>フットサルリーグ2026</span>
+            </div>
+            <button class="header-login" id="btnLogin" onclick="toggleLogin()">ログイン</button>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="main-container">
+        <!-- ========== Home Screen ========== -->
+        <div class="screen active" id="screenHome">
+            <div class="year-carousel">
+                <button class="year-nav-btn" onclick="changeYear(-1)">◀</button>
+                <div class="year-display" id="yearDisplay">2026年度</div>
+                <button class="year-nav-btn" onclick="changeYear(1)">▶</button>
+            </div>
+            
+            <h2 class="section-title">大会一覧</h2>
+            
+            <div class="tournament-list" id="tournamentList">
+                <!-- Tournament cards will be rendered here -->
+            </div>
+
+            <button class="admin-add-btn" id="btnAddTournament" onclick="openAddTournamentModal()">+</button>
+        </div>
+
+        <!-- ========== Tournament Detail Screen ========== -->
+        <div class="screen" id="screenTournament">
+            <div class="tabs">
+                <button class="tab active" onclick="switchTab('matches')">対戦表</button>
+                <button class="tab" onclick="switchTab('teamRanking')">チームランキング</button>
+                <button class="tab" onclick="switchTab('personalRanking')">得点ランキング</button>
+            </div>
+
+            <!-- Matches Tab -->
+            <div class="tab-content active" id="tabMatches">
+                <div class="match-list" id="matchList">
+                    <!-- Match cards will be rendered here -->
+                </div>
+            </div>
+
+            <!-- Team Ranking Tab -->
+            <div class="tab-content" id="tabTeamRanking">
+                <div class="ranking-note">
+                    📌 順位決定基準：① 平均勝ち点 → ② 得失点差 → ③ 総得点数 → ④ 直接対決の結果
+                </div>
+                <div class="table-scroll">
+                    <table class="ranking-table" id="teamRankingTable">
+                        <!-- Team ranking will be rendered here -->
+                    </table>
+                </div>
+            </div>
+
+            <!-- Personal Ranking Tab -->
+            <div class="tab-content" id="tabPersonalRanking">
+                <div class="ranking-note">
+                    📌 当該年度の全大会の得点を合算してランキングを作成します。<br>
+                    ※ オウンゴールは個人得点としてカウントされません。
+                </div>
+                <div id="personalRankingList">
+                    <!-- Personal ranking will be rendered here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Match Detail Screen ========== -->
+        <div class="screen" id="screenMatchDetail">
+            <div class="match-detail-header">
+                <div class="match-detail-teams">
+                    <div class="match-detail-team">
+                        <div class="match-detail-team-name" id="detailHomeTeam">営業企画部</div>
+                        <div class="match-detail-team-label">ホーム</div>
+                    </div>
+                    <div class="match-detail-score">
+                        <span class="match-detail-score-num" id="detailHomeScore">2</span>
+                        <span class="match-detail-score-divider">-</span>
+                        <span class="match-detail-score-num" id="detailAwayScore">1</span>
+                    </div>
+                    <div class="match-detail-team">
+                        <div class="match-detail-team-name" id="detailAwayTeam">経理部</div>
+                        <div class="match-detail-team-label">アウェイ</div>
+                    </div>
+                </div>
+                <span class="match-detail-status playing" id="detailStatus">試合中</span>
+            </div>
+
+            <div class="score-control" id="scoreControl">
+                <div class="score-control-team">
+                    <div class="score-control-label">ホーム</div>
+                    <div class="score-control-btns">
+                        <button class="score-btn" onclick="updateScore('home', -1)">-</button>
+                        <span class="score-display" id="scoreHomeDisplay">2</span>
+                        <button class="score-btn" onclick="updateScore('home', 1)">+</button>
+                    </div>
+                </div>
+                <div class="score-control-team">
+                    <div class="score-control-label">アウェイ</div>
+                    <div class="score-control-btns">
+                        <button class="score-btn" onclick="updateScore('away', -1)">-</button>
+                        <span class="score-display" id="scoreAwayDisplay">1</span>
+                        <button class="score-btn" onclick="updateScore('away', 1)">+</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scorer-section">
+                <h3 class="section-title">得点者一覧</h3>
+                <div class="scorer-list" id="scorerList">
+                    <!-- Scorer items will be rendered here -->
+                </div>
+                <button class="add-scorer-btn" id="btnAddScorer" onclick="openAddScorerModal()">+ 得点者を追加</button>
+            </div>
+
+            <div class="admin-status-control" id="adminStatusControl">
+                <div class="admin-status-label">管理者：試合ステータス変更</div>
+                <div class="status-btn-group">
+                    <button class="status-btn" onclick="setMatchStatus('before')">試合前</button>
+                    <button class="status-btn active" onclick="setMatchStatus('playing')">試合中</button>
+                    <button class="status-btn" onclick="setMatchStatus('finished')">終了</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== Team Member Screen ========== -->
+        <div class="screen" id="screenMembers">
+            <h2 class="section-title">チームメンバー登録</h2>
+            
+            <div class="team-select">
+                <select id="teamSelect" onchange="loadTeamMembers()">
+                    <option value="">チームを選択してください</option>
+                    <option value="sales">営業企画部</option>
+                    <option value="accounting">経理部</option>
+                    <option value="hr">人事部</option>
+                    <option value="it">情報システム部</option>
+                    <option value="general">総務部</option>
+                    <option value="legal">法務部</option>
+                </select>
+            </div>
+
+            <div class="member-list" id="memberList">
+                <div class="empty-state">
+                    <div class="empty-state-icon">👥</div>
+                    <div class="empty-state-text">チームを選択してメンバーを表示</div>
+                </div>
+            </div>
+
+            <div class="add-member-form" id="addMemberForm" style="display: none;">
+                <input type="text" class="add-member-input" id="newMemberName" placeholder="選手名を入力">
+                <button class="add-member-submit" onclick="addMember()">追加</button>
+            </div>
+        </div>
+
+        <!-- ========== Login Screen ========== -->
+        <div class="screen" id="screenLogin">
+            <div class="login-form">
+                <div class="login-title">
+                    <span class="login-title-icon">🔐</span>
+                    管理者ログイン
+                </div>
+                <div class="form-group">
+                    <label class="form-label">ユーザーID</label>
+                    <input type="text" class="form-input" id="loginId" placeholder="IDを入力">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">パスワード</label>
+                    <input type="password" class="form-input" id="loginPassword" placeholder="パスワードを入力">
+                </div>
+                <button class="login-btn" onclick="doLogin()">ログイン</button>
+                <div class="login-error" id="loginError">IDまたはパスワードが正しくありません</div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Navigation Footer -->
+    <nav class="nav-footer">
+        <div class="nav-footer-inner">
+            <div class="nav-item active" onclick="showScreen('home')">
+                <span class="nav-item-icon">🏠</span>
+                <span>ホーム</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('members')">
+                <span class="nav-item-icon">👥</span>
+                <span>メンバー</span>
+            </div>
+            <div class="nav-item" onclick="showScreen('login')">
+                <span class="nav-item-icon">⚙️</span>
+                <span>設定</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ========== Modals ========== -->
+    
+    <!-- Add Scorer Modal -->
+    <div class="modal-overlay" id="modalAddScorer">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">得点者を追加</span>
+                <button class="modal-close" onclick="closeModal('modalAddScorer')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">得点時間（分）</label>
+                    <input type="number" class="form-input" id="scorerTime" placeholder="例: 15" min="0" max="40">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">得点者を選択</label>
+                    <div class="player-select-list" id="playerSelectList">
+                        <!-- Player list will be rendered here -->
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="checkbox-group">
+                        <input type="checkbox" id="isOwnGoal">
+                        <label for="isOwnGoal">オウンゴール（OG）</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('modalAddScorer')">キャンセル</button>
+                <button class="modal-btn primary" onclick="addScorer()">追加</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Tournament Modal -->
+    <div class="modal-overlay" id="modalAddTournament">
+        <div class="modal">
+            <div class="modal-header">
+                <span class="modal-title">大会を新規作成</span>
+                <button class="modal-close" onclick="closeModal('modalAddTournament')">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">大会名</label>
+                    <input type="text" class="form-input" id="tournamentName" placeholder="例: 第1回大会">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">開催日</label>
+                    <input type="date" class="form-input" id="tournamentDate">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">参加チーム（複数選択可）</label>
+                    <div style="max-height: 150px; overflow-y: auto; border: 1px solid #E0E0E0; border-radius: 8px; padding: 8px;">
+                        <div class="checkbox-group mb-8"><input type="checkbox" id="team1"><label>営業企画部</label></div>
+                        <div class="checkbox-group mb-8"><input type="checkbox" id="team2"><label>経理部</label></div>
+                        <div class="checkbox-group mb-8"><input type="checkbox" id="team3"><label>人事部</label></div>
+                        <div class="checkbox-group mb-8"><input type="checkbox" id="team4"><label>情報システム部</label></div>
+                        <div class="checkbox-group mb-8"><input type="checkbox" id="team5"><label>総務部</label></div>
+                        <div class="checkbox-group"><input type="checkbox" id="team6"><label>法務部</label></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn secondary" onclick="closeModal('modalAddTournament')">キャンセル</button>
+                <button class="modal-btn primary" onclick="createTournament()">作成</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ========== Mock Data ==========
+        const mockData = {
+            currentYear: 2026,
+            isLoggedIn: false,
+            tournaments: {
+                2026: [
+                    { id: 1, name: "2026年度 第1回大会", date: "2026-05-15", status: "finished", teams: 6, matches: 15 },
+                    { id: 2, name: "2026年度 第2回大会", date: "2026-08-20", status: "ongoing", teams: 6, matches: 15 },
+                    { id: 3, name: "2026年度 第3回大会", date: "2026-11-10", status: "upcoming", teams: 6, matches: 15 }
+                ],
+                2025: [
+                    { id: 4, name: "2025年度 第1回大会", date: "2025-06-10", status: "finished", teams: 5, matches: 10 },
+                    { id: 5, name: "2025年度 第2回大会", date: "2025-09-15", status: "finished", teams: 5, matches: 10 }
+                ],
+                2024: []
+            },
+            matches: [
+                { id: 1, number: 1, time: "09:00", homeTeam: "営業企画部", awayTeam: "経理部", homeScore: 2, awayScore: 1, status: "finished" },
+                { id: 2, number: 2, time: "09:30", homeTeam: "人事部", awayTeam: "情報システム部", homeScore: 1, awayScore: 1, status: "finished" },
+                { id: 3, number: 3, time: "10:00", homeTeam: "総務部", awayTeam: "法務部", homeScore: 3, awayScore: 0, status: "playing" },
+                { id: 4, number: 4, time: "10:30", homeTeam: "営業企画部", awayTeam: "人事部", homeScore: 0, awayScore: 0, status: "before" },
+                { id: 5, number: 5, time: "11:00", homeTeam: "経理部", awayTeam: "総務部", homeScore: 0, awayScore: 0, status: "before" },
+                { id: 6, number: 6, time: "11:30", homeTeam: "情報システム部", awayTeam: "法務部", homeScore: 0, awayScore: 0, status: "before" }
+            ],
+            teamRanking: [
+                { rank: 1, team: "営業企画部", played: 3, win: 2, lose: 0, draw: 1, gf: 8, ga: 3, gd: 5, points: 7, avgPoints: 2.33 },
+                { rank: 2, team: "総務部", played: 3, win: 2, lose: 1, draw: 0, gf: 7, ga: 4, gd: 3, points: 6, avgPoints: 2.00 },
+                { rank: 3, team: "人事部", played: 3, win: 1, lose: 1, draw: 1, gf: 5, ga: 5, gd: 0, points: 4, avgPoints: 1.33 },
+                { rank: 4, team: "経理部", played: 3, win: 1, lose: 2, draw: 0, gf: 4, ga: 5, gd: -1, points: 3, avgPoints: 1.00 },
+                { rank: 5, team: "情報システム部", played: 3, win: 0, lose: 2, draw: 1, gf: 2, ga: 6, gd: -4, points: 1, avgPoints: 0.33 },
+                { rank: 6, team: "法務部", played: 3, win: 0, lose: 3, draw: 0, gf: 1, ga: 8, gd: -7, points: 0, avgPoints: 0.00 }
+            ],
+            personalRanking: [
+                { rank: 1, name: "田中 太郎", team: "営業企画部", goals: 8 },
+                { rank: 2, name: "佐藤 次郎", team: "総務部", goals: 6 },
+                { rank: 2, name: "鈴木 三郎", team: "営業企画部", goals: 6 },
+                { rank: 4, name: "高橋 四郎", team: "人事部", goals: 4 },
+                { rank: 5, name: "伊藤 五郎", team: "経理部", goals: 3 },
+                { rank: 6, name: "渡辺 六郎", team: "総務部", goals: 2 },
+                { rank: 6, name: "山本 七郎", team: "人事部", goals: 2 },
+                { rank: 8, name: "中村 八郎", team: "情報システム部", goals: 1 }
+            ],
+            scorers: [
+                { time: 5, team: "home", name: "田中 太郎", isOG: false },
+                { time: 18, team: "home", name: "鈴木 三郎", isOG: false },
+                { time: 32, team: "away", name: "伊藤 五郎", isOG: false }
+            ],
+            teamMembers: {
+                sales: ["田中 太郎", "鈴木 三郎", "山田 花子", "佐々木 一郎", "木村 健太"],
+                accounting: ["伊藤 五郎", "加藤 美咲", "小林 勇気", "斎藤 愛"],
+                hr: ["高橋 四郎", "山本 七郎", "松本 さくら", "井上 隆"],
+                it: ["中村 八郎", "森田 誠", "藤井 優子", "近藤 大輔"],
+                general: ["佐藤 次郎", "渡辺 六郎", "岡田 真理", "遠藤 拓也", "青木 恵"],
+                legal: ["吉田 正義", "坂本 千代", "池田 翔"]
+            },
+            currentMatch: null,
+            screenHistory: ['home']
+        };
+
+        // ========== Screen Navigation ==========
+        function showScreen(screenName) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById('screen' + capitalize(screenName)).classList.add('active');
+            
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const backBtn = document.getElementById('btnBack');
+            if (screenName === 'home') {
+                backBtn.classList.remove('visible');
+                mockData.screenHistory = ['home'];
+            } else {
+                backBtn.classList.add('visible');
+                if (mockData.screenHistory[mockData.screenHistory.length - 1] !== screenName) {
+                    mockData.screenHistory.push(screenName);
+                }
+            }
+            
+            // Update nav active state
+            if (screenName === 'home' || screenName === 'tournament' || screenName === 'matchDetail') {
+                document.querySelector('.nav-item:first-child').classList.add('active');
+            } else if (screenName === 'members') {
+                document.querySelector('.nav-item:nth-child(2)').classList.add('active');
+            } else if (screenName === 'login') {
+                document.querySelector('.nav-item:nth-child(3)').classList.add('active');
+            }
+        }
+
+        function goBack() {
+            if (mockData.screenHistory.length > 1) {
+                mockData.screenHistory.pop();
+                const prevScreen = mockData.screenHistory[mockData.screenHistory.length - 1];
+                showScreen(prevScreen);
+            }
+        }
+
+        function capitalize(str) {
+            return str.charAt(0).toUpperCase() + str.slice(1);
+        }
+
+        // ========== Year Carousel ==========
+        function changeYear(delta) {
+            mockData.currentYear += delta;
+            document.getElementById('yearDisplay').textContent = mockData.currentYear + '年度';
+            renderTournaments();
+        }
+
+        // ========== Render Functions ==========
+        function renderTournaments() {
+            const container = document.getElementById('tournamentList');
+            const tournaments = mockData.tournaments[mockData.currentYear] || [];
+            
+            if (tournaments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">📋</div>
+                        <div class="empty-state-text">大会データはありません</div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = tournaments.map(t => `
+                <div class="tournament-card" onclick="openTournament(${t.id})">
+                    <div class="tournament-card-header">
+                        <span class="tournament-name">${t.name}</span>
+                        <span class="tournament-status ${t.status}">${getStatusText(t.status)}</span>
+                    </div>
+                    <div class="tournament-info">
+                        <span class="tournament-info-item">📅 ${formatDate(t.date)}</span>
+                        <span class="tournament-info-item">👥 ${t.teams}チーム</span>
+                        <span class="tournament-info-item">⚽ ${t.matches}試合</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getStatusText(status) {
+            const statusMap = { upcoming: '開催予定', ongoing: '開催中', finished: '終了' };
+            return statusMap[status] || status;
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr);
+            return `${date.getMonth() + 1}/${date.getDate()}`;
+        }
+
+        function openTournament(id) {
+            showScreen('tournament');
+            renderMatches();
+            renderTeamRanking();
+            renderPersonalRanking();
+        }
+
+        function renderMatches() {
+            const container = document.getElementById('matchList');
+            container.innerHTML = mockData.matches.map(m => `
+                <div class="match-card" onclick="openMatchDetail(${m.id})">
+                    <div class="match-header">
+                        <span class="match-number">第${m.number}試合</span>
+                        <span>🕐 ${m.time}</span>
+                        <span class="match-status ${m.status}">${getMatchStatusText(m.status)}</span>
+                    </div>
+                    <div class="match-teams">
+                        <div class="match-team">
+                            <div class="match-team-name">${m.homeTeam}</div>
+                            <div class="match-team-label">ホーム</div>
+                        </div>
+                        <div class="match-score">
+                            <span>${m.homeScore}</span>
+                            <span class="match-score-divider">-</span>
+                            <span>${m.awayScore}</span>
+                        </div>
+                        <div class="match-team">
+                            <div class="match-team-name">${m.awayTeam}</div>
+                            <div class="match-team-label">アウェイ</div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getMatchStatusText(status) {
+            const statusMap = { before: '試合前', playing: '試合中', finished: '終了' };
+            return statusMap[status] || status;
+        }
+
+        function renderTeamRanking() {
+            const table = document.getElementById('teamRankingTable');
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>順位</th>
+                        <th>チーム</th>
+                        <th>試</th>
+                        <th>勝</th>
+                        <th>敗</th>
+                        <th>分</th>
+                        <th>得点</th>
+                        <th>失点</th>
+                        <th>差</th>
+                        <th>勝点</th>
+                        <th>平均</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${mockData.teamRanking.map((r, i) => `
+                        <tr class="rank-${r.rank}">
+                            <td>${r.rank <= 3 ? ['🥇', '🥈', '🥉'][r.rank - 1] : r.rank}</td>
+                            <td class="team-name">${r.team}</td>
+                            <td>${r.played}</td>
+                            <td>${r.win}</td>
+                            <td>${r.lose}</td>
+                            <td>${r.draw}</td>
+                            <td>${r.gf}</td>
+                            <td>${r.ga}</td>
+                            <td>${r.gd > 0 ? '+' + r.gd : r.gd}</td>
+                            <td><strong>${r.points}</strong></td>
+                            <td>${r.avgPoints.toFixed(2)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            `;
+        }
+
+        function renderPersonalRanking() {
+            const container = document.getElementById('personalRankingList');
+            container.innerHTML = mockData.personalRanking.map((p, i) => {
+                let rankClass = '';
+                if (p.rank === 1) rankClass = 'gold';
+                else if (p.rank === 2) rankClass = 'silver';
+                else if (p.rank === 3) rankClass = 'bronze';
+                
+                return `
+                    <div class="personal-ranking-item">
+                        <div class="personal-rank ${rankClass}">${p.rank <= 3 ? ['🥇', '🥈', '🥉'][p.rank - 1] : p.rank}</div>
+                        <div class="personal-info">
+                            <div class="personal-name">${p.name}</div>
+                            <div class="personal-team">${p.team}</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="personal-score">${p.goals}</div>
+                            <div class="personal-score-label">得点</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // ========== Tab Switching ==========
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById('tab' + capitalize(tabName.replace('R', 'R'))).classList.add('active');
+            
+            // Fix tab content ID mapping
+            if (tabName === 'matches') document.getElementById('tabMatches').classList.add('active');
+            if (tabName === 'teamRanking') document.getElementById('tabTeamRanking').classList.add('active');
+            if (tabName === 'personalRanking') document.getElementById('tabPersonalRanking').classList.add('active');
+        }
+
+        // ========== Match Detail ==========
+        function openMatchDetail(matchId) {
+            mockData.currentMatch = mockData.matches.find(m => m.id === matchId);
+            const match = mockData.currentMatch;
+            
+            document.getElementById('detailHomeTeam').textContent = match.homeTeam;
+            document.getElementById('detailAwayTeam').textContent = match.awayTeam;
+            document.getElementById('detailHomeScore').textContent = match.homeScore;
+            document.getElementById('detailAwayScore').textContent = match.awayScore;
+            document.getElementById('scoreHomeDisplay').textContent = match.homeScore;
+            document.getElementById('scoreAwayDisplay').textContent = match.awayScore;
+            
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.className = 'match-detail-status ' + match.status;
+            statusEl.textContent = getMatchStatusText(match.status);
+            
+            // Show/hide controls based on status
+            const isEditable = match.status !== 'finished';
+            document.getElementById('scoreControl').style.display = isEditable ? 'flex' : 'none';
+            document.getElementById('btnAddScorer').disabled = !isEditable;
+            
+            // Admin controls
+            if (mockData.isLoggedIn) {
+                document.getElementById('adminStatusControl').classList.add('visible');
+                updateStatusButtons(match.status);
+            }
+            
+            renderScorers();
+            showScreen('matchDetail');
+        }
+
+        function updateScore(team, delta) {
+            if (!mockData.currentMatch) return;
+            
+            if (team === 'home') {
+                mockData.currentMatch.homeScore = Math.max(0, mockData.currentMatch.homeScore + delta);
+                document.getElementById('scoreHomeDisplay').textContent = mockData.currentMatch.homeScore;
+                document.getElementById('detailHomeScore').textContent = mockData.currentMatch.homeScore;
+            } else {
+                mockData.currentMatch.awayScore = Math.max(0, mockData.currentMatch.awayScore + delta);
+                document.getElementById('scoreAwayDisplay').textContent = mockData.currentMatch.awayScore;
+                document.getElementById('detailAwayScore').textContent = mockData.currentMatch.awayScore;
+            }
+        }
+
+        function renderScorers() {
+            const container = document.getElementById('scorerList');
+            if (mockData.scorers.length === 0) {
+                container.innerHTML = '<div class="empty-state"><div class="empty-state-text">得点者データなし</div></div>';
+                return;
+            }
+            
+            container.innerHTML = mockData.scorers.map(s => `
+                <div class="scorer-item">
+                    <span class="scorer-time">${s.time}'</span>
+                    <span class="scorer-team-badge ${s.team}">${s.team === 'home' ? 'H' : 'A'}</span>
+                    <span class="scorer-name">${s.name}</span>
+                    ${s.isOG ? '<span class="scorer-og">OG</span>' : ''}
+                </div>
+            `).join('');
+        }
+
+        function setMatchStatus(status) {
+            if (!mockData.currentMatch) return;
+            mockData.currentMatch.status = status;
+            
+            const statusEl = document.getElementById('detailStatus');
+            statusEl.className = 'match-detail-status ' + status;
+            statusEl.textContent = getMatchStatusText(status);
+            
+            const isEditable = status !== 'finished';
+            document.getElementById('scoreControl').style.display = isEditable ? 'flex' : 'none';
+            document.getElementById('btnAddScorer').disabled = !isEditable;
+            
+            updateStatusButtons(status);
+        }
+
+        function updateStatusButtons(status) {
+            document.querySelectorAll('.status-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if (btn.textContent.includes(getMatchStatusText(status))) {
+                    btn.classList.add('active');
+                }
+            });
+        }
+
+        // ========== Team Members ==========
+        function loadTeamMembers() {
+            const teamId = document.getElementById('teamSelect').value;
+            const container = document.getElementById('memberList');
+            const form = document.getElementById('addMemberForm');
+            
+            if (!teamId) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">👥</div>
+                        <div class="empty-state-text">チームを選択してメンバーを表示</div>
+                    </div>
+                `;
+                form.style.display = 'none';
+                return;
+            }
+            
+            const members = mockData.teamMembers[teamId] || [];
+            container.innerHTML = members.map((m, i) => `
+                <div class="member-item">
+                    <span class="member-number">${i + 1}</span>
+                    <span class="member-name">${m}</span>
+                    <button class="member-delete-btn" onclick="deleteMember('${teamId}', ${i})">×</button>
+                </div>
+            `).join('');
+            
+            form.style.display = 'flex';
+        }
+
+        function addMember() {
+            const teamId = document.getElementById('teamSelect').value;
+            const nameInput = document.getElementById('newMemberName');
+            const name = nameInput.value.trim();
+            
+            if (!teamId || !name) return;
+            
+            if (!mockData.teamMembers[teamId]) {
+                mockData.teamMembers[teamId] = [];
+            }
+            mockData.teamMembers[teamId].push(name);
+            nameInput.value = '';
+            loadTeamMembers();
+        }
+
+        function deleteMember(teamId, index) {
+            mockData.teamMembers[teamId].splice(index, 1);
+            loadTeamMembers();
+        }
+
+        // ========== Login ==========
+        function toggleLogin() {
+            if (mockData.isLoggedIn) {
+                mockData.isLoggedIn = false;
+                document.getElementById('btnLogin').textContent = 'ログイン';
+                document.getElementById('btnLogin').classList.remove('logged-in');
+                document.getElementById('btnAddTournament').classList.remove('visible');
+                document.getElementById('adminStatusControl').classList.remove('visible');
+            } else {
+                showScreen('login');
+            }
+        }
+
+        function doLogin() {
+            const id = document.getElementById('loginId').value;
+            const password = document.getElementById('loginPassword').value;
+            
+            // Mock authentication
+            if (id === 'admin' && password === 'admin') {
+                mockData.isLoggedIn = true;
+                document.getElementById('btnLogin').textContent = 'ログアウト';
+                document.getElementById('btnLogin').classList.add('logged-in');
+                document.getElementById('btnAddTournament').classList.add('visible');
+                document.getElementById('loginError').style.display = 'none';
+                showScreen('home');
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        // ========== Modals ==========
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        function openAddScorerModal() {
+            renderPlayerSelectList();
+            openModal('modalAddScorer');
+        }
+
+        function renderPlayerSelectList() {
+            if (!mockData.currentMatch) return;
+            
+            const container = document.getElementById('playerSelectList');
+            const homeMembers = mockData.teamMembers.sales || [];
+            const awayMembers = mockData.teamMembers.accounting || [];
+            
+            container.innerHTML = `
+                <div class="player-select-team">${mockData.currentMatch.homeTeam}（ホーム）</div>
+                ${homeMembers.map(m => `<div class="player-select-item" onclick="selectPlayer(this, 'home', '${m}')">${m}</div>`).join('')}
+                <div class="player-select-team">${mockData.currentMatch.awayTeam}（アウェイ）</div>
+                ${awayMembers.map(m => `<div class="player-select-item" onclick="selectPlayer(this, 'away', '${m}')">${m}</div>`).join('')}
+            `;
+        }
+
+        let selectedPlayer = null;
+
+        function selectPlayer(element, team, name) {
+            document.querySelectorAll('.player-select-item').forEach(el => el.classList.remove('selected'));
+            element.classList.add('selected');
+            selectedPlayer = { team, name };
+        }
+
+        function addScorer() {
+            if (!selectedPlayer) {
+                alert('得点者を選択してください');
+                return;
+            }
+            
+            const time = parseInt(document.getElementById('scorerTime').value) || 0;
+            const isOG = document.getElementById('isOwnGoal').checked;
+            
+            mockData.scorers.push({
+                time: time,
+                team: selectedPlayer.team,
+                name: selectedPlayer.name,
+                isOG: isOG
+            });
+            
+            mockData.scorers.sort((a, b) => a.time - b.time);
+            renderScorers();
+            
+            // Reset form
+            document.getElementById('scorerTime').value = '';
+            document.getElementById('isOwnGoal').checked = false;
+            selectedPlayer = null;
+            
+            closeModal('modalAddScorer');
+        }
+
+        function openAddTournamentModal() {
+            openModal('modalAddTournament');
+        }
+
+        function createTournament() {
+            const name = document.getElementById('tournamentName').value;
+            const date = document.getElementById('tournamentDate').value;
+            
+            if (!name || !date) {
+                alert('大会名と開催日を入力してください');
+                return;
+            }
+            
+            const newTournament = {
+                id: Date.now(),
+                name: mockData.currentYear + '年度 ' + name,
+                date: date,
+                status: 'upcoming',
+                teams: 6,
+                matches: 15
+            };
+            
+            if (!mockData.tournaments[mockData.currentYear]) {
+                mockData.tournaments[mockData.currentYear] = [];
+            }
+            mockData.tournaments[mockData.currentYear].push(newTournament);
+            
+            renderTournaments();
+            closeModal('modalAddTournament');
+            
+            // Reset form
+            document.getElementById('tournamentName').value = '';
+            document.getElementById('tournamentDate').value = '';
+        }
+
+        // ========== Initialize ==========
+        document.addEventListener('DOMContentLoaded', function() {
+            renderTournaments();
+        });
+    </script>
+</body>
+</html>
