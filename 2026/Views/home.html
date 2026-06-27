@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>フットサルリーグ集計アプリ</title>
+    <title>フットサルリーグ｜ホーム</title>
     <link rel="stylesheet" href="../../common/css/reset.css">
     <link rel="stylesheet" href="../../common/css/components.css">
     <link rel="stylesheet" href="../futsul_files/css/common.css">
@@ -14,15 +14,16 @@
 <body class="com_body">
     <!-- ヘッダー -->
     <header class="com_header">
-        <img src="../futsul_files/image/soccerball.png" alt="サッカーボール">
+        <div class="com_header_img">⚽</div>
         <h1 class="c_typo_headerM c_typo_WHT">フットサルリーグ2026</h1>
+        <a href="./login.html" class="com_header_img">🔒</a>
     </header>
 
     <!-- メイン -->
     <main class="com_main">
         <section class="hm_cardSec">
             <div class="hm_card">
-                <p>今年度の大会</p>
+                <p class="c_typo_headerXS c_typo_BLK10">今年度の大会</p>
                 <ul class="hm_compeList">
                     <li><a href="./compeDetail.html" class="hm_compeCard">
                             <div class="hm_compeCard_left">
@@ -63,20 +64,28 @@
 
     <nav class="com_nav">
         <ul class="com_nav_btnList">
-            <li><a href="./home.html" class="com_nav_disactive"><img src="" alt="🏠">
+            <li><a href="./home.html" class="com_nav_disactive">
+                    <div class="com_nav_img">🏠</div>
                     <p class="c_typo_bodyXS c_typo_BLK8 c_typo_align_center">ホーム</p>
                 </a></li>
-            <li><a href="./match.html"><img src="" alt="📋">
+            <li><a href="./match.html">
+                    <div class="com_nav_img">📋</div>
                     <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">対戦表</p>
                 </a></li>
-            <li><a href="./teamRanking.html"><img src="" alt="🏆">
+            <li><a href="./teamRanking.html">
+                    <div class="com_nav_img">🏆</div>
                     <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">順位表</p>
                 </a></li>
-            <li><a href="./personalRanking.html"><img src="../futsul_files/image/soccerball.png" alt="サッカーボール">
+            <li><a href="./personalRanking.html">
+                    <div class="com_nav_img">⚽</div>
                     <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">得点ランキング</p>
                 </a></li>
         </ul>
     </nav>
+
+    <script src="../../common/js/event.js"></script>
+    <script src="../futsul_files/js/common.js"></script>
+    <script src="../futsul_files/js/home.js"></script>
 </body>
 
 </html>
