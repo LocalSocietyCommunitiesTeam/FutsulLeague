@@ -26,17 +26,12 @@
     background-color: #008673;
 }
 
-.com_header_img {
-    display: block;
-    flex-shrink: 0;
-    font-size: 22px;
-    line-height: 26px;
-    color: #FFFFFF;
-}
-
 .com_header>h1 {
     flex-grow: 1;
-    margin-left: 4px;
+}
+
+.com_header> {
+    flex-shrink: 0;
 }
 
 .com_main {
