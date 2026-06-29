@@ -31,7 +31,7 @@ async function loadChampionship(targetYear) {
     } catch (error) {
         console.error("通信エラー:", error);
     } finally {
-        closeLoader();
+        // closeLoader();
     }
 }
 
