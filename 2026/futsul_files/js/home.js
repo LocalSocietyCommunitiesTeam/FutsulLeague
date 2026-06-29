@@ -44,7 +44,7 @@ function displayChampionshipData(data) {
     const compeList = document.getElementById('hm_compeList');
 
     for (i = 0; i < data.length; i++) {
-        compeList.innerHTML += `<li><a href="./compeDetail.html?compeId=${data[i].id}" class="hm_compeCard">
+        compeList.innerHTML += `<li><a href="./match.html?compeId=${data[i].id}" class="hm_compeCard">
     <div class="hm_compeCard_left">
         <p class="c_typo_headerS c_typo_BLK10">${data[i].name}</p>
         <p class="c_typo_bodyXS c_typo_BLK8">📅 ${data[i].date}</p>
