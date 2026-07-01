@@ -27,3 +27,23 @@
     display: flex;
     padding-left: 8px;
 }
+
+.mem_list_right>＊:last-child {
+    margin-left: 8px;
+}
+
+.mem_editBtn, .mem_deleteBtn {
+    display: flex;
+    width: 56px;
+    padding: 8px;
+    border-radius: 8px;
+}
+
+.mem_editBtn {
+    background-color: #008673;
+}
+
+.mem_deleteBtn {
+    border: 2px solid #008673;
+    background-color: #FFFFFF;
+}
