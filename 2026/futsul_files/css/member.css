@@ -1,0 +1,29 @@
+/＊＊ メンバー管理画面 ＊＊/
+.mem_listSec {
+    padding: 24px 20px;
+}
+
+.mem_list {
+    border-radius: 16px;
+    background-color: #FFFFFF;
+}
+
+.mem_list>li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+}
+
+.mem_list>li:not(:first-child) {
+    border-top: 1px solid #D9D9D9;
+}
+
+.mem_list_left {
+    flex-direction: 1;
+}
+
+.mem_list_right {
+    display: flex;
+    padding-left: 8px;
+}
