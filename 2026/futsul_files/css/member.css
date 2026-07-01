@@ -34,6 +34,7 @@
 
 .mem_editBtn, .mem_deleteBtn {
     display: flex;
+    justify-content: center;
     width: 56px;
     padding: 8px;
     border-radius: 8px;
