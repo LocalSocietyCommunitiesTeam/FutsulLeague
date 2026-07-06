@@ -1,6 +1,6 @@
 /** ホーム画面 **/
 document.addEventListener('DOMContentLoaded', function () {
-    // showLoader(null, null, false);
+    showLoader('', '', '', '', '');
     loadChampionship(THISTERM);
 
     displayThisTerm();
@@ -31,7 +31,7 @@ async function loadChampionship(targetYear) {
     } catch (error) {
         console.error("通信エラー:", error);
     } finally {
-        // closeLoader();
+        closeLoader();
     }
 }
 
