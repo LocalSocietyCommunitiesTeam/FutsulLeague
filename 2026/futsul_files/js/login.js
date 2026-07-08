@@ -1,9 +1,9 @@
 /** 管理者ログイン画面 **/
 document.addEventListener('DOMContentLoaded', function () {
-    const loginBtn = document.getElementById('li_loginBtn');
+    const loginBtn = document.getElementById('lo_loginBtn');
 
     loginBtn.addEventListener('click', async function () {
-        const passwordInput = document.getElementById('li_password');
+        const passwordInput = document.getElementById('lo_password');
         const password = passwordInput.value;
 
         // 簡易的な空チェック
@@ -31,15 +31,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
             if (result.success === true) {
                 alert("ログインに成功しました！");
-
-                // 💡 ログイン成功後の処理（例: 管理画面へ遷移する、表示を切り替えるなど）
-                window.location.href = "./master.html"; 
-
+                sessionStorage.setItem('token', result.token);
+                window.location.href = "./master.html";
             } else {
                 alert("パスワードが違います。");
                 passwordInput.value = ""; // 入力をクリア
             }
-
         } catch (error) {
             console.error("通信エラーが発生しました:", error);
             alert("サーバーとの通信に失敗しました。時間をおいて再度お試しください。");

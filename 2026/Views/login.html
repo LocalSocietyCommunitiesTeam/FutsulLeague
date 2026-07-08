@@ -20,29 +20,36 @@
 
     <!-- メイン -->
     <main class="com_main">
-        <img src="" alt="サッカーボール">
-        <div>
-            <p class="c_typo_headerL c_typo_BLK10 c_typo_align_center">管理者ログイン</p>
-        </div>
-        <div>
-            <p class="c_typo_bodyS c_typo_BLK8 c_typo_align_center">パスワードを入力してください</p>
-        </div>
-        <div>
-            <p class="c_typo_headerXS c_typo_BLK10 c_typo_align_left">パスワード</p>
-            <div>
-                <div class="c_textField01">
-                    <div class="c_textField01_inputForm"><input id="li_password" class="c_textField01_inputText"
-                            placeholder="パスワードを入力" /></div>
+        <section class="lo_loginSec">
+            <div class="lo_card">
+                <div class="lo_img">
+                    <p class="c_typo_numberL c_typo_BLK10 c_typo_align_center">⚽</p>
+                </div>
+                <div class="lo_title">
+                    <p class="c_typo_headerL c_typo_BLK10 c_typo_align_center">管理者ログイン</p>
+                </div>
+                <div class="lo_exp">
+                    <p class="c_typo_bodyS c_typo_BLK8 c_typo_align_center">パスワードを入力してください</p>
+                </div>
+                <div class="lo_pwArea">
+                    <p class="c_typo_headerXS c_typo_BLK10 c_typo_align_left">パスワード</p>
+                    <div class="lo_pwInputArea">
+                        <div class="c_textField01">
+                            <div class="c_textField01_inputForm"><input id="lo_password" class="c_textField01_inputText"
+                                    placeholder="パスワードを入力" /></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="lo_loginBtnArea">
+                    <div class="c_button01 c_button01_green" ontouchstart=""><a href="javascript:void(0);"
+                            id="lo_loginBtn">
+                            <div class="c_button01_wrapper c_button01_icon_not">
+                                <p class="c_typo_cta c_typo_WHT c_typo_align_center">ログイン</p>
+                            </div>
+                        </a></div>
                 </div>
             </div>
-        </div>
-        <div>
-            <div class="c_button01 c_button01_green" ontouchstart=""><a href="javascript:void(0);" id="li_loginBtn">
-                    <div class="c_button01_wrapper c_button01_icon_not">
-                        <p class="c_typo_cta c_typo_WHT c_typo_align_center">ログイン</p>
-                    </div>
-                </a></div>
-        </div>
+        </section>
     </main>
 
     <script src="../../common/js/event.js"></script>
