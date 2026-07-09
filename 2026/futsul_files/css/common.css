@@ -94,3 +94,87 @@
 .com_nav_btnList a>p {
     margin-top: 4px;
 }
+
+/* コンポーネント：ローダー */
+.com_loader {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh;
+  background-color: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+}
+
+/* 影とボールの配置基準 */
+.com_loader_isShow {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+/* 床の影（::before） */
+.com_loader::before {
+  content: "";
+  position: absolute;
+  top: calc(50% + 160px);
+  left: calc(50% - 40px);
+  width: 80px;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.6);
+  border-radius: 50%;
+  animation: com_loader_shadow 0.6s ease-in-out infinite alternate;
+}
+
+/* 💡 修正：PNG画像から絵文字「⚽」に変更 */
+.com_loader::after {
+  content: "⚽";             /* サッカーボールの絵文字を指定 */
+  position: absolute;
+  top: calc(50% - 80px);
+  left: calc(50% - 80px);
+  width: 160px;
+  height: 160px;
+  
+  /* 絵文字のサイズと配置調整 */
+  font-size: 135px;          /* 160pxの枠線内で綺麗に回転するサイズに調整 */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+  /* 画像用のプロパティ（background-image, border-radius等）は不要になったため削除 */
+  
+  animation: 
+    com_loader_bounce 0.6s ease-in-out infinite alternate,
+    com_loader_spin 1.8s linear infinite;
+}
+
+@keyframes com_loader_bounce {
+  from { translate: 0 0; }
+  to   { translate: 0 -160px; }
+}
+
+@keyframes com_loader_spin {
+  from { rotate: 0deg; }
+  to   { rotate: 360deg; }
+}
+
+@keyframes com_loader_shadow {
+  from {
+    opacity: 0.8;
+    transform: scale(1);
+    filter: blur(0px);
+  }
+  to {
+    opacity: 0.15;
+    transform: scale(1.5);
+    filter: blur(3px);
+  }
+}
+
+body:has(.com_loader_isShow) {
+  overflow: hidden;
+}
