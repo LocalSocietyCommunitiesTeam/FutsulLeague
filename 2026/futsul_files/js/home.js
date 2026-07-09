@@ -1,6 +1,6 @@
 /** ホーム画面 **/
 document.addEventListener('DOMContentLoaded', function () {
-    showLoader('', '', '', '', '');
+    showLoader();
     loadChampionship(THISTERM);
 
     displayThisTerm();
