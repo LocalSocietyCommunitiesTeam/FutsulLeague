@@ -12,3 +12,16 @@ function getThisTerm() {
 }
 
 var THISTERM = getThisTerm();
+
+function showLoader() {
+  const loader = document.getElementById('com_loader');
+  loader.classList.add('com_loader_isShow');
+}
+
+// 💡 追加：ローダーを非表示にする関数
+function closeLoader() {
+  const loader = document.getElementById('com_loader');
+  
+  // クラスを削除することで、ローダーが非表示になり、CSSの:has効果でスクロール禁止も解除されます
+  loader.classList.remove('com_loader_isShow');
+}
