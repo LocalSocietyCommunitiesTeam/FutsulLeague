@@ -12,22 +12,7 @@
 </head>
 
 <body class="com_body">
-    <div class="c_loading01">
-        <div id="c_loading01" class="c_loading01_addProgress">
-            <div class="c_loading01_textArea">
-                <p class="c_typo_bodyM c_typo_BLK10 c_typo_align_center"></p>
-            </div>
-            <img src="../futsul_files/image/Pentan_Illust.svg?20221104" alt="ローディング" class="c_loading01_gif" />
-            <div class="c_loading01_progressArea">
-                <p class="c_typo_headerS c_typo_GRN10 c_typo_align_center c_loading01_progressText"><span>Loading...</span><span class="c_loading01_progressNum">0</span><span>%</span></p>
-            </div>
-        </div>
-        <script>
-            document.getElementById('c_loading01').style.height = document.documentElement.clientHeight + 'px';
-            document.body.classList.add('c_bodyScroll');
-            document.getElementById('c_loading01').classList.add('c_loading01_isShow');
-        </script>
-    </div>
+    <div id="com_loader" class="com_loader"></div>
     
     <!-- ヘッダー -->
     <header class="com_header">
