@@ -120,7 +120,7 @@
 .com_loader::before {
   content: "";
   position: absolute;
-  top: calc(50% + 160px);
+  top: calc(50% + 80px);
   left: calc(50% - 40px);
   width: 80px;
   height: 8px;
