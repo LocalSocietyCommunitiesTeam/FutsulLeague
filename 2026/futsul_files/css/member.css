@@ -1,4 +1,14 @@
 /** メンバー管理画面 **/
+.mem_selectSec {
+    padding: 24px 20px 0;
+}
+
+.mem_teamArea {
+    padpadding: 16px;
+    border-radius: 16px;
+    background-color: #FFFFFF;
+}
+
 .mem_listSec {
     padding: 24px 20px;
 }
