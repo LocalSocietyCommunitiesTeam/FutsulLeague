@@ -131,7 +131,7 @@
 
 /* 💡 修正：PNG画像から絵文字「⚽」に変更 */
 .com_loader::after {
-  content: "⚽";             /* サッカーボールの絵文字を指定 */
+  content: "️⚽️";             /* サッカーボールの絵文字を指定 */
   position: absolute;
   top: calc(50% - 80px);
   left: calc(50% - 80px);
