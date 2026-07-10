@@ -13,13 +13,35 @@
 // ];
 
 document.addEventListener('DOMContentLoaded', async function () {
+    showLoader();
+    
     // 💡 大会ID（teamId）として "104" を指定してデータを取得
     const memberData = await fetchMembers();
 
     // データが取得できていれば画面にセットする
     if (memberData) {
         setMemberData(memberData);
+        
+        const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
+        for(let i = 0; i < deleteBtn.lengh; i++) {
+            deleteBtn[i].addEventListener('click', function() {
+                const dialog = document.getElementById('mem_dialog');
+                dialog.getElementsByClassName('c_dialog02_showModal')[0].click();
+            });
+        }
     }
+    
+    const dialogDeleteBtn = document.getElementById('mem_deleteBtn');
+    dialogDeleteBtn.addEventListener('click', function( {
+        const dialog = document.getElementById('mem_dialog');
+        dialog.getElementsByClassName('c_dialog02_CloseBtn')[0].click();
+    });
+    
+    const cancelBtn = document.getElementById('mem_cancelBtn');
+    cancelBtn.addEventListener('click', function( {
+        const dialog = document.getElementById('mem_dialog');
+        dialog.getElementsByClassName('c_dialog02_CloseBtn')[0].click();
+    });
 });
 
 /**
@@ -54,6 +76,8 @@ async function fetchMembers(tournamentId) {
 
     } catch (error) {
         console.error("通信エラー:", error);
+    } finally {
+        closeLoader();
     }
 }
 
