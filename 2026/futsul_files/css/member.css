@@ -1,4 +1,4 @@
-/** メンバー管理画面 **/
+* メンバー管理画面 *
 .mem_selectSec {
     padding: 24px 20px 0;
 }
@@ -47,7 +47,8 @@
     margin-left: 8px;
 }
 
-.mem_editBtn, .mem_deleteBtn {
+.mem_editBtn,
+.mem_deleteBtn {
     display: flex;
     justify-content: center;
     width: 56px;
@@ -62,6 +63,21 @@
 .mem_deleteBtn {
     border: 2px solid #008673;
     background-color: #FFFFFF;
+}
+
+.mem_dialogBtnArea {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-bottom: 4px;
+}
+
+.mem_dialogBtnArea>*:last-child {
+    margin-top: 16px;
+}
+
+.mem_emptyMessage {
+    padding: 24px 0;
 }
 
 .mem_hidden {

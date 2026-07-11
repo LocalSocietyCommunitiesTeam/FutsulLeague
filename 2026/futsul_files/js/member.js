@@ -55,7 +55,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             showLoader();
             const success = await deleteMemberPost(activeDeleteMemberId);
 
-            // 💡 同時実行制御：成功・失敗に関わらず最新状態を再取得して描画を同期する
+            // 同時実行制御：成功・失敗に関わらず最新状態を再取得して描画を同期する
             cachedMemberData = await fetchMembers();
             const pulldown = document.getElementById('mem_pulldown');
 
@@ -75,8 +75,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 /**
  * GASのWebアプリからメンバーデータを取得する（GET）
- * @param {string} [tournamentId] - 大会ID（指定がなければ全量取得）
- * @returns {Promise<Array|null>} メンバーデータの配列
  */
 async function fetchMembers(tournamentId) {
     try {
@@ -87,24 +85,14 @@ async function fetchMembers(tournamentId) {
             url.searchParams.append("tournamentId", tournamentId);
         }
 
-        console.log("リクエスト送信:", url.toString());
-
         const response = await fetch(url.toString());
-        if (!response.ok) {
-            throw new Error("HTTPエラー! ステータス: " + response.status);
-        }
+        if (!response.ok) throw new Error("HTTPエラー! ステータス: " + response.status);
 
         const result = await response.json();
+        if (result.success) return result.data;
 
-        if (result.success) {
-            console.log("メンバーデータ:", result.data);
-            return result.data;
-        }
-
-        console.error("エラーが発生しました:", result.message);
-        if (result.error) console.error("詳細:", result.error);
+        console.error("エラー:", result.message);
         return null;
-
     } catch (error) {
         console.error("通信エラー:", error);
         return null;
@@ -113,29 +101,20 @@ async function fetchMembers(tournamentId) {
 
 /**
  * メンバーの削除リクエストを送信する（POST）
- * @param {string} memberId - 削除対象のメンバーID
- * @returns {Promise<boolean>} 成功したかどうか
  */
 async function deleteMemberPost(memberId) {
     try {
         const response = await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
-            body: new URLSearchParams({
-                action: 'deleteMember',
-                memberId: memberId
-            })
+            body: new URLSearchParams({ action: 'deleteMember', memberId: memberId })
         });
-
         if (!response.ok) throw new Error("削除リクエストに失敗しました");
 
         const result = await response.json();
-        if (result.success) {
-            console.log("削除成功:", memberId);
-            return true;
-        } else {
-            alert("削除に失敗しました: " + result.message);
-            return false;
-        }
+        if (result.success) return true;
+
+        alert("削除に失敗しました: " + result.message);
+        return false;
     } catch (error) {
         console.error("削除通信エラー:", error);
         alert("通信エラーが発生しました");
@@ -145,31 +124,20 @@ async function deleteMemberPost(memberId) {
 
 /**
  * メンバー名の編集リクエストを送信する（POST）
- * @param {string} memberId - 編集対象のメンバーID
- * @param {string} newName - 新しいメンバー名
- * @returns {Promise<boolean>} 成功したかどうか
  */
 async function updateMemberPost(memberId, newName) {
     try {
         const response = await fetch(GAS_WEB_APP_URL, {
             method: 'POST',
-            body: new URLSearchParams({
-                action: 'updateMember',
-                memberId: memberId,
-                memberName: newName
-            })
+            body: new URLSearchParams({ action: 'updateMember', memberId: memberId, memberName: newName })
         });
-
         if (!response.ok) throw new Error("更新リクエストに失敗しました");
 
         const result = await response.json();
-        if (result.success) {
-            console.log("更新成功:", memberId, newName);
-            return true;
-        } else {
-            alert("更新に失敗しました: " + result.message);
-            return false;
-        }
+        if (result.success) return true;
+
+        alert("更新に失敗しました: " + result.message);
+        return false;
     } catch (error) {
         console.error("更新通信エラー:", error);
         alert("通信エラーが発生しました");
@@ -179,7 +147,6 @@ async function updateMemberPost(memberId, newName) {
 
 /**
  * チームプルダウンの選択肢（option）を生成・追加する
- * @param {Array} data - チーム情報の配列
  */
 function setTeamData(data) {
     const pulldown = document.getElementById('mem_pulldown');
@@ -194,45 +161,60 @@ function setTeamData(data) {
 
 /**
  * 選択されたチームに応じたメンバーリストを表示する
- * @param {Array} data - チームとメンバーのデータ全体
- * @param {string} selectedTeamId - 選択されたチームID
  */
 function setMemberData(data, selectedTeamId) {
     const memberlist = document.getElementById('mem_list');
+    const emptyMessage = document.getElementById('mem_emptyMessage'); // 💡 親のdivタグをキャッチ
     if (!memberlist) return;
 
     let listHtml = '';
+    let hasMember = false;
 
     for (let i = 0; i < data.length; i++) {
         const team = data[i];
         if (team.teamId === selectedTeamId) {
-            for (let j = 0; j < team.member.length; j++) {
-                const member = team.member[j];
-                listHtml += `
-                    <li id="member_row_${member.memberId}" data-member-id="${member.memberId}">
-                        <div class="mem_list_left">
-                            <p class="c_typo_bodyM c_typo_BLK10 mem_name">${member.memberName}</p>
-                            <div class="c_textField01 mem_nameInput mem_hidden">
-                                <div class="c_textField01_inputForm">
-                                    <input value="${member.memberName}" class="c_textField01_inputText" placeholder="明安　太郎" />
+            if (team.member && team.member.length > 0) {
+                hasMember = true;
+                for (let j = 0; j < team.member.length; j++) {
+                    const member = team.member[j];
+                    listHtml += `
+                        <li id="member_row_${member.memberId}" data-member-id="${member.memberId}">
+                            <div class="mem_list_left">
+                                <p class="c_typo_bodyM c_typo_BLK10 mem_name">${member.memberName}</p>
+                                <div class="c_textField01 mem_nameInput mem_hidden">
+                                    <div class="c_textField01_inputForm">
+                                        <input value="${member.memberName}" class="c_textField01_inputText" placeholder="明安 太郎" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div class="mem_list_right">
-                            <a href="javascript: void(0);" class="mem_editBtn">
-                                <p class="c_typo_ctaS c_typo_WHT">編集</p>
-                            </a>
-                            <a href="javascript: void(0);" class="mem_deleteBtn">
-                                <p class="c_typo_ctaS c_typo_GRN10">削除</p>
-                            </a>
-                        </div>
-                    </li>`;
+                            <div class="mem_list_right">
+                                <a href="javascript: void(0);" class="mem_editBtn">
+                                    <p class="c_typo_ctaS c_typo_WHT">編集</p>
+                                </a>
+                                <a href="javascript: void(0);" class="mem_deleteBtn">
+                                    <p class="c_typo_ctaS c_typo_GRN10">削除</p>
+                                </a>
+                            </div>
+                        </li>`;
+                }
             }
             break;
         }
     }
 
     memberlist.innerHTML = listHtml;
+
+    // 表示の出し分け制御（div要素に対してクラスを着脱）
+    if (!selectedTeamId) {
+        memberlist.classList.add('mem_hidden');
+        if (emptyMessage) emptyMessage.classList.add('mem_hidden');
+    } else if (hasMember) {
+        memberlist.classList.remove('mem_hidden');
+        if (emptyMessage) emptyMessage.classList.add('mem_hidden');
+    } else {
+        memberlist.classList.add('mem_hidden');
+        if (emptyMessage) emptyMessage.classList.remove('mem_hidden');
+    }
 }
 
 /**
@@ -275,7 +257,6 @@ function initMemberListEvents() {
         // ーーー 編集・保存ボタンが押された場合 ーーー
         if (editBtn && listItem) {
             const memberId = listItem.getAttribute('data-member-id');
-
             const listLeft = listItem.getElementsByClassName('mem_list_left')[0];
             const nameText = listLeft.getElementsByClassName('mem_name')[0];
             const nameInputContainer = listLeft.getElementsByClassName('mem_nameInput')[0];
@@ -285,16 +266,13 @@ function initMemberListEvents() {
             const isEditMode = listItem.classList.contains('mem_editMode');
 
             if (isEditMode) {
-                // 【保存時の処理】
                 const oldName = nameText.innerText;
-                const newName = inputField.value.trim(); // 💡 前後のスペースをトリム
+                const newName = inputField.value.trim();
 
-                // フロントエンド側での空文字チェック（スペースのみも弾く）
                 if (oldName !== newName && newName !== "") {
                     showLoader();
                     const success = await updateMemberPost(memberId, newName);
 
-                    // 💡 成功・失敗に関わらずGASから最新データを全量再取得して同期する
                     cachedMemberData = await fetchMembers();
                     const pulldown = document.getElementById('mem_pulldown');
 
@@ -303,16 +281,13 @@ function initMemberListEvents() {
                     }
                     closeLoader();
                 } else {
-                    // 変更がない、または空文字の場合は通信せず元の状態に戻す
                     listItem.classList.remove('mem_editMode');
                     btnText.innerText = '編集';
                     nameText.classList.remove('mem_hidden');
                     nameInputContainer.classList.add('mem_hidden');
                     inputField.value = oldName;
                 }
-
             } else {
-                // 【編集モード開始時の処理】
                 listItem.classList.add('mem_editMode');
                 btnText.innerText = '保存';
                 nameText.classList.add('mem_hidden');
@@ -327,7 +302,6 @@ function initMemberListEvents() {
         // ーーー 行内の「削除」ボタンが押された場合 ーーー
         if (deleteBtn && listItem) {
             activeDeleteMemberId = listItem.getAttribute('data-member-id');
-
             const dialog = document.getElementById('mem_dialog');
             if (dialog) {
                 const showModalBtns = dialog.getElementsByClassName('c_dialog02_showModal');
