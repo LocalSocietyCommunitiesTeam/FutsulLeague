@@ -1,16 +1,94 @@
 /** メンバー管理画面 **/
-// var data = [
-//     {
-//         teamId: '104',
-//         memberId: '10000',
-//         memberName: '掛川　夏海'
-//     },
-//     {
-//         teamId: '104',
-//         memberId: '10001',
-//         memberName: '小磯　佑斗'
-//     }
-// ];
+var data = [
+    {
+        teamId: '104',
+        teamName: '情シス',
+        member: [
+            {
+                memberId: '10000',
+                memberName: '小礒　佑斗'
+            },
+            {
+                memberId: '10001',
+                memberName: '田中　利樹'
+            },
+            {
+                memberId: '10002',
+                memberName: '掛川　夏海'
+            },
+            {
+                memberId: '10003',
+                memberName: '松谷　浩子'
+            },
+            {
+                memberId: '10004',
+                memberName: '長谷川　賢'
+            },
+            {
+                memberId: '10005',
+                memberName: '松下　泰樹'
+            },
+            {
+                memberId: '10008',
+                memberName: '松本　康汰'
+            },
+            {
+                memberId: '10009',
+                memberName: '安田　泰仁'
+            }
+        ]
+    },
+    {
+        teamId: '100',
+        teamName: '営企',
+        member: [
+            {
+                memberId: '10006',
+                memberName: '今西　優羽'
+            }
+        ]
+    },
+    {
+        teamId: '101',
+        teamName: '法人事務オペ',
+        member: [
+            {
+                memberId: '10007',
+                memberName: '安居院　康平'
+            }
+        ]
+    },
+    {
+        teamId: '102',
+        teamName: 'デジHub',
+        member: [
+            {
+                memberId: '10010',
+                memberName: '宇和田　真琴'
+            }
+        ]
+    },
+    {
+        teamId: '117',
+        teamName: '地域共創戦略',
+        member: [
+            {
+                memberId: '10011',
+                memberName: '川原　志帆'
+            }
+        ]
+    },
+    {
+        teamId: '118',
+        teamName: 'サイバー・シスリス',
+        member: [
+            {
+                memberId: '10012',
+                memberName: '中西　拓実'
+            }
+        ]
+    }
+];
 
 document.addEventListener('DOMContentLoaded', async function () {
     showLoader();
@@ -20,6 +98,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // データが取得できていれば画面にセットする
     if (memberData) {
+        setTeamData();
         setMemberData(memberData);
         
         const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
@@ -73,11 +152,20 @@ async function fetchMembers(tournamentId) {
             console.error("エラーが発生しました:", result.message);
             if (result.error) console.error("詳細:", result.error);
         }
-
     } catch (error) {
         console.error("通信エラー:", error);
     } finally {
         closeLoader();
+    }
+}
+
+function setTeamData() {
+    const pulldown = document.getElementById('mem_pulldown');
+    for(let i = 0; i < data.lengh; i++) {
+        const option = document.createElement('option');
+        option.value = data[i].teamId;
+        option.innerText = 'data[i].teamName;
+        pulldown.append(option);
     }
 }
 
