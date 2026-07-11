@@ -164,7 +164,7 @@ function setTeamData(data) {
     for(let i = 0; i < data.length; i++) {
         const option = document.createElement('option');
         option.value = data[i].teamId;
-        option.innerText = data[i].teamName;
+        option.innerText = data[i].teamNameAbbreviation;
         pulldown.append(option);
     }
 }
