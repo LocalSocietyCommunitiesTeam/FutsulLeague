@@ -161,7 +161,7 @@ async function fetchMembers(tournamentId) {
 
 function setTeamData() {
     const pulldown = document.getElementById('mem_pulldown');
-    for(let i = 0; i < data.lengh; i++) {
+    for(let i = 0; i < data.length; i++) {
         const option = document.createElement('option');
         option.value = data[i].teamId;
         option.innerText = data[i].teamName;
