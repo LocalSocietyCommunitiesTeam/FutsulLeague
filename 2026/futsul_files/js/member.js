@@ -95,19 +95,15 @@ document.addEventListener('DOMContentLoaded', async function () {
     
     // 💡 大会ID（teamId）として "104" を指定してデータを取得
     const memberData = await fetchMembers();
-
+    const pulldown = document.getElementById('mem_pulldown');
+    
     // データが取得できていれば画面にセットする
     if (memberData) {
         setTeamData(memberData);
-        setMemberData(memberData);
         
-        const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
-        for(let i = 0; i < deleteBtn.length; i++) {
-            deleteBtn[i].addEventListener('click', function() {
-                const dialog = document.getElementById('mem_dialog');
-                dialog.getElementsByClassName('c_dialog02_showModal')[0].click();
-            });
-        }
+        pulldown.addEventListener('change', function() {
+            setMemberData(memberData, this.value);
+        });
     }
     
     const dialogDeleteBtn = document.getElementById('mem_deleteBtn');
@@ -170,7 +166,7 @@ function setTeamData(data) {
 }
 
 // 💡 引数でデータ(配列)を受け取れるように変更
-function setMemberData(data) {
+function setMemberData(data, teamId) {
     const memberlist = document.getElementById('mem_list');
 
     // リストを一度初期化（重複防止）
@@ -178,7 +174,7 @@ function setMemberData(data) {
 
     for (let i = 0; i < data.length; i++) {
         // 💡 GASからのレスポンスは2次元配列のため、A列のデータを名前として扱う場合は data[i][0] とします
-        if (data[i].teamId == '104') {
+        if (teamId == data[i].teamId) {
             const memberData = data[i].member;
             for (j = 0; j < memberData.length; j++) {
                 const memberName = memberData[j].memberName;
@@ -203,7 +199,6 @@ function setMemberData(data) {
         }
 
         const editBtn = document.getElementsByClassName('mem_editBtn');
-
         for (let i = 0; i < editBtn.length; i++) {
             editBtn[i].addEventListener('click', function () {
                 if (this.parentElement.parentElement.classList.contains('mem_editMode')) {
@@ -218,9 +213,17 @@ function setMemberData(data) {
                     this.parentElement.previousElementSibling.getElementsByClassName('mem_nameInput')[0].classList.remove('mem_hidden');
                     this.parentElement.previousElementSibling.getElementsByTagName('input')[0].focus();
                     const memberNameLen = this.parentElement.previousElementSibling.getElementsByTagName('input')[0].value.length;
-                    this.parentElement.previousElementSibling.getElementsByTagName('input')[0].setSelectionRange(memberNameLen, memberNameLen);
+                   this.parentElement.previousElementSibling.getElementsByTagName('input')[0].setSelectionRange(memberNameLen, memberNameLen);
                 }
             });
         }
+    }
+    
+    const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
+    for(let i = 0; i < deleteBtn.length; i++) {
+        deleteBtn[i].addEventListener('click', function() {
+            const dialog = document.getElementById('mem_dialog');
+            dialog.getElementsByClassName('c_dialog02_showModal')[0].click();
+        });
     }
 }
