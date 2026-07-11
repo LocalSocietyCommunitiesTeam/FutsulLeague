@@ -1,5 +1,5 @@
 /** メンバー管理画面 **/
-var data = [
+/*var data = [
     {
         teamId: '104',
         teamName: '情シス',
@@ -88,7 +88,7 @@ var data = [
             }
         ]
     }
-];
+];*/
 
 document.addEventListener('DOMContentLoaded', async function () {
     showLoader();
@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     // データが取得できていれば画面にセットする
     if (memberData) {
-        setTeamData();
+        setTeamData(memberData);
         setMemberData(memberData);
         
         const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
@@ -159,7 +159,7 @@ async function fetchMembers(tournamentId) {
     }
 }
 
-function setTeamData() {
+function setTeamData(data) {
     const pulldown = document.getElementById('mem_pulldown');
     for(let i = 0; i < data.length; i++) {
         const option = document.createElement('option');
