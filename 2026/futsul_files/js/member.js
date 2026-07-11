@@ -182,7 +182,7 @@ function setTeamData(data) {
     var pulldown = document.getElementById('mem_pulldown');
     if (!pulldown) return;
 
-    var optionsHtml = '';
+    var optionsHtml = '<option value="">チームを選択してください</option>';
     for (var i = 0; i < data.length; i++) {
         optionsHtml += '<option value="' + data[i].teamId + '">' + data[i].teamNameAbbreviation + '</option>';
     }
