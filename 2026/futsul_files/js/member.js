@@ -8,18 +8,18 @@ let cachedMemberData = null;
 // 読み込み完了時の処理
 document.addEventListener('DOMContentLoaded', async function () {
     showLoader();
-    
+
     try {
         // メンバーデータの初回取得
         cachedMemberData = await fetchMembers();
         const pulldown = document.getElementById('mem_pulldown');
-        
+
         if (cachedMemberData && pulldown) {
             // プルダウンの選択肢を設定
             setTeamData(cachedMemberData);
-            
+
             // プルダウン変更時にメンバーリストを更新
-            pulldown.addEventListener('change', function() {
+            pulldown.addEventListener('change', function () {
                 setMemberData(cachedMemberData, this.value);
             });
         }
@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     // ダイアログ内の共通クローズ処理を登録
-    const closeDialog = function() {
+    const closeDialog = function () {
         const dialog = document.getElementById('mem_dialog');
         if (dialog) {
             const closeButtons = dialog.getElementsByClassName('c_dialog02_CloseBtn');
@@ -49,24 +49,22 @@ document.addEventListener('DOMContentLoaded', async function () {
     // ダイアログ内の削除実行ボタン処理（POST通信を行い、成功したら全量再取得＆再描画）
     const dialogDeleteBtn = document.getElementById('mem_deleteBtn');
     if (dialogDeleteBtn) {
-        dialogDeleteBtn.addEventListener('click', async function() {
+        dialogDeleteBtn.addEventListener('click', async function () {
             if (!activeDeleteMemberId) return;
 
             showLoader();
             const success = await deleteMemberPost(activeDeleteMemberId);
 
-            if (success) {
-                // GASから全量を再取得して画面を再描画
-                cachedMemberData = await fetchMembers();
-                const pulldown = document.getElementById('mem_pulldown');
-                
-                if (cachedMemberData && pulldown) {
-                    setMemberData(cachedMemberData, pulldown.value);
-                }
-                
-                closeDialog();
-                activeDeleteMemberId = null; // 初期化
+            // 💡 同時実行制御：成功・失敗に関わらず最新状態を再取得して描画を同期する
+            cachedMemberData = await fetchMembers();
+            const pulldown = document.getElementById('mem_pulldown');
+
+            if (cachedMemberData && pulldown) {
+                setMemberData(cachedMemberData, pulldown.value);
             }
+
+            closeDialog();
+            activeDeleteMemberId = null; // 初期化
             closeLoader();
         });
     }
@@ -102,7 +100,7 @@ async function fetchMembers(tournamentId) {
             console.log("メンバーデータ:", result.data);
             return result.data;
         }
-        
+
         console.error("エラーが発生しました:", result.message);
         if (result.error) console.error("詳細:", result.error);
         return null;
@@ -277,7 +275,7 @@ function initMemberListEvents() {
         // ーーー 編集・保存ボタンが押された場合 ーーー
         if (editBtn && listItem) {
             const memberId = listItem.getAttribute('data-member-id');
-            
+
             const listLeft = listItem.getElementsByClassName('mem_list_left')[0];
             const nameText = listLeft.getElementsByClassName('mem_name')[0];
             const nameInputContainer = listLeft.getElementsByClassName('mem_nameInput')[0];
@@ -289,44 +287,37 @@ function initMemberListEvents() {
             if (isEditMode) {
                 // 【保存時の処理】
                 const oldName = nameText.innerText;
-                const newName = inputField.value.trim();
+                const newName = inputField.value.trim(); // 💡 前後のスペースをトリム
 
+                // フロントエンド側での空文字チェック（スペースのみも弾く）
                 if (oldName !== newName && newName !== "") {
                     showLoader();
                     const success = await updateMemberPost(memberId, newName);
 
-                    if (success) {
-                        // GASから全量を再取得して画面を再描画
-                        cachedMemberData = await fetchMembers();
-                        const pulldown = document.getElementById('mem_pulldown');
-                        
-                        if (cachedMemberData && pulldown) {
-                            setMemberData(cachedMemberData, pulldown.value);
-                        }
-                    } else {
-                        // 失敗した場合は入力欄の値を元に戻し、UIも編集モードを解除
-                        inputField.value = oldName;
-                        listItem.classList.remove('mem_editMode');
-                        btnText.innerText = '編集';
-                        nameText.classList.remove('mem_hidden');
-                        nameInputContainer.classList.add('mem_hidden');
+                    // 💡 成功・失敗に関わらずGASから最新データを全量再取得して同期する
+                    cachedMemberData = await fetchMembers();
+                    const pulldown = document.getElementById('mem_pulldown');
+
+                    if (cachedMemberData && pulldown) {
+                        setMemberData(cachedMemberData, pulldown.value);
                     }
                     closeLoader();
                 } else {
-                    // 変更がない場合はそのまま編集モードを解除
+                    // 変更がない、または空文字の場合は通信せず元の状態に戻す
                     listItem.classList.remove('mem_editMode');
                     btnText.innerText = '編集';
                     nameText.classList.remove('mem_hidden');
                     nameInputContainer.classList.add('mem_hidden');
+                    inputField.value = oldName;
                 }
-                
+
             } else {
                 // 【編集モード開始時の処理】
                 listItem.classList.add('mem_editMode');
                 btnText.innerText = '保存';
                 nameText.classList.add('mem_hidden');
                 nameInputContainer.classList.remove('mem_hidden');
-                
+
                 inputField.focus();
                 const textLength = inputField.value.length;
                 inputField.setSelectionRange(textLength, textLength);
