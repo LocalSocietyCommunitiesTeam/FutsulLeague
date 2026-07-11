@@ -214,7 +214,7 @@ function setMemberData(data, selectedTeamId) {
                             <p class="c_typo_bodyM c_typo_BLK10 mem_name">${member.memberName}</p>
                             <div class="c_textField01 mem_nameInput mem_hidden">
                                 <div class="c_textField01_inputForm">
-                                    <input value="${member.memberName}" class="c_textField01_inputText" placeholder="明安 太郎" />
+                                    <input value="${member.memberName}" class="c_textField01_inputText" placeholder="明安　太郎" />
                                 </div>
                             </div>
                         </div>
