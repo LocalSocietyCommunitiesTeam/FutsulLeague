@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         setMemberData(memberData);
         
         const deleteBtn = document.getElementsByClassName('mem_deleteBtn');
-        for(let i = 0; i < deleteBtn.lengh; i++) {
+        for(let i = 0; i < deleteBtn.length; i++) {
             deleteBtn[i].addEventListener('click', function() {
                 const dialog = document.getElementById('mem_dialog');
                 dialog.getElementsByClassName('c_dialog02_showModal')[0].click();
@@ -32,13 +32,13 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
     
     const dialogDeleteBtn = document.getElementById('mem_deleteBtn');
-    dialogDeleteBtn.addEventListener('click', function( {
+    dialogDeleteBtn.addEventListener('click', function() {
         const dialog = document.getElementById('mem_dialog');
         dialog.getElementsByClassName('c_dialog02_CloseBtn')[0].click();
     });
     
     const cancelBtn = document.getElementById('mem_cancelBtn');
-    cancelBtn.addEventListener('click', function( {
+    cancelBtn.addEventListener('click', function() {
         const dialog = document.getElementById('mem_dialog');
         dialog.getElementsByClassName('c_dialog02_CloseBtn')[0].click();
     });

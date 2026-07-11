@@ -13,7 +13,7 @@
 
 <body class="com_body">
     <div id="com_loader" class="com_loader"></div>
-    
+
     <!-- ヘッダー -->
     <header class="com_header">
         <a href="javascript: history.back();" class="c_typo_headerS c_typo_WHT">←</a>
@@ -23,7 +23,7 @@
     <!-- メイン -->
     <main class="com_main">
         <section class="mem_selectSec">
-            <div class="mem_teamArea>
+            <div class="mem_teamArea">
                 <div class="c_textField03">
                     <div class="c_textField03_inputForm c_textField_NoSelected">
                         <select class="c_textField03_inputText">
@@ -32,37 +32,48 @@
                             <option value="2">情シス</option>
                             <option value="3">サイバー・シスリス</option>
                         </select>
-                        <div class="c_textField03_iconArea"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path fill-rule="evenodd" clip-rule="evenodd" d="M17.2993 10.4L12.6093 14.76C12.4393 14.91 12.2193 15 11.9893 15C11.7593 15 11.5293 14.92 11.3693 14.76L6.67933 10.4C6.55933 10.28 6.47933 10.14 6.44933 9.98C6.41933 9.82 6.43933 9.66 6.49933 9.51C6.56933 9.36 6.67933 9.23 6.81933 9.14C6.95933 9.05 7.12933 9 7.30933 9H16.6893C16.8593 9 17.0393 9.05 17.1793 9.14C17.3193 9.23 17.4393 9.36 17.5093 9.51C17.5793 9.66 17.5893 9.83 17.5593 9.99C17.5193 10.15 17.4393 10.29 17.3093 10.41L17.2993 10.4Z" fill="#008673"></path></svg></div>
+                        <div class="c_textField03_iconArea"><svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M17.2993 10.4L12.6093 14.76C12.4393 14.91 12.2193 15 11.9893 15C11.7593 15 11.5293 14.92 11.3693 14.76L6.67933 10.4C6.55933 10.28 6.47933 10.14 6.44933 9.98C6.41933 9.82 6.43933 9.66 6.49933 9.51C6.56933 9.36 6.67933 9.23 6.81933 9.14C6.95933 9.05 7.12933 9 7.30933 9H16.6893C16.8593 9 17.0393 9.05 17.1793 9.14C17.3193 9.23 17.4393 9.36 17.5093 9.51C17.5793 9.66 17.5893 9.83 17.5593 9.99C17.5193 10.15 17.4393 10.29 17.3093 10.41L17.2993 10.4Z"
+                                    fill="#008673"></path>
+                            </svg></div>
                     </div>
                 </div>
             </div>
         </section>
-        
+
         <section class="mem_listSec">
             <ul id="mem_list" class="mem_list"></ul>
-            <div id="mem_dialog class="c_dialog02">
+            <div id="mem_dialog" class="c_dialog02">
                 <div class="c_dialog02_showModal"></div>
                 <div class="c_dialog02_modal">
-                    <div class="c_dialog02_inner"><a href="javascript:void(0)" class="c_dialog02_CloseBtn"><svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-                            <path d="M24 42C33.9411 42 42 33.9411 42 24C42 14.0589 33.9411 6 24 6C14.0589 6 6 14.0589 6 24C6 33.9411 14.0589 42 24 42Z" fill="#FABF00"></path>
-                            <path fill-rule="evenodd" clip-rule="evenodd" d="M17.6349 15.5145C17.0491 14.9287 16.0993 14.9287 15.5136 15.5145C14.9278 16.1003 14.9278 17.0501 15.5136 17.6359L21.8779 24.0002L15.5136 30.3645C14.9278 30.9503 14.9278 31.9001 15.5136 32.4859C16.0993 33.0716 17.0491 33.0716 17.6349 32.4859L23.9992 26.1215L30.3636 32.4859C30.9493 33.0716 31.8991 33.0716 32.4849 32.4859C33.0707 31.9001 33.0707 30.9503 32.4849 30.3645L26.1205 24.0002L32.4849 17.6359C33.0707 17.0501 33.0707 16.1003 32.4849 15.5145C31.8991 14.9287 30.9493 14.9287 30.3636 15.5145L23.9992 21.8789L17.6349 15.5145Z" fill="#2E2E2E"></path>
-                        </svg></a>
+                    <div class="c_dialog02_inner"><a href="javascript:void(0)" class="c_dialog02_CloseBtn"><svg
+                                width="48" height="48" viewBox="0 0 48 48" fill="none">
+                                <path
+                                    d="M24 42C33.9411 42 42 33.9411 42 24C42 14.0589 33.9411 6 24 6C14.0589 6 6 14.0589 6 24C6 33.9411 14.0589 42 24 42Z"
+                                    fill="#FABF00"></path>
+                                <path fill-rule="evenodd" clip-rule="evenodd"
+                                    d="M17.6349 15.5145C17.0491 14.9287 16.0993 14.9287 15.5136 15.5145C14.9278 16.1003 14.9278 17.0501 15.5136 17.6359L21.8779 24.0002L15.5136 30.3645C14.9278 30.9503 14.9278 31.9001 15.5136 32.4859C16.0993 33.0716 17.0491 33.0716 17.6349 32.4859L23.9992 26.1215L30.3636 32.4859C30.9493 33.0716 31.8991 33.0716 32.4849 32.4859C33.0707 31.9001 33.0707 30.9503 32.4849 30.3645L26.1205 24.0002L32.4849 17.6359C33.0707 17.0501 33.0707 16.1003 32.4849 15.5145C31.8991 14.9287 30.9493 14.9287 30.3636 15.5145L23.9992 21.8789L17.6349 15.5145Z"
+                                    fill="#2E2E2E"></path>
+                            </svg></a>
                         <div class="c_dialog02_textArea">
-                            <p class="c_typo_headerM c_typo_BLK10>本当に削除してよろしいですか？</p>
+                            <p class="c_typo_headerM c_typo_BLK10">本当に削除してよろしいですか？</p>
                         </div>
                         <div class="c_dialog02_buttonArea">
                             <div class="mem_dialogBtnArea">
-                                <div class="c_button01 c_button01_green" ontouchstart=""><a href="javascript: void(0);" id="mem_deleteBtn">
+                                <div class="c_button01 c_button01_green" ontouchstart=""><a href="javascript: void(0);"
+                                        id="mem_deleteBtn">
+                                        <div class="c_button01_wrapper c_button01_icon_not">
+                                            <p class="c_typo_cta c_typo_WHT c_typo_align_center">削除</p>
+                                        </div>
+                                    </a></div>
+                            </div>
+                            <div class="c_button01 c_button01_white" ontouchstart=""><a href="javascript: void(0);"
+                                    id="mem_cancelBtn">
                                     <div class="c_button01_wrapper c_button01_icon_not">
-                                        <p class="c_typo_cta c_typo_WHT c_typo_align_center">削除</p>
+                                        <p class="c_typo_cta c_typo_GRN10 c_typo_align_center">キャンセル</p>
                                     </div>
                                 </a></div>
-                            </div>
-                            <div class="c_button01 c_button01_white" ontouchstart=""><a href="javascript: void(0);" id="mem_cancelBtn">
-                                <div class="c_button01_wrapper c_button01_icon_not">
-                                    <p class="c_typo_cta c_typo_GRN10 c_typo_align_center">キャンセル</p>
-                                </div>
-                            </a></div>
                         </div>
                     </div>
                 </div>
