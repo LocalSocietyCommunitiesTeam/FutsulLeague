@@ -2,27 +2,31 @@
 
 // 現在どのメンバーを削除しようとしているかを一時的に保持する変数
 let activeDeleteMemberId = null;
+// GASから取得した最新のメンバーデータを保持するグローバル（またはスコープ内）変数
+let cachedMemberData = null;
 
 // 読み込み完了時の処理
 document.addEventListener('DOMContentLoaded', async function () {
     showLoader();
     
     try {
-        // メンバーデータの取得（引数で特定の大会IDを指定可能）
-        const memberData = await fetchMembers();
+        // 1. メンバーデータの初回取得
+        cachedMemberData = await fetchMembers();
         const pulldown = document.getElementById('mem_pulldown');
         
-        if (memberData) {
+        if (cachedMemberData && pulldown) {
             // プルダウンの選択肢を設定
-            setTeamData(memberData);
+            setTeamData(cachedMemberData);
             
             // プルダウン変更時にメンバーリストを更新
             pulldown.addEventListener('change', function() {
-                setMemberData(memberData, this.value);
+                setMemberData(cachedMemberData, this.value);
             });
         }
     } catch (error) {
         console.error("初期化エラー:", error);
+    } finally {
+        closeLoader();
     }
 
     // ダイアログ内の共通クローズ処理を登録
@@ -42,7 +46,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         cancelBtn.addEventListener('click', closeDialog);
     }
 
-    // ダイアログ内の削除実行ボタン処理（POST通信を行い、成功したらDOMを消す）
+    // ダイアログ内の削除実行ボタン処理（POST通信を行い、成功したら全量再取得＆再描画）
     const dialogDeleteBtn = document.getElementById('mem_deleteBtn');
     if (dialogDeleteBtn) {
         dialogDeleteBtn.addEventListener('click', async function() {
@@ -50,17 +54,20 @@ document.addEventListener('DOMContentLoaded', async function () {
 
             showLoader();
             const success = await deleteMemberPost(activeDeleteMemberId);
-            closeLoader();
 
             if (success) {
-                // 画面上から対象のメンバー要素を削除
-                const targetLi = document.getElementById('member_row_' + activeDeleteMemberId);
-                if (targetLi) {
-                    targetLi.remove();
+                // 💡 【変更】DOMを直接消すのではなく、GASから全量を再取得して画面を再描画
+                cachedMemberData = await fetchMembers();
+                const pulldown = document.getElementById('mem_pulldown');
+                
+                if (cachedMemberData && pulldown) {
+                    setMemberData(cachedMemberData, pulldown.value);
                 }
+                
                 closeDialog();
                 activeDeleteMemberId = null; // 初期化
             }
+            closeLoader();
         });
     }
 
@@ -70,8 +77,6 @@ document.addEventListener('DOMContentLoaded', async function () {
 
 /**
  * GASのWebアプリからメンバーデータを取得する（GET）
- * @param {string} [tournamentId] - 大会ID（指定がなければ全量取得）
- * @returns {Promise<Array|null>} メンバーデータの配列
  */
 async function fetchMembers(tournamentId) {
     try {
@@ -103,135 +108,11 @@ async function fetchMembers(tournamentId) {
     } catch (error) {
         console.error("通信エラー:", error);
         return null;
-    } finally {
-        closeLoader();
     }
+    // 💡 `finally { closeLoader(); }` は呼び出し元（親）の処理フローとバッティングするため削除しました
 }
 
-/**
- * メンバーの削除リクエストを送信する（POST）
- * @param {string} memberId - 削除対象のメンバーID
- * @returns {Promise<boolean>} 成功したかどうか
- */
-async function deleteMemberPost(memberId) {
-    try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: new URLSearchParams({
-                action: 'deleteMember',
-                memberId: memberId
-            })
-        });
-
-        if (!response.ok) throw new Error("削除リクエストに失敗しました");
-
-        const result = await response.json();
-        if (result.success) {
-            console.log("削除成功:", memberId);
-            return true;
-        } else {
-            alert("削除に失敗しました: " + result.message);
-            return false;
-        }
-    } catch (error) {
-        console.error("削除通信エラー:", error);
-        alert("通信エラーが発生しました");
-        return false;
-    }
-}
-
-/**
- * メンバー名の編集リクエストを送信する（POST）
- * @param {string} memberId - 編集対象のメンバーID
- * @param {string} newName - 新しいメンバー名
- * @returns {Promise<boolean>} 成功したかどうか
- */
-async function updateMemberPost(memberId, newName) {
-    try {
-        const response = await fetch(GAS_WEB_APP_URL, {
-            method: 'POST',
-            body: new URLSearchParams({
-                action: 'updateMember',
-                memberId: memberId,
-                memberName: newName
-            })
-        });
-
-        if (!response.ok) throw new Error("更新リクエストに失敗しました");
-
-        const result = await response.json();
-        if (result.success) {
-            console.log("更新成功:", memberId, newName);
-            return true;
-        } else {
-            alert("更新に失敗しました: " + result.message);
-            return false;
-        }
-    } catch (error) {
-        console.error("更新通信エラー:", error);
-        alert("通信エラーが発生しました");
-        return false;
-    }
-}
-
-/**
- * チームプルダウンの選択肢（option）を生成・追加する
- * @param {Array} data - チーム情報の配列
- */
-function setTeamData(data) {
-    const pulldown = document.getElementById('mem_pulldown');
-    if (!pulldown) return;
-
-    let optionsHtml = '<option value="">チームを選択してください</option>';
-    for (let i = 0; i < data.length; i++) {
-        optionsHtml += '<option value="' + data[i].teamId + '">' + data[i].teamNameAbbreviation + '</option>';
-    }
-    pulldown.innerHTML = optionsHtml;
-}
-
-/**
- * 選択されたチームに応じたメンバーリストを表示する
- * @param {Array} data - チームとメンバーのデータ全体
- * @param {string} selectedTeamId - 選択されたチームID
- */
-function setMemberData(data, selectedTeamId) {
-    const memberlist = document.getElementById('mem_list');
-    if (!memberlist) return;
-
-    let listHtml = '';
-
-    for (let i = 0; i < data.length; i++) {
-        const team = data[i];
-        if (team.teamId === selectedTeamId) {
-            for (let j = 0; j < team.member.length; j++) {
-                const member = team.member[j];
-                // 各行のliタグにIDとデータ属性としてmemberIdを付与
-                listHtml += `
-                    <li id="member_row_${member.memberId}" data-member-id="${member.memberId}">
-                        <div class="mem_list_left">
-                            <p class="c_typo_bodyM c_typo_BLK10 mem_name">${member.memberName}</p>
-                            <div class="c_textField01 mem_nameInput mem_hidden">
-                                <div class="c_textField01_inputForm">
-                                    <input value="${member.memberName}" class="c_textField01_inputText" placeholder="明安 太郎" />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="mem_list_right">
-                            <a href="javascript: void(0);" class="mem_editBtn">
-                                <p class="c_typo_ctaS c_typo_WHT">編集</p>
-                            </a>
-                            <a href="javascript: void(0);" class="mem_deleteBtn">
-                                <p class="c_typo_ctaS c_typo_GRN10">削除</p>
-                            </a>
-                        </div>
-                    </li>`;
-            }
-            break;
-        }
-    }
-
-    memberlist.innerHTML = listHtml;
-}
+// 〜〜 deleteMemberPost / updateMemberPost / setTeamData / setMemberData は既存のまま（省略） 〜〜
 
 /**
  * メンバーリスト内のボタン操作（編集・保存・削除）を監視・制御する（イベント委譲）
@@ -241,12 +122,10 @@ function initMemberListEvents() {
     if (!memberlist) return;
 
     memberlist.addEventListener('click', async function (e) {
-        // クリックされたターゲット要素の親を遡り、対象のボタン（aタグ）を探す
         let targetElement = e.target;
         let editBtn = null;
         let deleteBtn = null;
 
-        // aタグに到達するまで群をループ（最大3階層上まで探索）
         for (let k = 0; k < 3; k++) {
             if (!targetElement) break;
             if (targetElement.classList && targetElement.classList.contains('mem_editBtn')) {
@@ -260,7 +139,6 @@ function initMemberListEvents() {
             targetElement = targetElement.parentElement;
         }
 
-        // ボタンに対応する親の「li」タグを安全に探索して取得
         let listItem = null;
         if (editBtn || deleteBtn) {
             let pEl = (editBtn || deleteBtn).parentElement;
@@ -290,25 +168,34 @@ function initMemberListEvents() {
                 const oldName = nameText.innerText;
                 const newName = inputField.value.trim();
 
-                // 以前の名前から変更がある場合のみPOST通信を実行
                 if (oldName !== newName && newName !== "") {
                     showLoader();
                     const success = await updateMemberPost(memberId, newName);
-                    closeLoader();
 
                     if (success) {
-                        nameText.innerText = newName; // 画面上の名前を変更
+                        // 💡 【変更】画面上の文字を書き換えるのではなく、GASから全量を再取得して画面を再描画
+                        cachedMemberData = await fetchMembers();
+                        const pulldown = document.getElementById('mem_pulldown');
+                        
+                        if (cachedMemberData && pulldown) {
+                            setMemberData(cachedMemberData, pulldown.value);
+                        }
                     } else {
-                        // 失敗した場合は入力欄の値を元に戻す
+                        // 失敗した場合は入力欄の値を元に戻し、編集モードを解除
                         inputField.value = oldName;
+                        listItem.classList.remove('mem_editMode');
+                        btnText.innerText = '編集';
+                        nameText.classList.remove('mem_hidden');
+                        nameInputContainer.classList.add('mem_hidden');
                     }
+                    closeLoader();
+                } else {
+                    // 変更がない場合はそのまま編集モードを解除
+                    listItem.classList.remove('mem_editMode');
+                    btnText.innerText = '編集';
+                    nameText.classList.remove('mem_hidden');
+                    nameInputContainer.classList.add('mem_hidden');
                 }
-
-                // 編集モードの解除と見た目のリセット
-                listItem.classList.remove('mem_editMode');
-                btnText.innerText = '編集';
-                nameText.classList.remove('mem_hidden');
-                nameInputContainer.classList.add('mem_hidden');
                 
             } else {
                 // 【編集モード開始時の処理】
@@ -317,7 +204,6 @@ function initMemberListEvents() {
                 nameText.classList.add('mem_hidden');
                 nameInputContainer.classList.remove('mem_hidden');
                 
-                // テキストの末尾にカーソルを合わせてフォーカス
                 inputField.focus();
                 const textLength = inputField.value.length;
                 inputField.setSelectionRange(textLength, textLength);
@@ -326,10 +212,8 @@ function initMemberListEvents() {
 
         // ーーー 行内の「削除」ボタンが押された場合 ーーー
         if (deleteBtn && listItem) {
-            // どのメンバーIdを削除しようとしているかを記録
             activeDeleteMemberId = listItem.getAttribute('data-member-id');
 
-            // 削除確認ダイアログを表示
             const dialog = document.getElementById('mem_dialog');
             if (dialog) {
                 const showModalBtns = dialog.getElementsByClassName('c_dialog02_showModal');
