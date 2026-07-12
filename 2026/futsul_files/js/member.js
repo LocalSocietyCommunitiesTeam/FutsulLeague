@@ -4,6 +4,8 @@
 let activeDeleteMemberId = null;
 // GASから取得した最新のメンバーデータを保持する変数
 let cachedMemberData = null;
+// 💡 LocalStorageのキー名定義
+const LOCAL_STORAGE_KEY_TEAM = "mem_selected_team_id";
 
 // 読み込み完了時の処理
 document.addEventListener('DOMContentLoaded', async function () {
@@ -18,8 +20,22 @@ document.addEventListener('DOMContentLoaded', async function () {
             // プルダウンの選択肢を設定
             setTeamData(cachedMemberData);
 
-            // プルダウン変更時にメンバーリストを更新
+            // 💡 LocalStorageから前回選択したチームIDを復元
+            const savedTeamId = localStorage.getItem(LOCAL_STORAGE_KEY_TEAM);
+            if (savedTeamId) {
+                // 復元したIDがマスタ（cachedMemberData）に今も存在するかチェック（他人のチーム削除対策）
+                const isTeamExists = cachedMemberData.some(team => team.teamId === savedTeamId);
+                if (isTeamExists) {
+                    pulldown.value = savedTeamId;
+                }
+            }
+
+            // 初回表示のレンダリング（選択された値に基づいてリストを描画）
+            setMemberData(cachedMemberData, pulldown.value);
+
+            // プルダウン変更時にメンバーリストを更新 ＆ 💡 選択値をLocalStorageに保存
             pulldown.addEventListener('change', function () {
+                localStorage.setItem(LOCAL_STORAGE_KEY_TEAM, this.value);
                 setMemberData(cachedMemberData, this.value);
             });
         }
@@ -27,6 +43,45 @@ document.addEventListener('DOMContentLoaded', async function () {
         console.error("初期化エラー:", error);
     } finally {
         closeLoader();
+    }
+
+    // 「メンバーを追加」ボタンのイベント登録
+    const addBtn = document.getElementById('mem_addBtn');
+    if (addBtn) {
+        addBtn.addEventListener('click', async function () {
+            const pulldown = document.getElementById('mem_pulldown');
+            if (!pulldown || !pulldown.value) {
+                alert("先にチームを選択してください");
+                return;
+            }
+
+            const selectedTeamId = pulldown.value;
+            const inputName = prompt("追加するメンバーの氏名を入力してください");
+
+            if (inputName === null) return; // キャンセル時
+            const trimmedName = inputName.trim();
+
+            if (trimmedName === "") {
+                alert("メンバー名を入力してください（スペースのみは不可）");
+                return;
+            }
+
+            showLoader();
+            // バックエンドへ追加リクエスト送信
+            const success = await addMemberPost(selectedTeamId, trimmedName);
+
+            // 同時実行制御：成否に関わらず最新状態を再取得して描画を同期する
+            cachedMemberData = await fetchMembers();
+            if (cachedMemberData) {
+                // 💡 再取得したマスタにまだチームがあれば選択状態をキープ
+                const isTeamExists = cachedMemberData.some(team => team.teamId === selectedTeamId);
+                const currentTeamId = isTeamExists ? selectedTeamId : "";
+                if (!isTeamExists && pulldown) pulldown.value = "";
+
+                setMemberData(cachedMemberData, currentTeamId);
+            }
+            closeLoader();
+        });
     }
 
     // ダイアログ内の共通クローズ処理を登録
@@ -60,6 +115,10 @@ document.addEventListener('DOMContentLoaded', async function () {
             const pulldown = document.getElementById('mem_pulldown');
 
             if (cachedMemberData && pulldown) {
+                // 💡 削除リクエスト中の他人の同時操作でチーム自体が消えていないか検証
+                const isTeamExists = cachedMemberData.some(team => team.teamId === pulldown.value);
+                if (!isTeamExists) pulldown.value = "";
+
                 setMemberData(cachedMemberData, pulldown.value);
             }
 
@@ -96,6 +155,37 @@ async function fetchMembers(tournamentId) {
     } catch (error) {
         console.error("通信エラー:", error);
         return null;
+    }
+}
+
+/**
+ * メンバーの新規追加リクエストを送信する（POST）
+ */
+async function addMemberPost(teamId, memberName) {
+    try {
+        const response = await fetch(GAS_WEB_APP_URL, {
+            method: 'POST',
+            body: new URLSearchParams({
+                action: 'addMember',
+                teamId: teamId,
+                memberName: memberName
+            })
+        });
+
+        if (!response.ok) throw new Error("追加リクエストに失敗しました");
+
+        const result = await response.json();
+        if (result.success) {
+            console.log("追加成功");
+            return true;
+        } else {
+            alert("追加に失敗しました: " + result.message);
+            return false;
+        }
+    } catch (error) {
+        console.error("追加通信エラー:", error);
+        alert("通信エラーが発生しました");
+        return false;
     }
 }
 
@@ -164,7 +254,8 @@ function setTeamData(data) {
  */
 function setMemberData(data, selectedTeamId) {
     const memberlist = document.getElementById('mem_list');
-    const emptyMessage = document.getElementById('mem_emptyMessage'); // 💡 親のdivタグをキャッチ
+    const emptyMessage = document.getElementById('mem_emptyMessage');
+    const addBtnArea = document.getElementById('mem_addBtnArea');
     if (!memberlist) return;
 
     let listHtml = '';
@@ -204,16 +295,19 @@ function setMemberData(data, selectedTeamId) {
 
     memberlist.innerHTML = listHtml;
 
-    // 表示の出し分け制御（div要素に対してクラスを着脱）
+    // 表示の出し分け制御
     if (!selectedTeamId) {
         memberlist.classList.add('mem_hidden');
         if (emptyMessage) emptyMessage.classList.add('mem_hidden');
+        if (addBtnArea) addBtnArea.classList.add('mem_hidden');
     } else if (hasMember) {
         memberlist.classList.remove('mem_hidden');
         if (emptyMessage) emptyMessage.classList.add('mem_hidden');
+        if (addBtnArea) addBtnArea.classList.remove('mem_hidden');
     } else {
         memberlist.classList.add('mem_hidden');
         if (emptyMessage) emptyMessage.classList.remove('mem_hidden');
+        if (addBtnArea) addBtnArea.classList.remove('mem_hidden');
     }
 }
 
@@ -277,6 +371,9 @@ function initMemberListEvents() {
                     const pulldown = document.getElementById('mem_pulldown');
 
                     if (cachedMemberData && pulldown) {
+                        const isTeamExists = cachedMemberData.some(team => team.teamId === pulldown.value);
+                        if (!isTeamExists) pulldown.value = "";
+
                         setMemberData(cachedMemberData, pulldown.value);
                     }
                     closeLoader();
