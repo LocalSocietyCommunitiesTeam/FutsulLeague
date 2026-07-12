@@ -170,7 +170,7 @@ function filterAndDisplayMatches(selectedTeam) {
         // HTML出力（第X試合 ＋ スプレッドシート関数の時間枠）
         const li = document.createElement('li');
         li.innerHTML = `
-            <p class="c_typo_headerS c_typo_BLK10">第<span class="mtc_matchNum">${matchNum}</span>試合${timeRangeStr}</p>
+            <p class="c_typo_headerS c_typo_BLK10">第${matchNum}試合${timeRangeStr}</p>
             ${matchCardsHtml}
         `;
         cardList.appendChild(li);
@@ -178,6 +178,6 @@ function filterAndDisplayMatches(selectedTeam) {
 
     // 表示すべき試合が1件もない場合のメッセージ判定
     if (!hasVisibleMatch) {
-        cardList.innerHTML = `<li class="mtc_noData"><p class="c_typo_bodyS c_typo_BLK8 c_typo_align_center">対象の試合はありません</p></li>`;
+        cardList.innerHTML = `<li class="mtc_noData"><p class="c_typo_bodyM c_typo_BLK8 c_typo_align_center">対象の試合がありません</p></li>`;
     }
 }
