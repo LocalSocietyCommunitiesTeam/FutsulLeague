@@ -42,16 +42,27 @@ function displayThisTerm() {
 
 function displayChampionshipData(data) {
     const compeList = document.getElementById('hm_compeList');
+    compeList.innerHTML = '';
 
-    for (i = 0; i < data.length; i++) {
-        compeList.innerHTML += `<li><a href="./match.html?compeId=${data[i].id}" class="hm_compeCard">
+    for (let i = 0; i < data.length; i++) {
+        const item = data[i];
+
+        // 💡 日付が未定かどうかのフラグ判定
+        const isUndecided = !item.date || item.date.trim() === "" || item.date.includes("未定");
+
+        // 未定の場合はスタイルクラスを適用し、リンクを無効化、日付テキストを「未定」に置き換える
+        const cardClass = isUndecided ? "hm_compeCard is-disabled" : "hm_compeCard";
+        const linkUrl = isUndecided ? "#" : `./match.html?compeId=${item.id}`;
+        const displayDate = isUndecided ? "未定" : item.date;
+
+        compeList.innerHTML += `<li><a href="${linkUrl}" class="${cardClass}">
     <div class="hm_compeCard_left">
-        <p class="c_typo_headerS c_typo_BLK10">${data[i].name}</p>
-        <p class="c_typo_bodyXS c_typo_BLK8">📅 ${data[i].date}</p>
+        <p class="c_typo_headerS c_typo_BLK10">${item.name}</p>
+        <p class="c_typo_bodyXS c_typo_BLK8">📅 ${displayDate}</p>
     </div>
     <div class="hm_compeCard_right">
-        <p class="c_typo_bodyS c_typo_BLK10">${data[i].status}</p>
+        <p class="c_typo_bodyS c_typo_BLK10">${item.status}</p>
     </div>
-</a></li>`
+</a></li>`;
     }
 }
