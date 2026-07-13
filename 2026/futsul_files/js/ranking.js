@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 /**
- * GASからランキングデータを取得する
+ * GASからランキングデータを取得する（エラー時はモックデータを返す）
  */
 async function fetchRankingData() {
     try {
@@ -44,12 +44,123 @@ async function fetchRankingData() {
         const result = await response.json();
         if (result.success) return result.data;
 
-        console.error("エラー:", result.message);
-        return null;
+        console.warn("GASからのデータ取得失敗。モックデータを使用します:", result.message);
+        return getMockRankingData();
     } catch (error) {
-        console.error("通信エラー:", error);
-        return null;
+        console.warn("通信エラー。モックデータを使用します:", error);
+        return getMockRankingData();
     }
+}
+
+/**
+ * モックデータを返す
+ */
+function getMockRankingData() {
+    return {
+        teams: [
+            { teamId: "team_001", teamName: "ドラゴンズ", teamNameAbbreviation: "DRG" },
+            { teamId: "team_002", teamName: "ライオンズ", teamNameAbbreviation: "LIO" },
+            { teamId: "team_003", teamName: "イーグルス", teamNameAbbreviation: "EGL" },
+            { teamId: "team_004", teamName: "パイレーツ", teamNameAbbreviation: "PIR" },
+            { teamId: "team_005", teamName: "タイガース", teamNameAbbreviation: "TGR" }
+        ],
+        members: [
+            { memberId: "mem_001", memberName: "田中 太郎", teamId: "team_001", teamName: "ドラゴンズ", teamNameAbbreviation: "DRG" },
+            { memberId: "mem_002", memberName: "山田 花子", teamId: "team_001", teamName: "ドラゴンズ", teamNameAbbreviation: "DRG" },
+            { memberId: "mem_003", memberName: "鈴木 次郎", teamId: "team_002", teamName: "ライオンズ", teamNameAbbreviation: "LIO" },
+            { memberId: "mem_004", memberName: "佐藤 美咲", teamId: "team_002", teamName: "ライオンズ", teamNameAbbreviation: "LIO" },
+            { memberId: "mem_005", memberName: "伊藤 健太", teamId: "team_003", teamName: "イーグルス", teamNameAbbreviation: "EGL" },
+            { memberId: "mem_006", memberName: "渡辺 由美", teamId: "team_003", teamName: "イーグルス", teamNameAbbreviation: "EGL" },
+            { memberId: "mem_007", memberName: "中村 拓也", teamId: "team_004", teamName: "パイレーツ", teamNameAbbreviation: "PIR" },
+            { memberId: "mem_008", memberName: "小林 由紀", teamId: "team_004", teamName: "パイレーツ", teamNameAbbreviation: "PIR" },
+            { memberId: "mem_009", memberName: "加藤 翔太", teamId: "team_005", teamName: "タイガース", teamNameAbbreviation: "TGR" },
+            { memberId: "mem_010", memberName: "中田 愛子", teamId: "team_005", teamName: "タイガース", teamNameAbbreviation: "TGR" }
+        ],
+        matches: [
+            // ドラゴンズ vs ライオンズ
+            { 
+                matchId: "match_001", 
+                homeTeamId: "team_001", 
+                homeTeamScore: 4,
+                awayTeamId: "team_002", 
+                awayTeamScore: 2,
+                goalScorers: [
+                    { memberId: "mem_001", goals: 2 },
+                    { memberId: "mem_002", goals: 2 },
+                    { memberId: "mem_003", goals: 1 },
+                    { memberId: "mem_004", goals: 1 }
+                ]
+            },
+            // イーグルス vs パイレーツ
+            { 
+                matchId: "match_002", 
+                homeTeamId: "team_003", 
+                homeTeamScore: 3,
+                awayTeamId: "team_004", 
+                awayTeamScore: 3,
+                goalScorers: [
+                    { memberId: "mem_005", goals: 1 },
+                    { memberId: "mem_006", goals: 2 },
+                    { memberId: "mem_007", goals: 2 },
+                    { memberId: "mem_008", goals: 1 }
+                ]
+            },
+            // タイガース vs ドラゴンズ
+            { 
+                matchId: "match_003", 
+                homeTeamId: "team_005", 
+                homeTeamScore: 2,
+                awayTeamId: "team_001", 
+                awayTeamScore: 5,
+                goalScorers: [
+                    { memberId: "mem_009", goals: 1 },
+                    { memberId: "mem_010", goals: 1 },
+                    { memberId: "mem_001", goals: 3 },
+                    { memberId: "mem_002", goals: 2 }
+                ]
+            },
+            // ライオンズ vs イーグルス
+            { 
+                matchId: "match_004", 
+                homeTeamId: "team_002", 
+                homeTeamScore: 2,
+                awayTeamId: "team_003", 
+                awayTeamScore: 1,
+                goalScorers: [
+                    { memberId: "mem_003", goals: 1 },
+                    { memberId: "mem_004", goals: 1 },
+                    { memberId: "mem_005", goals: 1 }
+                ]
+            },
+            // パイレーツ vs タイガース
+            { 
+                matchId: "match_005", 
+                homeTeamId: "team_004", 
+                homeTeamScore: 4,
+                awayTeamId: "team_005", 
+                awayTeamScore: 1,
+                goalScorers: [
+                    { memberId: "mem_007", goals: 2 },
+                    { memberId: "mem_008", goals: 2 },
+                    { memberId: "mem_010", goals: 1 }
+                ]
+            },
+            // ドラゴンズ vs イーグルス
+            { 
+                matchId: "match_006", 
+                homeTeamId: "team_001", 
+                homeTeamScore: 3,
+                awayTeamId: "team_003", 
+                awayTeamScore: 2,
+                goalScorers: [
+                    { memberId: "mem_001", goals: 1 },
+                    { memberId: "mem_002", goals: 2 },
+                    { memberId: "mem_005", goals: 1 },
+                    { memberId: "mem_006", goals: 1 }
+                ]
+            }
+        ]
+    };
 }
 
 /**
