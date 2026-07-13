@@ -9,6 +9,12 @@
     background-color: #FFFFFF;
 }
 
+.mem_addBtnArea {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 16px;
+}
+
 .mem_listSec {
     margin-bottom: 60px;
     padding: 24px 20px;
