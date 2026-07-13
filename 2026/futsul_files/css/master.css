@@ -1,0 +1,83 @@
+/** 管理者メニュー画面 **/
+
+.mst_cardSec {
+    padding: 24px 20px 80px;
+}
+
+/* カードグリッド */
+.mst_cardGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+}
+
+/* カードアイテム */
+.mst_card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px 16px;
+    background-color: #FFFFFF;
+    border-radius: 16px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    min-height: 200px;
+    gap: 12px;
+}
+
+.mst_card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.12);
+    transform: translateY(-4px);
+}
+
+.mst_card:active {
+    transform: scale(0.98);
+}
+
+/* アイコン */
+.mst_card_icon {
+    font-size: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 64px;
+}
+
+/* タイトル */
+.mst_card_title {
+    font-weight: 700;
+    text-align: center;
+    line-height: 1.4;
+}
+
+/* 説明文 */
+.mst_card_desc {
+    text-align: center;
+    color: #6B6B6B;
+    line-height: 1.4;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 600px) {
+    .mst_cardGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (min-width: 600px) {
+    .mst_cardGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 1024px) {
+    .mst_cardGrid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+}

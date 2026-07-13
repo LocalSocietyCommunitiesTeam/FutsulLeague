@@ -8,23 +8,82 @@
     <link rel="stylesheet" href="../../common/css/reset.css">
     <link rel="stylesheet" href="../../common/css/components.css">
     <link rel="stylesheet" href="../futsul_files/css/common.css">
+    <link rel="stylesheet" href="../futsul_files/css/master.css">
 </head>
 
 <body class="com_body">
+    <div id="com_loader" class="com_loader"></div>
+
     <!-- ヘッダー -->
     <header class="com_header">
-        <a href="javascript: history.back();" class="com_header_img">←</a>
-        <h1 class="c_typo_headerM c_typo_WHT">管理者メニュー</h1>
+        <a href="javascript: history.back();" class="c_typo_headerS c_typo_WHT">←</a>
+        <h1 class="c_typo_headerM c_typo_WHT">&nbsp;管理者メニュー</h1>
     </header>
 
     <!-- メイン -->
     <main class="com_main">
+        <section class="mst_cardSec">
+            <div class="mst_cardGrid">
+                <!-- 大会管理 -->
+                <a href="./tournament.html" class="mst_card">
+                    <div class="mst_card_icon">🏆</div>
+                    <h2 class="c_typo_bodyM c_typo_BLK10 mst_card_title">大会管理</h2>
+                    <p class="c_typo_bodyXS c_typo_BLK8 mst_card_desc">大会情報を管理・編集</p>
+                </a>
 
+                <!-- チーム管理 -->
+                <a href="./team-admin.html" class="mst_card">
+                    <div class="mst_card_icon">👥</div>
+                    <h2 class="c_typo_bodyM c_typo_BLK10 mst_card_title">チーム管理</h2>
+                    <p class="c_typo_bodyXS c_typo_BLK8 mst_card_desc">チーム情報を登録・編集</p>
+                </a>
+
+                <!-- 対戦表作成 -->
+                <a href="./schedule.html" class="mst_card">
+                    <div class="mst_card_icon">📋</div>
+                    <h2 class="c_typo_bodyM c_typo_BLK10 mst_card_title">対戦表作成</h2>
+                    <p class="c_typo_bodyXS c_typo_BLK8 mst_card_desc">試合スケジュールを作成</p>
+                </a>
+
+                <!-- 試合ステータス変更 -->
+                <a href="./match-status.html" class="mst_card">
+                    <div class="mst_card_icon">🎮</div>
+                    <h2 class="c_typo_bodyM c_typo_BLK10 mst_card_title">試合ステータス変更</h2>
+                    <p class="c_typo_bodyXS c_typo_BLK8 mst_card_desc">試合結果を登録・更新</p>
+                </a>
+            </div>
+        </section>
     </main>
+
+    <!-- フッター -->
+    <footer class="com_footer">
+        <p class="c_typo_bodyXS c_typo_WHT c_typo_align_center">&copy; 2026 フットサルリーグ. All Rights Reserved.</p>
+    </footer>
+
+    <nav class="com_nav">
+        <ul class="com_nav_btnList">
+            <li><a href="./home.html">
+                    <div class="com_nav_img">🏠</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">ホーム</p>
+                </a></li>
+            <li><a href="./member.html">
+                    <div class="com_nav_img">👥</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">メンバー管理</p>
+                </a></li>
+            <li><a href="./match.html">
+                    <div class="com_nav_img">📋</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">対戦表</p>
+                </a></li>
+            <li><a href="./ranking.html">
+                    <div class="com_nav_img">🏆</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">ランキング</p>
+                </a></li>
+        </ul>
+    </nav>
 
     <script src="../../common/js/event.js"></script>
     <script src="../futsul_files/js/common.js"></script>
+    <script src="../futsul_files/js/master.js"></script>
 </body>
-
 
 </html>
