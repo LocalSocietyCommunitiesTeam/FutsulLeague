@@ -10,7 +10,7 @@
 }
 
 .mem_listSec {
-    margin-bottom: 60px;
+    margin-bottom: 144px;
     padding: 24px 20px;
     position: relative;
 }
@@ -81,10 +81,6 @@
     padding: 24px 0;
 }
 
-.mem_hidden {
-    display: none;
-}
-
 /** フローティングボタンスタイル **/
 .mem_floatingBtn {
     position: fixed;
@@ -100,7 +96,6 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    gap: 4px;
     box-shadow: 0 4px 12px rgba(0, 134, 115, 0.4);
     transition: all 0.3s ease;
     z-index: 100;
@@ -121,11 +116,6 @@
     flex-shrink: 0;
 }
 
-.mem_floatingBtn_text {
-    font-size: 10px;
-    color: #FFFFFF;
-    font-weight: 600;
-    line-height: 1;
-    text-align: center;
-    letter-spacing: 0.5px;
+.mem_hidden {
+    display: none;
 }

@@ -255,7 +255,7 @@ function setTeamData(data) {
 function setMemberData(data, selectedTeamId) {
     const memberlist = document.getElementById('mem_list');
     const emptyMessage = document.getElementById('mem_emptyMessage');
-    const addBtnArea = document.getElementById('mem_addBtnArea');
+    const addBtn = document.getElementById('mem_addBtn'); // 💡 修正：実際の追加ボタンのID（mem_addBtn）を取得
     if (!memberlist) return;
 
     let listHtml = '';
@@ -299,15 +299,15 @@ function setMemberData(data, selectedTeamId) {
     if (!selectedTeamId) {
         memberlist.classList.add('mem_hidden');
         if (emptyMessage) emptyMessage.classList.add('mem_hidden');
-        if (addBtnArea) addBtnArea.classList.add('mem_hidden');
+        if (addBtn) addBtn.classList.add('mem_hidden'); // 💡 チーム未選択時はボタンを非表示
     } else if (hasMember) {
         memberlist.classList.remove('mem_hidden');
         if (emptyMessage) emptyMessage.classList.add('mem_hidden');
-        if (addBtnArea) addBtnArea.classList.remove('mem_hidden');
+        if (addBtn) addBtn.classList.remove('mem_hidden'); // 💡 チーム選択時はボタンを表示
     } else {
         memberlist.classList.add('mem_hidden');
         if (emptyMessage) emptyMessage.classList.remove('mem_hidden');
-        if (addBtnArea) addBtnArea.classList.remove('mem_hidden');
+        if (addBtn) addBtn.classList.remove('mem_hidden'); // 💡 メンバーが0人のチーム選択時もボタンを表示
     }
 }
 
