@@ -2,6 +2,15 @@
 /** 全体のデータ保持用オブジェクト */
 let globalMatchData = [];
 
+const urlParams = new URLSearchParams(window.location.search);
+const compeId = urlParams.get('compeId');
+
+if (!compeId) {
+    alert("大会IDが指定されていません。ホーム画面から入り直してください。");
+    window.location.href = "./home.html"; // ホームに戻す処理にしておくとより親切
+    return;
+}
+
 document.addEventListener('DOMContentLoaded', function () {
     // URLからパラメータ「compeId」を取得
     const urlParams = new URLSearchParams(window.location.search);
