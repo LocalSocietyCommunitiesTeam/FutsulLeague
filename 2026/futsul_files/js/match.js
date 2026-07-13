@@ -1,4 +1,4 @@
-/** 対戦表画面 */
+/** 对戦表画面 */
 /** 全体のデータ保持用オブジェクト */
 let globalMatchData = [];
 
@@ -48,7 +48,7 @@ async function loadMatchData(compeId) {
         } else {
             console.warn("チームデータの取得に失敗したため、対戦表側からの抽出を試みます。");
             if (matchRes.success && matchRes.data) {
-                // 対戦表側からのバックアップ抽出時は略称が取れないため正式名称を兼用
+                // 对戦表側からのバックアップ抽出時は略称が取れないため正式名称を兼用
                 const fallbackTeams = matchRes.data.teams.map(name => ({
                     teamId: "",
                     teamName: name,
@@ -58,7 +58,7 @@ async function loadMatchData(compeId) {
             }
         }
 
-        // 2. 対戦表カードの描画
+        // 2. 对戦表カードの描画
         if (matchRes.success && matchRes.data) {
             globalMatchData = matchRes.data.matches;
             filterAndDisplayMatches("");
@@ -83,22 +83,27 @@ function buildTeamPulldown(teams) {
 
     if (!teams || teams.length === 0) return;
 
-    // 重複排除のためのMap（キーを正式名称にする）
+    // 重複排除のためのMap（キーを対戦表の表記に合わせるため略称にする）
     const uniqueTeamMap = new Map();
     for (let i = 0; i < teams.length; i++) {
         const t = teams[i];
-        if (t.teamName && !uniqueTeamMap.has(t.teamName)) {
-            uniqueTeamMap.set(t.teamName, t);
+        const key = t.teamNameAbbreviation || t.teamName;
+        if (key && !uniqueTeamMap.has(key)) {
+            uniqueTeamMap.set(key, t);
         }
     }
 
-    // 💡 修正：valueに正式名称(teamName)を、表示テキストに略称(teamNameAbbreviation)を設定
     const uniqueTeamsArray = Array.from(uniqueTeamMap.values());
     for (let i = 0; i < uniqueTeamsArray.length; i++) {
         const team = uniqueTeamsArray[i];
         const opt = document.createElement('option');
-        opt.value = team.teamName; // フィルタ判定用に正式名称をセット
-        opt.textContent = team.teamNameAbbreviation; // 画面表示は略称
+        
+        // 💡 修正：対戦表側の「teamAName/teamBName」には『略称』が入っているため、
+        // フィルタリングで正しく合致するよう、valueにも一貫して『略称』をセットします。
+        const targetName = team.teamNameAbbreviation || team.teamName;
+        opt.value = targetName; 
+        opt.textContent = targetName; // 画面の表示テキストも略称
+        
         if (team.teamId) {
             opt.setAttribute('data-team-id', team.teamId); // 必要に応じてteamIdをカスタム属性として保持
         }
@@ -120,7 +125,8 @@ function filterAndDisplayMatches(selectedTeam) {
     const groupedMatches = {};
     for (let i = 0; i < globalMatchData.length; i++) {
         const match = globalMatchData[i];
-        // 💡 selectedTeamには「正式名称」が入ってくるため、match.teamAName/BName（正式名称）と正しく比較判定できる
+        
+        // 💡 selectedTeamに「略称」が入るようになったため、対戦表データ（match.teamAName/BName）と正確に文字列比較ができるようになりました
         if (selectedTeam && match.teamAName !== selectedTeam && match.teamBName !== selectedTeam) {
             continue;
         }
