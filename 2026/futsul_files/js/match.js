@@ -8,7 +8,6 @@ const compeId = urlParams.get('compeId');
 if (!compeId) {
     alert("大会IDが指定されていません。ホーム画面から入り直してください。");
     window.location.href = "./home.html"; // ホームに戻す処理にしておくとより親切
-    return;
 }
 
 document.addEventListener('DOMContentLoaded', function () {
