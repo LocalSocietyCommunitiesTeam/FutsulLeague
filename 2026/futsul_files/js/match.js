@@ -1,4 +1,4 @@
-/** 对戦表画面 */
+/** 対戦表画面 */
 /** 全体のデータ保持用オブジェクト */
 let globalMatchData = [];
 
@@ -7,11 +7,10 @@ const compeId = urlParams.get('compeId');
 
 if (!compeId) {
     alert("大会IDが指定されていません。ホーム画面から入り直してください。");
-    window.location.href = "./home.html"; // ホームに戻す処理にしておくとより親切
+    window.location.href = "./home.html";
 }
 
 document.addEventListener('DOMContentLoaded', function () {
-    // URLからパラメータ「compeId」を取得
     const urlParams = new URLSearchParams(window.location.search);
     const compeId = urlParams.get('compeId');
 
@@ -20,12 +19,11 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // データの読み込み開始
     loadMatchData(compeId);
 
     // チーム選択プルダウンの変更イベント
     document.getElementById('mtc_pulldown').addEventListener('change', function (e) {
-        filterAndDisplayMatches(e.target.value);
+        filterAndDisplayMatches(e.target.value); // 💡 選択された teamId でフィルタリングを実行
     });
 });
 
@@ -33,41 +31,16 @@ document.addEventListener('DOMContentLoaded', function () {
 async function loadMatchData(compeId) {
     if (typeof showLoader === 'function') showLoader();
 
-    // 💡 チーム一覧（メンバーマスタ）と対戦表のAPIリクエストURLを準備
-    const teamUrl = `${GAS_WEB_APP_URL}?action=getMembers&tournamentId=${compeId}`;
     const matchUrl = `${GAS_WEB_APP_URL}?action=getMatchList&tournamentId=${compeId}`;
 
     try {
-        // 並行して両方のデータを取得（表示速度の高速化）
-        const [teamRes, matchRes] = await Promise.all([
-            fetch(teamUrl).then(res => res.json()),
-            fetch(matchUrl).then(res => res.json())
-        ]);
+        const matchRes = await fetch(matchUrl).then(res => res.json());
 
-        // 1. プルダウンの構築（メンバーシートに存在するチームを確実に回す）
-        if (teamRes.success && teamRes.data) {
-            // 💡 修正：略称、正式名称、チームIDを含むオブジェクトの配列としてマッピング
-            const teamObjects = teamRes.data.map(t => ({
-                teamId: t.teamId,
-                teamName: t.teamName,
-                teamNameAbbreviation: t.teamNameAbbreviation || t.teamName // 略称がなければ正式名称
-            }));
-            buildTeamPulldown(teamObjects);
-        } else {
-            console.warn("チームデータの取得に失敗したため、対戦表側からの抽出を試みます。");
-            if (matchRes.success && matchRes.data) {
-                // 对戦表側からのバックアップ抽出時は略称が取れないため正式名称を兼用
-                const fallbackTeams = matchRes.data.teams.map(name => ({
-                    teamId: "",
-                    teamName: name,
-                    teamNameAbbreviation: name
-                }));
-                buildTeamPulldown(fallbackTeams);
-            }
-        }
-
-        // 2. 对戦表カードの描画
         if (matchRes.success && matchRes.data) {
+            // 1. プルダウンの構築（GASから受け取ったオブジェクト配列を渡す）
+            buildTeamPulldown(matchRes.data.teams);
+
+            // 2. 対戦表カードの描画
             globalMatchData = matchRes.data.matches;
             filterAndDisplayMatches("");
         } else {
@@ -86,41 +59,26 @@ async function loadMatchData(compeId) {
 function buildTeamPulldown(teams) {
     const pulldown = document.getElementById('mtc_pulldown');
 
-    // 「すべてのチーム」以外を一旦クリア（重複防止）
     pulldown.innerHTML = '<option value="">すべてのチーム</option>';
 
     if (!teams || teams.length === 0) return;
 
-    // 重複排除のためのMap（キーを対戦表の表記に合わせるため略称にする）
-    const uniqueTeamMap = new Map();
     for (let i = 0; i < teams.length; i++) {
-        const t = teams[i];
-        const key = t.teamNameAbbreviation || t.teamName;
-        if (key && !uniqueTeamMap.has(key)) {
-            uniqueTeamMap.set(key, t);
-        }
-    }
+        const team = teams[i];
+        if (!team.teamId) continue;
 
-    const uniqueTeamsArray = Array.from(uniqueTeamMap.values());
-    for (let i = 0; i < uniqueTeamsArray.length; i++) {
-        const team = uniqueTeamsArray[i];
         const opt = document.createElement('option');
-        
-        // 💡 修正：対戦表側の「teamAName/teamBName」には『略称』が入っているため、
-        // フィルタリングで正しく合致するよう、valueにも一貫して『略称』をセットします。
-        const targetName = team.teamNameAbbreviation || team.teamName;
-        opt.value = targetName; 
-        opt.textContent = targetName; // 画面の表示テキストも略称
-        
-        if (team.teamId) {
-            opt.setAttribute('data-team-id', team.teamId); // 必要に応じてteamIdをカスタム属性として保持
-        }
+
+        // 💡 value属性に teamId を、表示テキストにチーム名（正式名称）を割り当てる
+        opt.value = team.teamId;
+        opt.textContent = team.teamName;
+
         pulldown.appendChild(opt);
     }
 }
 
 /** 選択されたチームに基づいて対戦表をフィルタリング＆描画 */
-function filterAndDisplayMatches(selectedTeam) {
+function filterAndDisplayMatches(selectedTeamId) {
     const cardList = document.getElementById('mtc_cardList');
     cardList.innerHTML = ""; // 画面クリア
 
@@ -133,9 +91,9 @@ function filterAndDisplayMatches(selectedTeam) {
     const groupedMatches = {};
     for (let i = 0; i < globalMatchData.length; i++) {
         const match = globalMatchData[i];
-        
-        // 💡 selectedTeamに「略称」が入るようになったため、対戦表データ（match.teamAName/BName）と正確に文字列比較ができるようになりました
-        if (selectedTeam && match.teamAName !== selectedTeam && match.teamBName !== selectedTeam) {
+
+        // 💡 チーム名比較から、GAS側で追加した「teamAId / teamBId」を用いたIDでの厳密な比較処理へ変更
+        if (selectedTeamId && match.teamAId !== selectedTeamId && match.teamBId !== selectedTeamId) {
             continue;
         }
 
@@ -186,7 +144,6 @@ function filterAndDisplayMatches(selectedTeam) {
                 </a>`;
         }
 
-        // HTML出力（第X試合 ＋ スプレッドシート関数の時間枠）
         const li = document.createElement('li');
         li.innerHTML = `
             <p class="c_typo_headerS c_typo_BLK10">第${matchNum}試合${timeRangeStr}</p>
@@ -195,7 +152,6 @@ function filterAndDisplayMatches(selectedTeam) {
         cardList.appendChild(li);
     }
 
-    // 表示すべき試合が1件もない場合のメッセージ判定
     if (!hasVisibleMatch) {
         cardList.innerHTML = `<li class="mtc_noData"><p class="c_typo_bodyM c_typo_BLK8 c_typo_align_center">対象の試合がありません</p></li>`;
     }
