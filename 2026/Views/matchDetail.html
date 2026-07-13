@@ -68,7 +68,12 @@
             </section>
 
             <section class="mdt_btnSec">
-                <button id="mdt_toEditBtn" class="c_btn01 c_btn01_h48 c_btn01_primary">結果を編集する</button>
+                <div id="mdt_toEditBtn" class="c_button01 c_button01_green" ontouchstart=""><a
+                        href="javascript: void(0);">
+                        <div class="c_button01_wrapper c_button01_icon_not">
+                            <p class="c_typo_cta c_typo_WHT c_typo_align_center">結果編集</p>
+                        </div>
+                    </a></div>
             </section>
         </div>
 
@@ -80,42 +85,48 @@
 
                         <div class="mdt_formRow">
                             <div class="mdt_inputGroup">
-                                <label id="mdt_labelTeamA" class="c_typo_headerXXS c_typo_BLK08">-</label>
+                                <label id="mdt_labelTeamA" class="c_typo_headerXXS c_typo_BLK08">ホームチーム</label>
                                 <input type="number" id="mdt_inputScoreA" class="mdt_scoreInput" min="0" required>
                             </div>
                             <p class="c_typo_headerM c_typo_BLK04 mdt_formVs">ー</p>
                             <div class="mdt_inputGroup">
-                                <label id="mdt_labelTeamB" class="c_typo_headerXXS c_typo_BLK08">-</label>
+                                <label id="mdt_labelTeamB" class="c_typo_headerXXS c_typo_BLK08">アウェイチーム</label>
                                 <input type="number" id="mdt_inputScoreB" class="mdt_scoreInput" min="0" required>
                             </div>
                         </div>
 
                         <div class="mdt_formBlock">
-                            <div class="mdt_blockHeader">
-                                <label class="c_typo_headerXXS c_typo_BLK08"><span id="mdt_nameTeamA">-</span>
-                                    の得点者</label>
-                                <button type="button" id="mdt_ogBtnA"
-                                    class="c_tag01_wrap c_tag01_h24 c_tag01_neutral mdt_ogBtn">＋ オウンゴール</button>
-                            </div>
-                            <input type="text" id="mdt_inputScorersA" class="mdt_textInput"
-                                placeholder="例: 山田(2), 佐藤(1)">
+                            <label class="c_typo_headerXXS c_typo_BLK08">得点者の入力対象チーム</label>
+                            <select id="mdt_selectTargetSide" class="mdt_targetSideSelect">
+                                <option value="A" selected>ホームチーム（左）</option>
+                                <option value="B">アウェイチーム（右）</option>
+                            </select>
                         </div>
 
                         <div class="mdt_formBlock">
                             <div class="mdt_blockHeader">
-                                <label class="c_typo_headerXXS c_typo_BLK08"><span id="mdt_nameTeamB">-</span>
+                                <label class="c_typo_headerXXS c_typo_BLK08"><span id="mdt_targetTeamName">-</span>
                                     の得点者</label>
-                                <button type="button" id="mdt_ogBtnB"
-                                    class="c_tag01_wrap c_tag01_h24 c_tag01_neutral mdt_ogBtn">＋ オウンゴール</button>
+                                <button type="button" id="mdt_addScorerBtn"
+                                    class="c_tag01_wrap c_tag01_h24 c_tag01_neutral mdt_ogBtn">＋ 得点者を追加</button>
                             </div>
-                            <input type="text" id="mdt_inputScorersB" class="mdt_textInput" placeholder="例: 鈴木(1)">
+                            <div id="mdt_target_scorer_list" class="mdt_dynamicScorersContainer"></div>
                         </div>
                     </div>
 
                     <div class="mdt_formBtns">
-                        <button type="button" id="mdt_cancelBtn"
-                            class="c_btn01 c_btn01_h48 c_btn01_secondary">キャンセル</button>
-                        <button type="submit" class="c_btn01 c_btn01_h48 c_btn01_primary">保存する</button>
+                        <div class="c_button01 c_button01_green" ontouchstart=""><a href="javascript: void(0);"
+                                id="mdt_saveBtn">
+                                <div class="c_button01_wrapper c_button01_icon_not">
+                                    <p class="c_typo_cta c_typo_WHT c_typo_align_center">保存</p>
+                                </div>
+                            </a></div>
+                        <div id="mdt_cancelBtn" class="c_button01 c_button01_white" ontouchstart=""><a
+                                href="javascript: void(0);">
+                                <div class="c_button01_wrapper c_button01_icon_not">
+                                    <p class="c_typo_cta c_typo_GRN10 c_typo_align_center">キャンセル</p>
+                                </div>
+                            </a></div>
                     </div>
                 </form>
             </section>

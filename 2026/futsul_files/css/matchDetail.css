@@ -76,6 +76,10 @@
 
 .mdt_btnSec,
 .mdt_formBtns {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
     padding: 32px 20px 84px;
 }
 
@@ -130,7 +134,8 @@
     margin-bottom: 20px;
 }
 
-.mdt_textInput {
+/* 💡 対象チーム選択用のプルダウン装飾 */
+.mdt_targetSideSelect {
     width: 100%;
     height: 44px;
     margin-top: 8px;
@@ -138,7 +143,11 @@
     border: 1px solid #E0E0E0;
     border-radius: 8px;
     font-size: 14px;
+    font-weight: bold;
+    background-color: #FAFAFA;
+    color: #008673;
     box-sizing: border-box;
+    cursor: pointer;
 }
 
 .mdt_formBtns {
@@ -146,12 +155,12 @@
     gap: 16px;
 }
 
-/* ラベルとオウンゴールボタンの横並びレイアウト */
+/* ラベルとボタンの横並びレイアウト */
 .mdt_blockHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 4px;
+    margin-bottom: 12px;
 }
 
 .mdt_ogBtn {
@@ -159,9 +168,87 @@
     cursor: pointer;
     background-color: #FAFAFA;
     transition: background-color 0.2s;
-    padding: 0 8px;
+    padding: 0 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: bold;
+    color: #008673;
 }
 
 .mdt_ogBtn:active {
     background-color: #EEEEEE;
+}
+
+/* 得点者動的セレクトボックスエリア */
+.mdt_dynamicScorersContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+}
+
+.mdt_scorerRowItem {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    animation: fadeInScorerRow 0.25s ease-out;
+}
+
+.mdt_scorerSelect {
+    flex-grow: 1;
+    height: 40px;
+    padding: 0 8px;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    background-color: #FFFFFF;
+    font-size: 14px;
+    color: #333333;
+}
+
+.mdt_scorerGoalsInput {
+    width: 60px;
+    height: 40px;
+    border: 1px solid #E0E0E0;
+    border-radius: 8px;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    background-color: #FAFAFA;
+    color: #333333;
+}
+
+.mdt_scorerUnitText {
+    color: #666666;
+    user-select: none;
+}
+
+.mdt_scorerDeleteBtn {
+    width: 36px;
+    height: 40px;
+    border: 1px solid #FFCDD2;
+    background-color: #FFEBEE;
+    color: #C62828;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.mdt_scorerDeleteBtn:active {
+    background-color: #FFCDD2;
+}
+
+@keyframes fadeInScorerRow {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
