@@ -1,4 +1,4 @@
-/** 対戦表画面 **/
+/** 対戦表画面 */
 /** 全体のデータ保持用オブジェクト */
 let globalMatchData = [];
 
@@ -85,14 +85,17 @@ function buildTeamPulldown(teams) {
 
     // 重複排除のためのMap（キーを正式名称にする）
     const uniqueTeamMap = new Map();
-    teams.forEach(t => {
+    for (let i = 0; i < teams.length; i++) {
+        const t = teams[i];
         if (t.teamName && !uniqueTeamMap.has(t.teamName)) {
             uniqueTeamMap.set(t.teamName, t);
         }
-    });
+    }
 
     // 💡 修正：valueに正式名称(teamName)を、表示テキストに略称(teamNameAbbreviation)を設定
-    uniqueTeamMap.forEach(team => {
+    const uniqueTeamsArray = Array.from(uniqueTeamMap.values());
+    for (let i = 0; i < uniqueTeamsArray.length; i++) {
+        const team = uniqueTeamsArray[i];
         const opt = document.createElement('option');
         opt.value = team.teamName; // フィルタ判定用に正式名称をセット
         opt.textContent = team.teamNameAbbreviation; // 画面表示は略称
@@ -100,7 +103,7 @@ function buildTeamPulldown(teams) {
             opt.setAttribute('data-team-id', team.teamId); // 必要に応じてteamIdをカスタム属性として保持
         }
         pulldown.appendChild(opt);
-    });
+    }
 }
 
 /** 選択されたチームに基づいて対戦表をフィルタリング＆描画 */
@@ -115,17 +118,18 @@ function filterAndDisplayMatches(selectedTeam) {
 
     // 試合番号（matchNum）ごとにデータをグループ化
     const groupedMatches = {};
-    globalMatchData.forEach(match => {
+    for (let i = 0; i < globalMatchData.length; i++) {
+        const match = globalMatchData[i];
         // 💡 selectedTeamには「正式名称」が入ってくるため、match.teamAName/BName（正式名称）と正しく比較判定できる
         if (selectedTeam && match.teamAName !== selectedTeam && match.teamBName !== selectedTeam) {
-            return;
+            continue;
         }
 
         if (!groupedMatches[match.matchNum]) {
             groupedMatches[match.matchNum] = [];
         }
         groupedMatches[match.matchNum].push(match);
-    });
+    }
 
     // グループ化されたデータを元にHTMLを生成
     let hasVisibleMatch = false;
@@ -138,7 +142,8 @@ function filterAndDisplayMatches(selectedTeam) {
         const timeRangeStr = firstMatch.timeRange ? `（${firstMatch.timeRange}）` : '';
 
         let matchCardsHtml = "";
-        matchesInNum.forEach(match => {
+        for (let i = 0; i < matchesInNum.length; i++) {
+            const match = matchesInNum[i];
             let tagClass = "c_tag01_neutral";
             if (match.status === "試合中") tagClass = "c_tag01_info";
             if (match.status === "未開始") tagClass = "c_tag01_warning";
@@ -165,7 +170,7 @@ function filterAndDisplayMatches(selectedTeam) {
                         </div>
                     </div>
                 </a>`;
-        });
+        }
 
         // HTML出力（第X試合 ＋ スプレッドシート関数の時間枠）
         const li = document.createElement('li');

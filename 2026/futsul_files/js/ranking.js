@@ -1,4 +1,4 @@
-/** ランキング画面 **/
+/** ランキング画面 */
 
 // キャッシュ変数
 let cachedRankingData = null;
@@ -170,7 +170,9 @@ function getMockRankingData() {
 function calculateTeamRanking(data) {
     if (!data || !data.teams) return [];
 
-    const teamStats = data.teams.map(team => {
+    const teamStats = [];
+    for (let i = 0; i < data.teams.length; i++) {
+        const team = data.teams[i];
         // チームの試合結果を集計
         let wins = 0;
         let draws = 0;
@@ -179,7 +181,8 @@ function calculateTeamRanking(data) {
         let concededScore = 0;
 
         if (data.matches) {
-            data.matches.forEach(match => {
+            for (let j = 0; j < data.matches.length; j++) {
+                const match = data.matches[j];
                 if (match.homeTeamId === team.teamId) {
                     if (match.homeTeamScore > match.awayTeamScore) wins++;
                     else if (match.homeTeamScore === match.awayTeamScore) draws++;
@@ -193,7 +196,7 @@ function calculateTeamRanking(data) {
                     totalScore += match.awayTeamScore;
                     concededScore += match.homeTeamScore;
                 }
-            });
+            }
         }
 
         const gamesPlayed = wins + draws + losses;
@@ -202,7 +205,7 @@ function calculateTeamRanking(data) {
         // 平均勝ち点
         const average = gamesPlayed > 0 ? (points / gamesPlayed).toFixed(2) : 0;
 
-        return {
+        teamStats.push({
             teamId: team.teamId,
             teamName: team.teamNameAbbreviation || team.teamName,
             points: points,
@@ -212,8 +215,8 @@ function calculateTeamRanking(data) {
             draws: draws,
             losses: losses,
             goalDifference: totalScore - concededScore
-        };
-    });
+        });
+    }
 
     // 平均勝ち点でソート（降順）→ ゴール差でソート（降順）
     teamStats.sort((a, b) => {
@@ -241,29 +244,33 @@ function calculateTeamRanking(data) {
 function calculatePersonalRanking(data) {
     if (!data || !data.members) return [];
 
-    const memberStats = data.members.map(member => {
+    const memberStats = [];
+    for (let i = 0; i < data.members.length; i++) {
+        const member = data.members[i];
         // メンバーのスコアを集計
         let totalScore = 0;
 
         if (data.matches) {
-            data.matches.forEach(match => {
+            for (let j = 0; j < data.matches.length; j++) {
+                const match = data.matches[j];
                 if (match.goalScorers) {
-                    match.goalScorers.forEach(goalScorer => {
+                    for (let k = 0; k < match.goalScorers.length; k++) {
+                        const goalScorer = match.goalScorers[k];
                         if (goalScorer.memberId === member.memberId) {
                             totalScore += goalScorer.goals || 1;
                         }
-                    });
+                    }
                 }
-            });
+            }
         }
 
-        return {
+        memberStats.push({
             memberId: member.memberId,
             memberName: member.memberName,
             teamName: member.teamName || member.teamNameAbbreviation,
             score: totalScore
-        };
-    });
+        });
+    }
 
     // スコアでソート（降順）
     memberStats.sort((a, b) => b.score - a.score);
@@ -298,10 +305,11 @@ function renderTeamRanking(teamRanking) {
     let html = '';
     const medalEmojis = ['🥇', '🥈', '🥉'];
 
-    teamRanking.forEach((team, index) => {
-        const rankDisplay = index < 3 ? medalEmojis[index] : team.rank;
-        const rankClass = index < 3 ? 'rk_rank_medal' : 'rk_rank';
-        const rankTextClass = index < 3 ? '' : 'rk_rank_text';
+    for (let i = 0; i < teamRanking.length; i++) {
+        const team = teamRanking[i];
+        const rankDisplay = i < 3 ? medalEmojis[i] : team.rank;
+        const rankClass = i < 3 ? 'rk_rank_medal' : 'rk_rank';
+        const rankTextClass = i < 3 ? '' : 'rk_rank_text';
 
         html += `
             <li class="rk_listItem">
@@ -335,7 +343,7 @@ function renderTeamRanking(teamRanking) {
                 </div>
             </li>
         `;
-    });
+    }
 
     list.innerHTML = html;
     list.classList.remove('rk_hidden');
@@ -360,10 +368,11 @@ function renderPersonalRanking(personalRanking) {
     let html = '';
     const medalEmojis = ['🥇', '🥈', '🥉'];
 
-    personalRanking.forEach((member, index) => {
-        const rankDisplay = index < 3 ? medalEmojis[index] : member.rank;
-        const rankClass = index < 3 ? 'rk_rank_medal' : 'rk_rank';
-        const rankTextClass = index < 3 ? '' : 'rk_rank_text';
+    for (let i = 0; i < personalRanking.length; i++) {
+        const member = personalRanking[i];
+        const rankDisplay = i < 3 ? medalEmojis[i] : member.rank;
+        const rankClass = i < 3 ? 'rk_rank_medal' : 'rk_rank';
+        const rankTextClass = i < 3 ? '' : 'rk_rank_text';
 
         html += `
             <li class="rk_listItem">
@@ -380,7 +389,7 @@ function renderPersonalRanking(personalRanking) {
                 </div>
             </li>
         `;
-    });
+    }
 
     list.innerHTML = html;
     list.classList.remove('rk_hidden');
@@ -394,13 +403,17 @@ function initTabSwitching() {
     const tabs = document.querySelectorAll('.rk_tab');
     const sections = document.querySelectorAll('.rk_section');
 
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function () {
+    for (let i = 0; i < tabs.length; i++) {
+        tabs[i].addEventListener('click', function () {
             const targetTab = this.getAttribute('data-tab');
 
             // すべてのタブと セクションの状態をリセット
-            tabs.forEach(t => t.classList.remove('rk_tab_active'));
-            sections.forEach(s => s.classList.remove('rk_section_active'));
+            for (let j = 0; j < tabs.length; j++) {
+                tabs[j].classList.remove('rk_tab_active');
+            }
+            for (let j = 0; j < sections.length; j++) {
+                sections[j].classList.remove('rk_section_active');
+            }
 
             // クリックされたタブをアクティブに
             this.classList.add('rk_tab_active');
@@ -412,5 +425,5 @@ function initTabSwitching() {
                 document.getElementById('rk_personalSection').classList.add('rk_section_active');
             }
         });
-    });
+    }
 }
