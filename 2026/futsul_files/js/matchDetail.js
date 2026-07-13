@@ -75,18 +75,24 @@ async function loadMatchDetail() {
 
 /** 画面描画 */
 function renderMatchDetail(match) {
-    // 閲覧用
+    // 閲覧用データの反映
     document.getElementById('mdt_court').textContent = match.court || '-';
     document.getElementById('mdt_status').textContent = match.status || '-';
     document.getElementById('mdt_matchNum').textContent = match.matchNum ? `第 ${match.matchNum} 試合` : '-';
     document.getElementById('mdt_time').textContent = match.timeRange ? `（${match.timeRange}）` : '';
-    document.getElementById('mdt_teamA').textContent = match.teamAName || '-';
-    document.getElementById('mdt_teamB').textContent = match.teamBName || '-';
+    
+    // 💡 チーム名のマッピング修正（GASの返却キーが teamAName / teamBName であることを保証）
+    const teamA = match.teamAName || match.homeTeamName || '-';
+    const teamB = match.teamBName || match.awayTeamName || '-';
+
+    document.getElementById('mdt_teamA').textContent = teamA;
+    document.getElementById('mdt_teamB').textContent = teamB;
 
     const isUnstarted = (match.status === '未開始');
     document.getElementById('mdt_scoreA').textContent = isUnstarted ? '-' : match.teamAScore;
     document.getElementById('mdt_scoreB').textContent = isUnstarted ? '-' : match.teamBScore;
-
+    
+    // 得点者の反映
     document.getElementById('mdt_scorersA').textContent = match.teamAScorers || 'なし';
     document.getElementById('mdt_scorersB').textContent = match.teamBScorers || 'なし';
 
@@ -98,10 +104,10 @@ function renderMatchDetail(match) {
     else tagWrap.classList.add("c_tag01_neutral");
 
     // 編集フォーム初期値セット
-    document.getElementById('mdt_labelTeamA').textContent = match.teamAName;
-    document.getElementById('mdt_labelTeamB').textContent = match.teamBName;
-    document.getElementById('mdt_nameTeamA').textContent = match.teamAName;
-    document.getElementById('mdt_nameTeamB').textContent = match.teamBName;
+    document.getElementById('mdt_labelTeamA').textContent = teamA;
+    document.getElementById('mdt_labelTeamB').textContent = teamB;
+    document.getElementById('mdt_nameTeamA').textContent = teamA;
+    document.getElementById('mdt_nameTeamB').textContent = teamB;
     document.getElementById('mdt_inputScoreA').value = isUnstarted ? 0 : match.teamAScore;
     document.getElementById('mdt_inputScoreB').value = isUnstarted ? 0 : match.teamBScore;
     document.getElementById('mdt_inputScorersA').value = match.teamAScorers || '';
