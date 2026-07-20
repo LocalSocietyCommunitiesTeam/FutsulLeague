@@ -107,38 +107,37 @@ function getTournamentData() {
 }
 
 function setTeamList(data) {
-    const teamList = document.getElementById('hm_teamList');
-
     if (data.length == 0) {
         return;
     }
-
+    
+    const teamList = document.getElementById('hm_teamList');
+    
     for (let i = 0; i < data.length; i++) {
         const li = `
             <li><a href="./match.html?teamId=${data[i].teamId}" class="hm_teamCard">
                 <p class="c_typo_headerXS c_typo_BLK10">${data[i].teamNameAbbreviation}</p>
             </a></li>
-        `
+        `;
         teamList.innerHTML += li;
     }
 }
 
 function setTournamentData(data) {
-    const tournamentList = document.getElementById('hm_tournamentList');
-
     if (data.length == 0) {
         return;
     }
-
+    
+    const tournamentList = document.getElementById('hm_tournamentList');
+    
     for (let i = 0; i < data.length; i++) {
         const li = `
             <li>
                 <div class="hm_textLink"><a href="./match.html?tournamentId=${data[i].tournamentId}">
-                        <p class="hm_typo_textLink">${data[i].tournamentName}</p>
+                        <p class="hm_typo_textLink">${data[i].tournamentName} →</p>
                     </a></div>
             </li>
-        `
-
+        `;
         tournamentList.innerHTML += li;
     }
 }
