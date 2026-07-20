@@ -64,3 +64,48 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 });
+
+// 曜日の配列を使い回す
+var DAYS_JAPANESE = ['日', '月', '火', '水', '木', '金', '土'];
+
+/**
+ * 2026/07/31 形式の文字列から「7/31（金）」の形式を生成する関数（バリデーション付き）
+ * @param {string} dateStr - "YYYY/MM/DD" 形式の文字列
+ * @returns {string} フォーマットされた文字列（不正な入力の場合は元の文字列）
+ */
+function formatDate(dateStr) {
+    // 1. 引数の型チェックと最低限の長さチェック（高速な簡易ガード）
+    if (typeof dateStr !== 'string' || dateStr.length < 10) {
+        return dateStr;
+    }
+
+    // 2. 文字列を切り出し（substringは高速）
+    var year = parseInt(dateStr.substring(0, 4), 10);
+    var month = parseInt(dateStr.substring(5, 7), 10);
+    var date = parseInt(dateStr.substring(8, 10), 10);
+
+    // 3. 切り出した値が「有効な数値」かつ「カレンダーとして正しい範囲」か判定
+    // NaNのチェック、月（1〜12）、日（1〜31）の簡易チェック
+    if (isNaN(year) || isNaN(month) || isNaN(date) || month < 1 || month > 12 || date < 1 || date > 31) {
+        return dateStr; // 意図しない文字列の場合はそのまま返す
+    }
+
+    // 4. ツェラーの公式による曜日算出
+    var m = month;
+    var y = year;
+    if (m < 3) {
+        m += 12;
+        y -= 1;
+    }
+
+    var c = Math.floor(y / 100);
+    var d = y % 100;
+    var dayIdx = (d + Math.floor(d / 4) + Math.floor(c / 4) - (2 * c) + Math.floor((13 * (m + 1)) / 5) + date - 1) % 7;
+
+    if (dayIdx < 0) {
+        dayIdx += 7;
+    }
+
+    // 5. 文字列を結合して返す
+    return month + '/' + date + '（' + DAYS_JAPANESE[dayIdx] + '）';
+}

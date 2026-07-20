@@ -17,9 +17,10 @@ var teamData = [
 ];
 
 var tournamentData = [
-    { tournamentId: '100', tournamentName: '2025年度第3回', tournamentDate: '2026/01/30' },
-    { tournamentId: '101', tournamentName: '2025年度第2回', tournamentDate: '2025/10/10' },
-    { tournamentId: '102', tournamentName: '2025年度第1回', tournamentDate: '2025/07/11' }
+    { tournamentId: '103', tournamentName: '2026年度第1回大会', tournamentDate: '2026/07/31' },
+    { tournamentId: '100', tournamentName: '2025年度第3回大会', tournamentDate: '2026/01/30' },
+    { tournamentId: '101', tournamentName: '2025年度第2回大会', tournamentDate: '2025/10/10' },
+    { tournamentId: '102', tournamentName: '2025年度第1回大会', tournamentDate: '2025/07/11' }
 ];
 
 // DOMContentLoaded イベントハンドラ（アロー関数は不使用）
@@ -103,23 +104,28 @@ function clickTeamCard(e) {
  * @param {Array} data - 大会データの配列
  */
 function setTournamentData(data) {
+    const recentTournamentName = document.getElementById('hm_recentTournamentName');
+    const recentTournamentDate = document.getElementById('hm_recentTournamentDate');
     const tournamentList = document.getElementById('hm_tournamentList');
     if (!tournamentList) return; // 要素が存在しない場合の安全ガード
 
+    recentTournamentName.innerText = data[0].tournamentName;
+    recentTournamentDate.innerText = formatDate(data[0].tournamentDate);
+
     const len = data.length; // 配列の長さをキャッシュ
 
-    if (len === 0) {
+    if (len === 1) {
         tournamentList.innerHTML = `
             <li>
                 <p class="c_typo_bodyL c_typo_BLK8 c_typo_align_center">過去大会のデータがありません</p>
             </li>
         `;
-    } else {
+    } else if (len >= 2) {
         // 文字列結合用の配列を用意
         const htmlBuffer = [];
         let item;
 
-        for (let i = 0; i < len; i++) {
+        for (let i = 1; i < len; i++) {
             item = data[i]; // 配列アクセスを最適化
 
             htmlBuffer.push(
