@@ -4,6 +4,8 @@ let globalMatchData = [];
 
 const urlParams = new URLSearchParams(window.location.search);
 const tournamentId = urlParams.get('tournamentId');
+// 💡 もし初期選択したいチームIDが別のパラメータ名（例: teamId）で渡されているならここを変更します
+const targetTeamId = urlParams.get('teamId') || urlParams.get('tournamentId');
 
 if (!tournamentId) {
     alert("大会IDが指定されていません。ホーム画面から入り直してください。");
@@ -37,12 +39,24 @@ async function loadMatchData(tournamentId) {
         const matchRes = await fetch(matchUrl).then(res => res.json());
 
         if (matchRes.success && matchRes.data) {
-            // 1. プルダウンの構築（GASから受け取ったオブジェクト配列を渡す）
+            // 1. プルダウンの構築
             buildTeamPulldown(matchRes.data.teams);
 
-            // 2. 対戦表カードの描画
+            // 2. 对戦表カードの描画
             globalMatchData = matchRes.data.matches;
-            filterAndDisplayMatches("");
+
+            const pulldown = document.getElementById('mtc_pulldown');
+
+            // 選択させたいチームID（targetTeamId）がプルダウンのoption（teamId）に存在するかチェック
+            const hasMatchingOption = Array.from(pulldown.options).some(option => option.value === targetTeamId);
+
+            if (targetTeamId && hasMatchingOption) {
+                pulldown.value = targetTeamId;          // プルダウンを選択状態にする
+                filterAndDisplayMatches(targetTeamId);   // 該当チームでフィルタリングして描画
+            } else {
+                filterAndDisplayMatches("");            // 合致しなければ全件表示（初期状態）
+            }
+
         } else {
             alert("対戦表データの取得に失敗しました: " + matchRes.message);
         }
