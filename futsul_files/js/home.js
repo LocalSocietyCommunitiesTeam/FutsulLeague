@@ -69,7 +69,7 @@ function setTeamList(data) {
             const p = document.createElement('p');
 
             a.setAttribute('href', 'javascript:void(0)');
-            a.classList.add("hm_teamCard");
+            a.classList.add('hm_teamCard');
 
             // bindをループ内で毎回行うのはメモリ効率が悪いため、datasetを活用して後述のイベントハンドラで処理
             a.dataset.teamId = item.teamId;
@@ -94,9 +94,9 @@ function setTeamList(data) {
 function clickTeamCard(e) {
     e.preventDefault();
     // ターゲット要素（またはその親）から dataset 経由で teamId を取得
+    const tournamentId = e.currentTarget.dataset.tournamentId;
     const teamId = e.currentTarget.dataset.teamId;
-    sessionStorage.setItem('myTeamId', teamId);
-    location.href = `./match.html?teamId=${teamId}`;
+    location.href = `./match.html?tournamentId=${tournamentId}&teamId=${teamId}`;
 }
 
 /**
@@ -107,10 +107,14 @@ function setTournamentData(data) {
     const recentTournamentName = document.getElementById('hm_recentTournamentName');
     const recentTournamentDate = document.getElementById('hm_recentTournamentDate');
     const tournamentList = document.getElementById('hm_tournamentList');
+    const teamCard = document.getElementsByClassName('hm_teamCard');
     if (!tournamentList) return; // 要素が存在しない場合の安全ガード
 
     recentTournamentName.innerText = data[0].tournamentName;
     recentTournamentDate.innerText = formatDate(data[0].tournamentDate);
+    for (let i = 0; i < teamCard.length; i++) {
+        teamCard[i].dataset.tournamentId = data[0].tournamentId;
+    }
 
     const len = data.length; // 配列の長さをキャッシュ
 

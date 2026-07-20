@@ -3,23 +3,23 @@
 let globalMatchData = [];
 
 const urlParams = new URLSearchParams(window.location.search);
-const compeId = urlParams.get('compeId');
+const tournamentId = urlParams.get('tournamentId');
 
-if (!compeId) {
+if (!tournamentId) {
     alert("大会IDが指定されていません。ホーム画面から入り直してください。");
     window.location.href = "./home.html";
 }
 
 document.addEventListener('DOMContentLoaded', function () {
     const urlParams = new URLSearchParams(window.location.search);
-    const compeId = urlParams.get('compeId');
+    const tournamentId = urlParams.get('tournamentId');
 
-    if (!compeId) {
+    if (!tournamentId) {
         alert("大会IDが指定されていません。ホーム画面から入り直してください。");
         return;
     }
 
-    loadMatchData(compeId);
+    loadMatchData(tournamentId);
 
     // チーム選択プルダウンの変更イベント
     document.getElementById('mtc_pulldown').addEventListener('change', function (e) {
@@ -28,10 +28,10 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 /** GASから対戦データおよびチームデータを取得 */
-async function loadMatchData(compeId) {
+async function loadMatchData(tournamentId) {
     if (typeof showLoader === 'function') showLoader();
 
-    const matchUrl = `${GAS_WEB_APP_URL}?action=getMatchList&tournamentId=${compeId}`;
+    const matchUrl = `${GAS_WEB_APP_URL}?action=getMatchList&tournamentId=${tournamentId}`;
 
     try {
         const matchRes = await fetch(matchUrl).then(res => res.json());

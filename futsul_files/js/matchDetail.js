@@ -2,7 +2,7 @@
 let currentMatchData = null;
 const urlParams = new URLSearchParams(window.location.search);
 const matchId = urlParams.get('matchId');
-const compeId = sessionStorage.getItem('currentCompeId') || "103";
+const tournamentId = sessionStorage.getItem('currentTournamentId') || "103";
 
 document.addEventListener('DOMContentLoaded', function () {
     if (!matchId) {
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', function () {
 /** GASから試合情報を取得 */
 async function loadMatchDetail() {
     if (typeof showLoader === 'function') showLoader();
-    const matchUrl = `${GAS_WEB_APP_URL}?action=getMatchList&tournamentId=${compeId}`;
+    const matchUrl = `${GAS_WEB_APP_URL}?action=getMatchList&tournamentId=${tournamentId}`;
 
     try {
         const res = await fetch(matchUrl).then(res => res.json());
