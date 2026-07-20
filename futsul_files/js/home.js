@@ -110,16 +110,21 @@ function setTeamList(data) {
     const teamList = document.getElementById('hm_teamList');
 
     if (data.length == 0) {
-        return;
-    }
-
-    for (let i = 0; i < data.length; i++) {
         const li = `
-            <li><a href="./match.html?teamId=${data[i].teamId}" class="hm_teamCard">
-                <p class="c_typo_headerXS c_typo_BLK10">${data[i].teamNameAbbreviation}</p>
-            </a></li>
-        `
+            <li>
+                <p class="c_typo_bodyL c_typo_BLK8 c_typo_align_center">チーム未登録です</p>
+            </li>
+        `;
         teamList.innerHTML += li;
+    } else {
+        for (let i = 0; i < data.length; i++) {
+            const li = `
+                <li><a href="./match.html?teamId=${data[i].teamId}" class="hm_teamCard">
+                        <p class="c_typo_headerXS c_typo_BLK10">${data[i].teamNameAbbreviation}</p>
+                    </a></li>
+            `;
+            teamList.innerHTML += li;
+        }
     }
 }
 
@@ -127,18 +132,22 @@ function setTournamentData(data) {
     const tournamentList = document.getElementById('hm_tournamentList');
 
     if (data.length == 0) {
-        return;
-    }
-
-    for (let i = 0; i < data.length; i++) {
         const li = `
             <li>
-                <div class="hm_textLink"><a href="./match.html?tournamentId=${data[i].tournamentId}">
-                        <p class="hm_typo_textLink">${data[i].tournamentName}</p>
-                    </a></div>
+                <p class="c_typo_bodyL c_typo_BLK8 c_typo_align_center">過去大会のデータがありません</p>
             </li>
-        `
-
+        `;
         tournamentList.innerHTML += li;
+    } else {
+        for (let i = 0; i < data.length; i++) {
+            const li = `
+                <li>
+                    <div class="hm_textLink"><a href="./match.html?tournamentId=${data[i].tournamentId}">
+                            <p class="hm_typo_textLink">${data[i].tournamentName}</p>
+                        </a></div>
+                </li>
+            `;
+            tournamentList.innerHTML += li;
+        }
     }
 }

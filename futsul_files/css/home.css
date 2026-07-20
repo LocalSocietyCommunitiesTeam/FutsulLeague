@@ -8,6 +8,7 @@
 }
 
 .hm_teamSec {
+    position: relative;
     padding: 24px 20px;
     background-color: rgba(255, 255, 255, 0.2);
     backdrop-filter: blur(8px);
@@ -15,10 +16,23 @@
     border: 1px solid rgba(255, 255, 255, 0.2);
 }
 
+.hm_settingBtn {
+    display: flex;
+    position: absolute;
+    top: 24px;
+    right: 20px;
+    padding: 4px 8px;
+    border-radius: 8px;
+    background-color: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(8px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    cursor: pointer;
+}
+
 .hm_teamList {
     display: flex;
     flex-wrap: wrap;
-    padding: 16px 0;
+    padding-top: 16px;
 }
 
 .hm_teamList>li {
@@ -33,13 +47,17 @@
     padding-top: 8px;
 }
 
+.hm_teamList>li:only-child:has(p) {
+    flex-grow: 1;
+}
+
 .hm_teamCard {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100%;
     padding: 8px;
-    background-color: rgba(255, 255, 255, 0.2);
+    background-color: rgba(250, 191, 0, 0.6);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     border-radius: 8px;
