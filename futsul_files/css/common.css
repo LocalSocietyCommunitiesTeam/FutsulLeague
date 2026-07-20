@@ -15,7 +15,8 @@ body {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    min-height: 100dvh;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
     font-family: "Noto Sans JP", "Hiragino Kaku Gothic Pro", "ヒラギノ角ゴ Pro W3", "メイリオ", "Meiryo", "ＭＳ　Ｐゴシック", "HelveticaNeue", "Helvetica", "Arial", Sans-Serif;
     background-image: url("../image/futsul_court_sp.png");
     background-position: center;
