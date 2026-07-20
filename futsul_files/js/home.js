@@ -107,6 +107,8 @@ function getTournamentData() {
 }
 
 function setTeamList(data) {
+    const teamList = document.getElementById('hm_teamList');
+
     if (data.length == 0) {
         const li = `
             <li>
@@ -127,6 +129,8 @@ function setTeamList(data) {
 }
 
 function setTournamentData(data) {
+    const tournamentList = document.getElementById('hm_tournamentList');
+
     if (data.length == 0) {
         const li = `
             <li>
