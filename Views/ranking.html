@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#1A1A1A">
+    <title>フットサルリーグ｜ランキング</title>
+    <link rel="stylesheet" href="../common/css/reset.css">
+    <link rel="stylesheet" href="../common/css/components.css">
+    <link rel="stylesheet" href="../futsul_files/css/common.css">
+    <link rel="stylesheet" href="../futsul_files/css/ranking.css">
+</head>
+
+<body class="com_body">
+    <div id="com_loader" class="com_loader"></div>
+
+    <header class="com_header">
+        <a href="javascript: history.back();" class="c_typo_headerS c_typo_WHT">←</a>
+        <h1 class="c_typo_headerM c_typo_WHT">&nbsp;ランキング<span id="rk_thisTerm"></span></h1>
+    </header>
+
+    <main class="com_main">
+        <!-- タブ切り替え -->
+        <div class="rk_tabContainer">
+            <button class="rk_tab rk_tab_active" data-tab="team">
+                <p class="c_typo_bodyM c_typo_align_center">チームランキング</p>
+            </button>
+            <button class="rk_tab" data-tab="personal">
+                <p class="c_typo_bodyM c_typo_align_center">個人ランキング</p>
+            </button>
+        </div>
+
+        <!-- チームランキング -->
+        <section id="rk_teamSection" class="rk_section rk_section_active">
+            <div class="rk_listContainer">
+                <ul id="rk_teamList" class="rk_list"></ul>
+                <div id="rk_teamEmptyMessage" class="rk_emptyMessage rk_hidden">
+                    <p class="c_typo_bodyL c_typo_BLK10 c_typo_align_center">ランキングデータがありません</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 個人ランキング -->
+        <section id="rk_personalSection" class="rk_section">
+            <div class="rk_listContainer">
+                <ul id="rk_personalList" class="rk_list"></ul>
+                <div id="rk_personalEmptyMessage" class="rk_emptyMessage rk_hidden">
+                    <p class="c_typo_bodyL c_typo_BLK10 c_typo_align_center">ランキングデータがありません</p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <nav class="com_nav">
+        <ul class="com_nav_btnList">
+            <li><a href="./home.html">
+                    <div class="com_nav_img">🏠</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">ホーム</p>
+                </a></li>
+            <li><a href="./member.html">
+                    <div class="com_nav_img">👥</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">メンバー管理</p>
+                </a></li>
+            <li><a href="./match.html">
+                    <div class="com_nav_img">📋</div>
+                    <p class="c_typo_bodyXS c_typo_BLK10 c_typo_align_center">対戦表</p>
+                </a></li>
+            <li><a href="./ranking.html" class="com_nav_disactive">
+                    <div class="com_nav_img">🏆</div>
+                    <p class="c_typo_bodyXS c_typo_BLK8 c_typo_align_center">ランキング</p>
+                </a></li>
+        </ul>
+    </nav>
+
+    <script src="../common/js/event.js"></script>
+    <script src="../futsul_files/js/common.js"></script>
+    <script src="../futsul_files/js/ranking.js"></script>
+</body>
+
+</html>
