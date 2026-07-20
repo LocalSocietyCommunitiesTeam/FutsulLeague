@@ -5,8 +5,12 @@
 
 .mtc_teamArea {
     padding: 16px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: 16px;
-    background-color: #FFFFFF;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mtc_listSec {
@@ -20,7 +24,12 @@
 .mtc_cardList>li {
     padding: 24px;
     border-radius: 24px;
-    background-color: #FFFFFF;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 24px;
+    background-color: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
 }
 
 .mtc_detailCard {
@@ -29,7 +38,7 @@
     padding: 16px;
     border-radius: 16px;
     background-color: #FFFFFF;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     cursor: pointer;
 }
 
