@@ -1,4 +1,3 @@
-// ご指定いただいたGASのウェブアプリURL
 const GAS_API_URL = "https://script.google.com/macros/s/AKfycbxDvqqxzypoq4VsEjwEj64mImShxf8Yhgdrbbm8aS6g2lmpVXAJ4fbaMKdSn1XG5rB-/exec";
 
 async function callApi(action, method = "GET", data = {}) {
@@ -8,6 +7,7 @@ async function callApi(action, method = "GET", data = {}) {
     try {
         let options = {
             method: method,
+            redirect: "follow",
             headers: { "Content-Type": "text/plain;charset=utf-8" }
         };
 
@@ -22,6 +22,11 @@ async function callApi(action, method = "GET", data = {}) {
         }
 
         const response = await fetch(url, options);
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("GASから有効なJSONが返されませんでした（デプロイ設定やURLを確認してください）。");
+        }
+
         const json = await response.json();
 
         if (json.status === "error") {

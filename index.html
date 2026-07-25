@@ -31,7 +31,7 @@
             <div class="filter-box">
                 <label for="tournament-select">大会選択:</label>
                 <select id="tournament-select" onchange="onTournamentChange()">
-                    <option value="TN_2026_01">2026年度 第1回大会</option>
+                    <option value="">大会データを読み込み中...</option>
                 </select>
             </div>
             <h2>対戦・スコア一覧</h2>
@@ -60,6 +60,9 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <div id="team-ranking-empty"
+                style="display:none; color:var(--text-muted); text-align:center; padding: 20px;">チームランキングデータがありません。
+            </div>
 
             <h2 style="margin-top: 30px;">個人得点ランキング</h2>
             <div class="table-responsive">
@@ -75,25 +78,64 @@
                     <tbody></tbody>
                 </table>
             </div>
+            <div id="player-ranking-empty"
+                style="display:none; color:var(--text-muted); text-align:center; padding: 20px;">個人得点ランキングデータがありません。
+            </div>
         </section>
 
         <!-- 3. 管理者メニュータブ -->
         <section id="tab-admin" class="tab-content">
             <div id="admin-login-wrapper" class="card">
                 <h3>管理者ログイン</h3>
-                <p>スコアの確定や対戦表の自動生成を行うにはログインしてください。</p>
+                <p>大会作成、チーム登録、対戦表自動生成、スコア入力を行うにはログインしてください。</p>
                 <input type="password" id="admin-password-input" placeholder="管理者パスワード" />
                 <button onclick="handleAdminLogin()" style="margin-top: 10px; width: 100%;">ログイン</button>
             </div>
 
             <div id="admin-dashboard-wrapper" style="display: none;">
-                <div class="card" style="border-color: var(--accent-color);">
-                    <h3>管理者ダッシュボード</h3>
-                    <p style="color: var(--accent-color); font-weight: bold;">認証済みセッション有効</p>
-                    <button onclick="handleGenerateSchedule()"
-                        style="background-color: var(--accent-yellow); margin-top: 10px;">対戦表を自動生成する</button>
+                <!-- ダッシュボードヘッダー -->
+                <div class="card"
+                    style="border-color: var(--accent-color); display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h3>管理者ダッシュボード</h3>
+                        <p style="color: var(--accent-color); font-weight: bold; margin: 0;">認証済みセッション有効</p>
+                    </div>
                     <button onclick="handleAdminLogout()"
-                        style="background-color: var(--danger-color); color: #fff; margin-top: 10px; margin-left: 10px;">ログアウト</button>
+                        style="background-color: var(--danger-color); color: #fff;">ログアウト</button>
+                </div>
+
+                <!-- 大会作成カード -->
+                <div class="card">
+                    <h3>1. 大会新規作成</h3>
+                    <div style="margin-bottom: 10px;">
+                        <label>大会名:</label>
+                        <input type="text" id="new-tournament-name" placeholder="例: 2026年度 第2回大会" />
+                    </div>
+                    <button onclick="handleCreateTournament()"
+                        style="background-color: var(--accent-yellow); width: 100%;">大会を作成する（ID自動採番）</button>
+                </div>
+
+                <!-- チーム登録カード -->
+                <div class="card">
+                    <h3>2. チーム登録</h3>
+                    <div style="margin-bottom: 10px;">
+                        <label>対象大会:</label>
+                        <select id="admin-tournament-select"></select>
+                    </div>
+                    <div style="margin-bottom: 10px;">
+                        <label>チーム名:</label>
+                        <input type="text" id="new-team-name" placeholder="例: FC プレイヤーズ" />
+                    </div>
+                    <button onclick="handleRegisterTeam()"
+                        style="background-color: var(--accent-yellow); width: 100%;">チームを登録する（ID自動採番）</button>
+                </div>
+
+                <!-- 対戦表自動生成カード -->
+                <div class="card">
+                    <h3>3. 対戦スケジュール自動生成</h3>
+                    <p style="font-size: 0.9rem; color: var(--text-muted);">登録されたチーム同士の総当たり対戦カードを自動作成します。</p>
+                    <button onclick="handleGenerateSchedule()"
+                        style="background-color: var(--accent-color); width: 100%;">対戦表を自動生成する</button>
                 </div>
             </div>
         </section>
