@@ -15,16 +15,16 @@ const API_BASE_URL = "https://script.google.com/macros/s/AKfycbwiT773IEFOU1om-fx
  * @returns {Promise<{status:string, data:any, message:string}>}
  */
 async function apiGet(action, params = {}) {
-    const query = new URLSearchParams({ action, ...params }).toString();
-    const url = `${API_BASE_URL}?${query}`;
-    try {
-        const res = await fetch(url, { method: "GET" });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
-    } catch (err) {
-        console.error("[apiGet] failed:", action, err);
-        return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
-    }
+  const query = new URLSearchParams({ action, ...params }).toString();
+  const url = `${API_BASE_URL}?${query}`;
+  try {
+    const res = await fetch(url, { method: "GET" });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("[apiGet] failed:", action, err);
+    return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
+  }
 }
 
 /**
@@ -34,22 +34,22 @@ async function apiGet(action, params = {}) {
  * @returns {Promise<{status:string, data:any, message:string}>}
  */
 async function apiPost(payload) {
-    try {
-        const res = await fetch(API_BASE_URL, {
-            method: "POST",
-            headers: { "Content-Type": "text/plain;charset=utf-8" },
-            body: JSON.stringify(payload),
-        });
-        if (!res.ok) throw new Error(`HTTP ${res.status}`);
-        return await res.json();
-    } catch (err) {
-        console.error("[apiPost] failed:", payload && payload.action, err);
-        return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
-    }
+  try {
+    const res = await fetch(API_BASE_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
+  } catch (err) {
+    console.error("[apiPost] failed:", payload && payload.action, err);
+    return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
+  }
 }
 
 /* ---- 管理者トークンを付与するPOSTのショートハンド ---- */
 async function apiPostAuthed(action, payload = {}) {
-    const token = sessionStorage.getItem("admin_token") || "";
-    return apiPost({ action, token, ...payload });
+  const token = sessionStorage.getItem("admin_token") || "";
+  return apiPost({ action, token, ...payload });
 }

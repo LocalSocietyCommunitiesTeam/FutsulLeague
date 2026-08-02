@@ -70,24 +70,44 @@ body {
     height: 100%;
     font-family: var(--font-body);
     color: var(--pitch-white);
-    background:
-        radial-gradient(1200px 700px at 15% -10%, rgba(198, 255, 0, 0.07), transparent 60%),
-        linear-gradient(160deg, var(--turf-deep) 0%, var(--turf-mid) 55%, var(--turf-light) 100%);
-    background-attachment: fixed;
     min-height: 100dvh;
     -webkit-font-smoothing: antialiased;
+    background-color: var(--turf-deep);
+    /* 画像読み込み前のフォールバック（白フラッシュ防止） */
 }
 
-/* うっすら人工芝のテクスチャ（縞模様） */
+/*
+  背景：実際の人工芝コート写真（スマホ縦画面用）＋ 視認性確保のためのダークグリーン・グラデーションティント。
+  body に直接 background を置くと、ページが縦に伸びたとき background-size:cover の基準が
+  「ビューポート」ではなく「伸びたbody全体の高さ」になってしまい、写真が縦に引き伸ばされて
+  見切れる不具合が発生していた。
+  → position:fixed の専用レイヤー（body::before）に背景を持たせることで、
+    スクロールしてもサイズ基準は常にビューポート（100vw × 100dvh）になり、見切れなくなる。
+  ※ CSSの `background-attachment: fixed` プロパティ自体はiOS Safariで挙動が不安定なため使わず、
+    position:fixed の要素として実装する（この方法はiOSでも安定して動作する）。
+*/
 body::before {
     content: "";
     position: fixed;
     inset: 0;
     z-index: -1;
-    background: repeating-linear-gradient(100deg,
-            rgba(255, 255, 255, 0.02) 0px, rgba(255, 255, 255, 0.02) 2px,
-            transparent 2px, transparent 46px);
-    pointer-events: none;
+    background-image:
+        radial-gradient(1200px 700px at 15% -10%, rgba(198, 255, 0, 0.10), transparent 60%),
+        linear-gradient(165deg, rgba(9, 34, 18, 0.92) 0%, rgba(16, 50, 27, 0.86) 55%, rgba(20, 64, 35, 0.80) 100%),
+        url("images/futsal-court-sp.jpg");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* 背景：PC/タブレットなど横長画面では横位置で撮影したコート写真に切り替え */
+@media (min-width: 700px) {
+    body::before {
+        background-image:
+            radial-gradient(1200px 700px at 15% -10%, rgba(198, 255, 0, 0.10), transparent 60%),
+            linear-gradient(165deg, rgba(9, 34, 18, 0.92) 0%, rgba(16, 50, 27, 0.86) 55%, rgba(20, 64, 35, 0.80) 100%),
+            url("images/futsal-court-pc.jpg");
+    }
 }
 
 h1,
@@ -253,6 +273,53 @@ a {
     letter-spacing: 0.12em;
     display: block;
     margin-bottom: 2px;
+}
+
+/* ---------- 5.5 トロフィー写真ヒーローバナー（ホーム・ランキング画面） ---------- */
+.hero-trophy {
+    position: relative;
+    height: 168px;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--glass-border);
+    box-shadow: 0 14px 34px var(--glass-shadow);
+    margin-bottom: 16px;
+    transform-style: preserve-3d;
+    will-change: transform;
+    transition: transform var(--dur-fast) var(--ease-out-soft), box-shadow var(--dur-fast);
+}
+
+.hero-trophy img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 42%;
+    display: block;
+}
+
+.hero-trophy .hero-trophy-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(9, 26, 15, 0.05) 0%, rgba(9, 26, 15, 0.55) 60%, rgba(9, 26, 15, 0.92) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 14px 18px;
+}
+
+.hero-trophy .hero-trophy-overlay .eyebrow {
+    font-family: var(--font-display);
+    font-size: 12px;
+    color: var(--lime);
+    letter-spacing: 0.14em;
+    margin-bottom: 2px;
+    display: block;
+}
+
+.hero-trophy .hero-trophy-overlay h2 {
+    color: var(--pitch-white);
+    font-size: 19px;
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
 }
 
 /* ---------- 6. ボタン ---------- */
@@ -549,6 +616,8 @@ a {
     padding: 0 12px;
     font-size: 15px;
     width: 100%;
+    color-scheme: dark;
+    /* date/time入力のネイティブピッカーアイコンを暗背景でも視認可能にする */
 }
 
 .field:focus {
@@ -729,41 +798,102 @@ a {
     align-items: center;
     justify-content: center;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
+    touch-action: none;
+    /* iOS等でのオーバーレイ下スクロールを抑止 */
 }
 
 .loading-overlay.show {
     display: flex;
 }
 
-.bounce-ball {
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 32% 28%, #ffffff, var(--lime) 70%);
-    box-shadow: 0 0 18px rgba(198, 255, 0, 0.6);
-    animation: bounceBall 0.9s var(--ease-out-soft) infinite;
+/* ローディング中は背面のスクロールを禁止する */
+html.no-scroll,
+body.no-scroll {
+    overflow: hidden !important;
+    height: 100%;
+    touch-action: none;
+    overscroll-behavior: none;
 }
 
-@keyframes bounceBall {
+.soccer-bounce {
+    position: relative;
+    width: 56px;
+    height: 78px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.soccer-ball {
+    width: 44px;
+    height: 44px;
+    position: absolute;
+    bottom: 14px;
+    left: 50%;
+    margin-left: -22px;
+    filter: drop-shadow(0 3px 4px rgba(0, 0, 0, 0.35));
+    animation: soccerBounce 0.9s var(--ease-out-soft) infinite;
+}
+
+.soccer-shadow {
+    position: absolute;
+    bottom: 2px;
+    left: 50%;
+    width: 34px;
+    height: 8px;
+    margin-left: -17px;
+    background: radial-gradient(closest-side, rgba(0, 0, 0, 0.45), transparent 80%);
+    border-radius: 50%;
+    animation: soccerShadow 0.9s var(--ease-out-soft) infinite;
+}
+
+@keyframes soccerBounce {
     0% {
-        transform: translateY(0) scaleY(1);
+        transform: translateY(0) rotate(0deg);
     }
 
     35% {
-        transform: translateY(-26px) scaleY(1.05);
+        transform: translateY(-34px) rotate(160deg);
     }
 
     55% {
-        transform: translateY(0) scaleY(0.8);
+        transform: translateY(0) rotate(230deg);
     }
 
     70% {
-        transform: translateY(-8px) scaleY(1.02);
+        transform: translateY(-10px) rotate(280deg);
     }
 
     100% {
-        transform: translateY(0) scaleY(1);
+        transform: translateY(0) rotate(360deg);
+    }
+}
+
+@keyframes soccerShadow {
+    0% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    35% {
+        transform: scale(0.5);
+        opacity: 0.18;
+    }
+
+    55% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+
+    70% {
+        transform: scale(0.78);
+        opacity: 0.32;
+    }
+
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
     }
 }
 
@@ -783,6 +913,11 @@ a {
     gap: 8px;
     margin-bottom: 8px;
     align-items: center;
+}
+
+.member-row.no-dept {
+    grid-template-columns: 1fr 40px;
+    /* 単一部署チームは部署名入力を表示しないため2カラム */
 }
 
 .remove-btn {
@@ -818,6 +953,29 @@ a {
     color: var(--ink);
     border-color: var(--lime);
     font-weight: 700;
+}
+
+/* 大会作成と同時に登録するチームの行（管理者ダッシュボード） */
+.new-team-row {
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    margin-bottom: 10px;
+    background: rgba(255, 255, 255, 0.04);
+}
+
+.new-team-row .row-top {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.new-team-row .row-top .field {
+    flex: 1;
+}
+
+.new-team-row .select-chip-group {
+    margin-top: 8px;
 }
 
 /* ---------- 15. 管理者画面 ---------- */
@@ -865,6 +1023,73 @@ a {
     background: rgba(198, 255, 0, 0.18);
     color: var(--lime);
     border-color: rgba(198, 255, 0, 0.4);
+}
+
+/* 管理者ダッシュボード: 登録済み大会一覧カード */
+.admin-tournament-card {
+    padding: 12px 14px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border);
+    background: var(--glass-bg);
+    margin-bottom: 8px;
+    cursor: pointer;
+    min-height: var(--tap-min);
+    transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+
+.admin-tournament-card:last-child {
+    margin-bottom: 0;
+}
+
+.admin-tournament-card.selected {
+    border-color: var(--lime);
+    background: rgba(198, 255, 0, 0.10);
+}
+
+.admin-selected-badge {
+    display: inline-flex;
+    align-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink);
+    background: var(--lime);
+    padding: 3px 10px;
+    border-radius: 999px;
+}
+
+/* 管理者ダッシュボード: 対戦表自動生成の上書き警告・見積もり表示 */
+.schedule-warning {
+    background: rgba(255, 210, 63, 0.12);
+    border: 1px solid rgba(255, 210, 63, 0.4);
+    color: var(--warn-yellow);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.5;
+}
+
+.schedule-estimate {
+    margin-top: 12px;
+}
+
+.schedule-estimate-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.85);
+}
+
+.schedule-estimate-row:last-child {
+    border-bottom: none;
+}
+
+.schedule-estimate-row strong {
+    font-family: var(--font-display);
+    color: var(--lime);
+    font-size: 14px;
 }
 
 /* ---------- 16. 空・エラー状態 ---------- */
