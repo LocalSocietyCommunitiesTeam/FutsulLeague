@@ -6,7 +6,7 @@
 
 // ★★★ デプロイ後、Web App の URL をここに設定してください ★★★
 // 例: https://script.google.com/macros/s/XXXXXXXXXXXXXXXX/exec
-const API_BASE_URL = "https://script.google.com/macros/s/XXXXXXXXXXXXXXXXXXXXXXXXXXXX/exec";
+const API_BASE_URL = "https://script.google.com/macros/s/AKfycbwiT773IEFOU1om-fxOq4tpx17ZAiYFAKDAW7SRfs--Mcildz-h_KOY7M3eeLkVpA0/exec";
 
 /**
  * GETリクエスト（データ参照系: getTournament / getRankings 等）
