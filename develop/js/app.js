@@ -23,6 +23,8 @@ const appState = {
         tournaments: [], tournamentsLoaded: false,      // 管理者ダッシュボードの「登録済み大会一覧」
         selectedTournamentId: null,                     // 管理対象として選択中の大会
         selectedTournament: null, selectedTeams: [], selectedUsers: [], selectedMatches: [],
+        swapSelection: [],                              // 対戦表の試合入れ替えで選択中のmatch_id（最大2件）
+        showCreateForm: false,                          // 「①大会作成」フォームの開閉状態（大会が既にある場合は畳んでおく）
     },
     isAdmin: false,
 };
@@ -121,11 +123,10 @@ function onGlobalClick(e) {
         submitScore: () => onSubmitScore(),
         addMember: () => addMemberRow(),
         removeMember: () => removeMemberRow(el),
-        addNewTeamRow: () => addNewTeamRow(),
-        removeNewTeamRow: () => removeNewTeamRow(el),
         addCourtRow: () => addCourtRow(),
         removeCourtRow: () => removeCourtRow(el),
         copyCourtTimesToAll: () => copyCourtTimesToAll(),
+        saveCourts: () => onSaveCourts(),
         selectEntryTeam: () => { appState.entry.selectedTeamId = el.dataset.teamId; render(); },
         submitMembers: () => onSubmitMembers(),
         switchRankingTab: () => switchRankingTab(el.dataset.tab),
@@ -140,6 +141,11 @@ function onGlobalClick(e) {
         createTournament: () => onCreateTournament(),
         createTeam: () => onCreateTeam(),
         selectAdminTournament: () => onSelectAdminTournament(el.dataset.tournamentId),
+        deleteTournament: () => onDeleteTournament(el.dataset.tournamentId),
+        toggleCreateTournamentForm: () => toggleCreateTournamentForm(),
+        toggleMatchSwapSelect: () => toggleMatchSwapSelect(el.dataset.matchId),
+        swapSelectedMatches: () => onSwapSelectedMatches(),
+        confirmSchedule: () => onConfirmSchedule(),
         selectChip: () => selectChip(el),
     };
     if (handlers[action]) handlers[action]();
@@ -153,9 +159,11 @@ function onGlobalInput(e) {
     if (e.target.classList && e.target.classList.contains("member-dept")) {
         if (e.target.value.trim()) e.target.classList.remove("error");
     }
-    if (["scheduleMatchDuration", "scheduleInterval", "scheduleFirstMatchTime"].includes(e.target.id)
-        || e.target.classList.contains("court-name") || e.target.classList.contains("court-start") || e.target.classList.contains("court-end")) {
+    if (["scheduleMatchDuration", "scheduleInterval", "scheduleFirstMatchTime", "scheduleLastMatchEndTime"].includes(e.target.id)) {
         updateScheduleUI();
+    }
+    if (e.target.classList && (e.target.classList.contains("court-name") || e.target.classList.contains("court-start") || e.target.classList.contains("court-end"))) {
+        updateSimpleCourtTimeline();
     }
 }
 
@@ -221,7 +229,7 @@ function render() {
 function afterRenderHook() {
     enableTilt(".tilt");
     if (appState.route === "matchDetail") validateScoreForm();
-    if (appState.route === "adminDashboard") updateScheduleUI();
+    if (appState.route === "adminDashboard") { updateSimpleCourtTimeline(); updateScheduleUI(); }
 }
 
 /* =========================================================================
@@ -782,6 +790,8 @@ function onAdminLogout() {
         tournaments: [], tournamentsLoaded: false,
         selectedTournamentId: null,
         selectedTournament: null, selectedTeams: [], selectedUsers: [], selectedMatches: [],
+        swapSelection: [],
+        showCreateForm: false,
     };
     navigate("home");
 }
@@ -816,7 +826,7 @@ function renderAdminDashboard() {
     }
     return adminShellHtml(`
     ${adminTournamentListHtml()}
-    ${adminCreateTournamentHtml()}
+    ${adminCreateTournamentSectionHtml()}
     ${appState.admin.selectedTournamentId ? adminSelectedTournamentSectionsHtml() : ""}
   `);
 }
@@ -838,7 +848,7 @@ function adminTournamentListHtml() {
     return `
     <div class="admin-section-title">登録済み大会（${tournaments.length}）</div>
     <div class="glass-card">
-      ${tournaments.length ? tournaments.map(adminTournamentCardHtml).join("") : `<p class="text-dim">大会がまだ登録されていません。下のフォームから作成してください。</p>`}
+      ${tournaments.length ? tournaments.map(adminTournamentCardHtml).join("") : `<p class="text-dim">大会がまだ登録されていません。下の「＋ 新しい大会を作成する」から作成してください。</p>`}
     </div>
   `;
 }
@@ -851,20 +861,36 @@ function adminTournamentCardHtml(t) {
           <div class="team-name">${escapeHtml(t.name)}</div>
           <div class="text-dim" style="font-size:12px;margin-top:2px;">${escapeHtml(t.event_date)} ・ ${statusLabel(t.status)}</div>
         </div>
-        <div class="text-dim" style="font-size:12px;text-align:right;white-space:nowrap;">
-          チーム ${t.team_count}<br>試合 ${t.match_count}
+        <div class="flex gap-8" style="align-items:flex-start;">
+          <div class="text-dim" style="font-size:12px;text-align:right;white-space:nowrap;">
+            チーム ${t.team_count}<br>試合 ${t.match_count}
+          </div>
+          <button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>
         </div>
       </div>
       ${isSelected ? `<div class="admin-selected-badge mt-8">操作対象に選択中</div>` : ""}
     </div>`;
 }
 
-/* ---------- 大会作成 ＆ チーム登録 ---------- */
-function adminCreateTournamentHtml() {
+/* ---------- ① 大会作成（大会が既にある場合は畳んでおき、「新規作成モード」だと誤解させない） ---------- */
+/* =========================================================================
+   運用フロー: ① 大会作成 → ② コート予約 → ③ チーム登録 → ④ 対戦表自動生成（下書き） →
+              ⑤ 内容確認・試合順入れ替え → ⑥ 確定（参加者に公開）
+   ========================================================================= */
+function adminCreateTournamentSectionHtml() {
+    const hasTournaments = appState.admin.tournaments.length > 0;
+    const isOpen = !hasTournaments || appState.admin.showCreateForm;
+
+    if (!isOpen) {
+        // 大会が既にある場合、フォームを常時表示すると「また作らないといけないのか」と誤解されるため、
+        // ボタン1つに畳んでおき、必要なときだけ開く。
+        return `<button class="btn btn-ghost btn-block mt-16" data-action="toggleCreateTournamentForm">＋ 新しい大会を作成する</button>`;
+    }
+
     return `
     <div class="glass-card mt-16">
-      <h3>大会作成 ＆ チーム登録</h3>
-      <p class="text-dim mt-8">大会の基本情報と参加チームをまとめて登録します（後からチームを追加することもできます）。</p>
+      <h3><span class="step-badge">①</span> 大会作成</h3>
+      <p class="text-dim mt-8">まずは大会の名前と開催日を登録します。コートの予約やチーム登録は、大会を選択した後の手順で行います。</p>
 
       <div class="form-group mt-16">
         <label class="field-label" for="newTournamentName">大会名</label>
@@ -875,133 +901,57 @@ function adminCreateTournamentHtml() {
         <input class="field" id="newTournamentDate" type="date">
       </div>
 
-      <h4 class="mt-16">参加チーム</h4>
-      <div id="newTeamList" class="mt-8">
-        ${newTeamRowHtml(1)}
-      </div>
-      <button class="btn btn-ghost mt-8" data-action="addNewTeamRow">＋ チームを追加</button>
-
       <button class="btn btn-primary btn-block mt-16" data-action="createTournament">大会を作成する</button>
-      <p class="text-dim mt-8" style="font-size:12px;">※ 使用コートと予約時間は、対戦表自動生成の画面で設定します。</p>
+      ${hasTournaments ? `<button class="btn btn-ghost btn-block mt-8" data-action="toggleCreateTournamentForm">キャンセル</button>` : ""}
     </div>
   `;
 }
 
-/** 選択中の大会に対する操作セクション（チーム追加・登録済みチーム・対戦表自動生成） */
+/** 選択中の大会に対する操作セクション（②コート予約 → ③チーム登録 → ④対戦表自動生成 → ⑤確認・確定） */
 function adminSelectedTournamentSectionsHtml() {
     const t = appState.admin.selectedTournament;
     if (!t) return "";
     const teams = appState.admin.selectedTeams;
+    const matches = appState.admin.selectedMatches;
 
     return `
-    ${adminAddTeamHtml(t)}
+    ${adminCourtsHtml(t)}
+    ${adminAddTeamHtml(t, teams)}
     ${adminTeamListHtml(t, teams)}
     ${adminScheduleHtml(t, teams)}
+    ${matches.length ? adminScheduleReviewHtml(t, teams, matches) : ""}
   `;
 }
 
-function adminAddTeamHtml(t) {
-    return `
-    <div class="glass-card mt-16">
-      <h3>チームを追加登録</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}）</p>
-      <div class="form-group mt-16">
-        <label class="field-label" for="addTeamName">チーム名</label>
-        <input class="field" id="addTeamName" placeholder="例：営業企画部 A" maxlength="30">
-      </div>
-      <div class="form-group">
-        <label class="field-label">参加形態</label>
-        <div class="select-chip-group" id="addTeamTypeGroup">
-          <button type="button" class="select-chip selected" data-action="selectChip" data-value="SINGLE">単一部署</button>
-          <button type="button" class="select-chip" data-action="selectChip" data-value="JOINT">合同チーム</button>
-        </div>
-      </div>
-      <button class="btn btn-primary" data-action="createTeam">チームを追加</button>
-    </div>
-  `;
-}
-
-function adminTeamListHtml(t, teams) {
-    return `
-    <div class="admin-section-title">登録済みチーム（${escapeHtml(t.name)} ・ ${teams.length}）</div>
-    <div class="glass-card">
-      ${teams.length ? teams.map((tm) => {
-        const memberCount = appState.admin.selectedUsers.filter((u) => u.team_id === tm.team_id).length;
-        return `<div class="pending-row">
-          <span>${escapeHtml(tm.name)} <span class="text-dim">(${tm.type === "JOINT" ? "合同" : "単一"} ・ ${memberCount}名登録済み)</span></span>
-        </div>`;
-    }).join("") : `<p class="text-dim">登録済みのチームはありません。</p>`}
-    </div>
-  `;
-}
-
+/* ---------- ② コート予約（チーム登録より先に行う） ---------- */
 /**
- * 対戦表自動生成セクション。
- * 管理者の利用シナリオを想定し、以下を実現している:
- *   - コートは名称・予約開始時刻・予約終了時刻を1面ずつ入力する可変リスト（1面から開始し「＋コートを追加」で増やす）
- *   - コート予約時間は15分刻み（type="time" step="900"）
- *   - コートによっては大会時間をフルに使えない前提のため、コートごとに独立した予約時間枠を持てる
- *   - 「第1試合開始時間」はコート予約開始時刻とは別に指定でき、各コートの実開始は両者の遅い方になる
- *   - 入力値から「総当たり試合数」「コートごとに確保できる枠数」をその場で見積もり、
- *     枠が不足する場合は生成前に赤字で警告する（送信して初めて気づく、という事故を防ぐ）
- *   - チーム数2未満・大会終了済み(FINISHED)の場合はボタンを無効化
- *   - 既に対戦表が生成済みの場合は警告バナーを出し、実行時に上書き確認を必須にする
- *   - 前回生成時に使用したコート構成（Tournaments.courts に保存済み）があれば初期値として復元する
+ * 運用シナリオ: 運営はまずコートを予約する（普段は19-21時で3コート、空き状況によっては
+ * 2コートだったり、時間帯によって使えるコート数が変わることもある）。この予約内容は
+ * 対戦表自動生成（④）とは切り離して、ここで先に保存できるようにしている。
  */
-function adminScheduleHtml(t, teams) {
-    const teamCount = teams.length;
-    const matchCount = appState.admin.selectedMatches.length;
-    const canGenerate = teamCount >= 2 && t.status !== "FINISHED";
-    const alreadyGenerated = matchCount > 0;
-
-    let disabledReason = "";
-    if (t.status === "FINISHED") disabledReason = "この大会は終了済みのため、対戦表は生成できません。";
-    else if (teamCount < 2) disabledReason = "対戦表を生成するには、チームを2チーム以上登録してください。";
-
+function adminCourtsHtml(t) {
     const savedCourts = parseCourtsJson(t.courts);
     const initialCourts = savedCourts.length ? savedCourts : [{ name: "", start: "19:00", end: "21:00" }];
     const courtRows = initialCourts.map((c, i) => courtRowHtml(i + 1, c)).join("");
+    const savedBadge = savedCourts.length
+        ? `<span class="admin-selected-badge">${savedCourts.length}面 予約済み</span>`
+        : `<span class="text-dim" style="font-size:12px;">未予約</span>`;
 
     return `
     <div class="glass-card mt-16">
-      <h3>対戦表自動生成</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}） ／ 登録チーム数: ${teamCount}</p>
+      <h3>${stepBadgeHtml(2, savedCourts.length > 0)} コート予約 ${savedBadge}</h3>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}）</p>
+      <p class="text-dim mt-8">コートごとに予約時間（15分刻み）を入力してください。空き状況によりコート数が少ない場合や、時間帯によって使えるコート数が変わる場合も、コートごとの実際の予約時間をそのまま入力すれば大丈夫です。</p>
 
-      ${alreadyGenerated ? `
-        <div class="schedule-warning mt-8">
-          ⚠️ この大会には既に対戦表が生成されています（現在 ${matchCount}試合）。<br>
-          再生成すると、これまでの試合結果はすべて上書きされます。
-        </div>` : ""}
-
-      <div class="form-group mt-16">
-        <label class="field-label" for="scheduleMatchDuration">試合時間（分）</label>
-        <input class="field" id="scheduleMatchDuration" type="number" min="1" value="8">
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="scheduleInterval">インターバル（分）</label>
-        <input class="field" id="scheduleInterval" type="number" min="0" value="2">
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="scheduleFirstMatchTime">第1試合開始時間</label>
-        <input class="field" id="scheduleFirstMatchTime" type="time" step="900" value="19:15">
-        <p class="text-dim mt-8" style="font-size:12px;">コートの予約開始時刻より後になることがあります。各コートの実際の開始時刻は「そのコートの予約開始時刻」と「第1試合開始時間」の遅い方になります。</p>
-      </div>
-
-      <h4 class="mt-16">使用コート</h4>
-      <p class="text-dim mt-8">コートごとに予約時間（15分刻み）を入力してください。大会時間をフルに使えないコートも、そのコート自身の予約時間だけ入力すれば自動的に考慮されます。</p>
       <div id="courtList" class="mt-8">${courtRows}</div>
       <div class="flex-col gap-8 mt-8">
         <button class="btn btn-ghost btn-block" data-action="addCourtRow">＋ コートを追加</button>
         <button class="btn btn-ghost btn-block" data-action="copyCourtTimesToAll" title="1面目の予約時間を、他のすべてのコートにもコピーします">⧉ 1面目の時間に揃える</button>
       </div>
 
-      <div class="court-timeline" id="courtTimeline"></div>
-      <div class="schedule-estimate" id="scheduleEstimateBox"></div>
+      <div class="court-timeline" id="courtTimelineSimple"></div>
 
-      ${!canGenerate ? `<p class="error-text mt-8" style="display:block;">${disabledReason}</p>` : ""}
-      <button class="btn btn-primary mt-16" data-action="generateSchedule" ${canGenerate ? "" : "disabled"}>
-        ${alreadyGenerated ? "対戦表を再生成する" : "対戦表を生成する"}
-      </button>
+      <button class="btn btn-primary mt-16" data-action="saveCourts">コート予約を保存する</button>
     </div>
   `;
 }
@@ -1043,15 +993,15 @@ function addCourtRow() {
     const list = document.getElementById("courtList");
     const nextIdx = list.children.length + 1;
     list.insertAdjacentHTML("beforeend", courtRowHtml(nextIdx, { name: "", start: "19:00", end: "21:00" }));
-    updateScheduleUI();
+    updateSimpleCourtTimeline();
 }
 function removeCourtRow(btn) {
     const rows = document.querySelectorAll(".court-row");
     if (rows.length <= 1) return; // 最低1面は残す
     btn.closest(".court-row").remove();
-    updateScheduleUI();
+    updateSimpleCourtTimeline();
 }
-/** 1面目の予約開始・終了時刻を、他のすべてのコート行にコピーする（複数コートが同じ時間帯を使う典型ケースの入力を省力化） */
+/** 1面目の予約開始・終了時刻を、他のすべてのコート行にコピーする */
 function copyCourtTimesToAll() {
     const rows = [...document.querySelectorAll(".court-row")];
     if (rows.length < 2) { showToast("コートが1面しかありません", "error"); return; }
@@ -1061,7 +1011,7 @@ function copyCourtTimesToAll() {
         row.querySelector(".court-start").value = start;
         row.querySelector(".court-end").value = end;
     });
-    updateScheduleUI();
+    updateSimpleCourtTimeline();
     showToast("1面目の時間をすべてのコートに揃えました", "success");
 }
 
@@ -1071,44 +1021,186 @@ function isQuarterHourTime(str) {
     return Number(str.split(":")[1]) % 15 === 0;
 }
 
-/** コート設定に関わる入力が変わるたびに、ビジュアルタイムラインと数値の見積もりの両方を更新する */
-function updateScheduleUI() {
-    updateCourtTimeline();
-    updateScheduleEstimate();
-}
-
 /**
- * コートごとの予約時間を視覚的なタイムライン（ミニガントチャート）として描画する。
- * 「コート予約開始時刻」「第1試合開始時間」「実際に使える範囲」の関係は文章や数字だけでは
- * 直感的に把握しにくいため、コートを横棒で並べ、以下を色分けして一目で分かるようにしている。
- *   - 薄い帯: コートの予約時間（全体）
- *   - 明るいライム色の帯: 実際に試合へ使える範囲（予約時間 と 第1試合開始時間 の後ろ側）
- *   - 黄色い縦線: 第1試合開始時間
- *   - 赤字「使用不可」: 予約時間が第1試合開始時間より前に終わってしまい、1試合も組めないコート
+ * コート予約ステップ用のシンプルなタイムライン。
+ * まだ試合時間・第1試合開始時間が決まっていない段階なので、予約時間の帯だけを表示し、
+ * 「使える／使えない」の判定はしない（それは④対戦表自動生成のタイムラインで行う）。
  */
-function updateCourtTimeline() {
-    const box = document.getElementById("courtTimeline");
+function updateSimpleCourtTimeline() {
+    const box = document.getElementById("courtTimelineSimple");
     if (!box) return;
-
-    const firstMatchTime = document.getElementById("scheduleFirstMatchTime")?.value || "";
     const courtRows = [...document.querySelectorAll(".court-row")].map((row) => ({
         name: row.querySelector(".court-name").value.trim() || "(名称未設定)",
         start: row.querySelector(".court-start").value,
         end: row.querySelector(".court-end").value,
+    })).filter((c) => c.start && c.end);
+
+    if (!courtRows.length) { box.innerHTML = ""; return; }
+    renderCourtTimeline(box, courtRows, null, null);
+}
+
+/** コート予約を保存する（対戦表はまだ生成しない）。運用上「まずコートを押さえる」ための独立した操作。 */
+async function onSaveCourts() {
+    const tournamentId = appState.admin.selectedTournamentId;
+    if (!tournamentId) { showToast("大会を選択してください", "error"); return; }
+
+    const courts = [...document.querySelectorAll(".court-row")].map((row) => ({
+        name: row.querySelector(".court-name").value.trim(),
+        start: row.querySelector(".court-start").value,
+        end: row.querySelector(".court-end").value,
     }));
-
-    if (!firstMatchTime || courtRows.some((c) => !c.start || !c.end)) {
-        box.innerHTML = "";
-        return;
+    if (!courts.length) { showToast("コートを1面以上設定してください", "error"); return; }
+    if (courts.some((c) => !c.name)) { showToast("すべてのコートにコート名を入力してください", "error"); return; }
+    if (courts.some((c) => !c.start || !c.end)) { showToast("すべてのコートに予約時間を入力してください", "error"); return; }
+    if (courts.some((c) => !isQuarterHourTime(c.start) || !isQuarterHourTime(c.end))) {
+        showToast("コートの予約時間は15分刻みで入力してください", "error"); return;
     }
+    if (courts.some((c) => c.start >= c.end)) { showToast("コートの予約終了時刻は開始時刻より後にしてください", "error"); return; }
 
+    showLoadingSpinner(true);
+    const res = await apiPostAuthed("saveCourts", { tournament_id: tournamentId, courts });
+    showLoadingSpinner(false);
+    if (res.status === "success") {
+        showToast(res.message || "コート予約を保存しました", "success");
+        await loadAdminSelectedTournamentDetail(tournamentId);
+        render();
+    } else {
+        showToast(res.message, "error");
+    }
+}
+
+/* ---------- ③ チーム登録（コート予約の後に行う） ---------- */
+function adminAddTeamHtml(t, teams) {
+    return `
+    <div class="glass-card mt-16">
+      <h3>${stepBadgeHtml(3, teams.length >= 2)} チーム登録</h3>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}）</p>
+      <p class="text-dim mt-8">部署からのエントリーが決まり次第、1件ずつ追加してください（1大会あたり目安12部署程度。人数が少ない部署は合同チームで参加できます）。</p>
+      <div class="form-group mt-16">
+        <label class="field-label" for="addTeamName">チーム名</label>
+        <input class="field" id="addTeamName" placeholder="例：営業企画部 A" maxlength="30">
+      </div>
+      <div class="form-group">
+        <label class="field-label">参加形態</label>
+        <div class="select-chip-group" id="addTeamTypeGroup">
+          <button type="button" class="select-chip selected" data-action="selectChip" data-value="SINGLE">単一部署</button>
+          <button type="button" class="select-chip" data-action="selectChip" data-value="JOINT">合同チーム</button>
+        </div>
+      </div>
+      <button class="btn btn-primary" data-action="createTeam">チームを追加</button>
+    </div>
+  `;
+}
+
+function adminTeamListHtml(t, teams) {
+    return `
+    <div class="admin-section-title">登録済みチーム（${escapeHtml(t.name)} ・ ${teams.length}）</div>
+    <div class="glass-card">
+      ${teams.length ? teams.map((tm) => {
+        const memberCount = appState.admin.selectedUsers.filter((u) => u.team_id === tm.team_id).length;
+        return `<div class="pending-row">
+          <span>${escapeHtml(tm.name)} <span class="text-dim">(${tm.type === "JOINT" ? "合同" : "単一"} ・ ${memberCount}名登録済み)</span></span>
+        </div>`;
+    }).join("") : `<p class="text-dim">登録済みのチームはありません。</p>`}
+    </div>
+  `;
+}
+
+/* ---------- ④ 対戦表自動生成 ---------- */
+/**
+ * 対戦表自動生成セクション。
+ *
+ * 【アルゴリズムの前提（実運用シナリオに合わせて変更）】
+ *   12チーム規模だと総当たり戦は時間的に組めないため、総当たりを保証するのではなく、
+ *   「全チームの試合数をできるだけ揃える」「同一チームが3試合以上連続にならない」ことを
+ *   優先したラウンドベースの割り当てにしている（詳細は schedule.gs 参照）。
+ *   そのため、以前のような「枠が足りずエラーで止まる」ことは無く、入力した時間の中で
+ *   できるだけ公平に組んだ対戦表が必ず生成される。
+ *
+ * 【UI】
+ *   - コートは②で保存済みの内容を読み取り専用のサマリーとして表示する（変更は②で行う）
+ *   - 試合時間・インターバル・第1試合開始時間を入力すると、コートごとの使用可否・
+ *     見積もり試合数をその場でビジュアルタイムライン＋数値で確認できる
+ *   - 生成すると「下書き」状態になり、まだ参加者には公開されない（⑤で確定して初めて公開）
+ */
+function adminScheduleHtml(t, teams) {
+    const teamCount = teams.length;
+    const savedCourts = parseCourtsJson(t.courts);
+    const hasCourts = savedCourts.length > 0;
+    const alreadyGenerated = appState.admin.selectedMatches.length > 0;
+    const canGenerate = teamCount >= 2 && hasCourts && t.status !== "FINISHED";
+
+    let disabledReason = "";
+    if (t.status === "FINISHED") disabledReason = "この大会は終了済みのため、対戦表は生成できません。";
+    else if (!hasCourts) disabledReason = "先に②でコート予約を保存してください。";
+    else if (teamCount < 2) disabledReason = "対戦表を生成するには、チームを2チーム以上登録してください。";
+
+    return `
+    <div class="glass-card mt-16">
+      <h3>${stepBadgeHtml(4, alreadyGenerated)} 対戦表自動生成</h3>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}） ／ 登録チーム数: ${teamCount}</p>
+
+      <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
+      ${hasCourts
+            ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
+            : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
+
+      ${alreadyGenerated ? `
+        <div class="schedule-warning mt-16">
+          ⚠️ この大会には既に対戦表が生成されています（現在 ${appState.admin.selectedMatches.length}試合、${scheduleStatusLabel(t.schedule_status)}）。<br>
+          再生成すると、これまでの試合結果と試合順の入れ替えはすべて上書きされます。
+        </div>` : ""}
+
+      <p class="admin-section-title" style="margin-top:16px;">試合の時間設定（上から順に入力してください）</p>
+      <div class="form-group mt-8">
+        <label class="field-label" for="scheduleMatchDuration">① 試合時間（分）</label>
+        <input class="field" id="scheduleMatchDuration" type="number" min="1" value="8">
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="scheduleInterval">② インターバル（分）</label>
+        <input class="field" id="scheduleInterval" type="number" min="0" value="2">
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="scheduleFirstMatchTime">③ 第1試合開始時間</label>
+        <input class="field" id="scheduleFirstMatchTime" type="time" step="900" value="19:15">
+        <p class="text-dim mt-8" style="font-size:12px;">コートの予約開始時刻より後になることがあります。各コートの実際の開始時刻は「そのコートの予約開始時刻」と「第1試合開始時間」の遅い方になります。</p>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="scheduleLastMatchEndTime">④ 最終試合終了時間（任意）</label>
+        <input class="field" id="scheduleLastMatchEndTime" type="time" step="900" value="20:45">
+        <p class="text-dim mt-8" style="font-size:12px;">最も遅い試合の終了時刻の上限です。①〜③をもとに算出される終了時刻がこれを超えないよう調整されます。コートの予約終了時刻より前でも指定できます（未入力なら各コートの予約終了時刻のみが上限になります）。</p>
+      </div>
+
+      <div class="court-timeline" id="courtTimelineDetailed"></div>
+      <div class="schedule-estimate" id="scheduleEstimateBox"></div>
+
+      ${!canGenerate ? `<p class="error-text mt-8" style="display:block;">${disabledReason}</p>` : ""}
+      <button class="btn btn-primary mt-16" data-action="generateSchedule" ${canGenerate ? "" : "disabled"}>
+        ${alreadyGenerated ? "対戦表を再生成する（下書き）" : "対戦表を生成する（下書き）"}
+      </button>
+    </div>
+  `;
+}
+
+/** 運用ステップの番号バッジ。完了していればチェックマーク＋ライム色、未完了なら番号＋控えめな色で表示する。 */
+function stepBadgeHtml(number, isComplete) {
+    return `<span class="step-badge ${isComplete ? "complete" : ""}">${isComplete ? "✓" : number}</span>`;
+}
+
+function scheduleStatusLabel(s) {
+    return { DRAFT: "下書き", CONFIRMED: "確定済み" }[s] || "下書き";
+}
+
+/** ④用の詳細タイムライン共通描画ロジック（コート予約バー＋使える範囲＋第1試合開始線＋最終試合終了の上限） */
+function renderCourtTimeline(box, courtRows, firstMatchTime, matchDuration, lastMatchEndTime) {
     const toMin = (hhmm) => { const p = hhmm.split(":").map(Number); return p[0] * 60 + p[1]; };
     const toLabel = (min) => { const h = Math.floor(min / 60) % 24, m = min % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`; };
-    const firstMin = toMin(firstMatchTime);
-    const matchDuration = Number(document.getElementById("scheduleMatchDuration")?.value) || 0;
+    const showUsable = !!firstMatchTime && !!matchDuration;
+    const firstMin = showUsable ? toMin(firstMatchTime) : null;
 
-    // 表示範囲: 全コートの予約時間 と 第1試合開始時間 をすべて含み、前後に少し余白を持たせる
-    const allTimes = [firstMin, ...courtRows.map((c) => toMin(c.start)), ...courtRows.map((c) => toMin(c.end))];
+    const allTimes = courtRows.flatMap((c) => [toMin(c.start), toMin(c.end)]);
+    if (showUsable) allTimes.push(firstMin);
+    if (lastMatchEndTime) allTimes.push(toMin(lastMatchEndTime));
     let rangeMin = Math.floor((Math.min(...allTimes) - 15) / 30) * 30;
     let rangeMax = Math.ceil((Math.max(...allTimes) + 15) / 30) * 30;
     const totalSpan = Math.max(rangeMax - rangeMin, 30);
@@ -1120,21 +1212,25 @@ function updateCourtTimeline() {
 
     const rowsHtml = courtRows.map((c) => {
         const startMin = toMin(c.start), endMin = toMin(c.end);
-        const effStart = Math.max(startMin, firstMin);
-        // 「使用可能」は隙間があるかではなく、試合時間ぶんの1枠が実際に収まるかで判定する
-        // （schedule.gs の buildCourtSlots と同じ基準: effStart + matchDurationMin <= endMin）
-        const usable = matchDuration > 0 && effStart + matchDuration <= endMin;
         const fullLeft = pct(startMin), fullWidth = Math.max(pct(endMin) - pct(startMin), 0.5);
-        const effLeft = pct(effStart), effWidth = usable ? Math.max(pct(endMin) - pct(effStart), 0.5) : 0;
-        const markerLeftInRow = pct(firstMin);
+        let usableHtml = "", markerHtml = "", unusableHtml = "";
+        if (showUsable) {
+            const effStart = Math.max(startMin, firstMin);
+            let effEnd = endMin;
+            if (lastMatchEndTime) effEnd = Math.min(effEnd, toMin(lastMatchEndTime));
+            const usable = effStart + matchDuration <= effEnd;
+            const effLeft = pct(effStart), effWidth = usable ? Math.max(pct(effEnd) - pct(effStart), 0.5) : 0;
+            if (usable) usableHtml = `<div class="timeline-bar-usable" style="left:${effLeft}%;width:${effWidth}%;"></div>`;
+            markerHtml = `<div class="timeline-marker-line" style="left:${pct(firstMin)}%;"></div>`;
+            if (lastMatchEndTime) markerHtml += `<div class="timeline-marker-line end" style="left:${pct(toMin(lastMatchEndTime))}%;"></div>`;
+            if (!usable) unusableHtml = `<div class="timeline-unusable-label">使用不可</div>`;
+        }
         return `
       <div class="timeline-grid-row">
         <div class="timeline-label">${escapeHtml(c.name)}</div>
         <div class="timeline-track">
           <div class="timeline-bar-full" style="left:${fullLeft}%;width:${fullWidth}%;"></div>
-          ${usable ? `<div class="timeline-bar-usable" style="left:${effLeft}%;width:${effWidth}%;"></div>` : ""}
-          <div class="timeline-marker-line" style="left:${markerLeftInRow}%;"></div>
-          ${!usable ? `<div class="timeline-unusable-label">使用不可</div>` : ""}
+          ${usableHtml}${markerHtml}${unusableHtml}
         </div>
       </div>`;
     }).join("");
@@ -1143,9 +1239,10 @@ function updateCourtTimeline() {
 
     box.innerHTML = `
     <div class="timeline-legend">
-      <span><i class="dot dot-usable"></i>試合に使える時間</span>
-      <span><i class="dot dot-full"></i>コート予約時間（全体）</span>
-      <span><i class="dot dot-marker"></i>第1試合開始時間</span>
+      ${showUsable ? `<span><i class="dot dot-usable"></i>試合に使える時間</span>` : ""}
+      <span><i class="dot dot-full"></i>コート予約時間${showUsable ? "（全体）" : ""}</span>
+      ${showUsable ? `<span><i class="dot dot-marker"></i>第1試合開始時間</span>` : ""}
+      ${showUsable && lastMatchEndTime ? `<span><i class="dot dot-marker-end"></i>最終試合終了時間</span>` : ""}
     </div>
     <div class="timeline-wrap">
       ${rowsHtml}
@@ -1157,18 +1254,44 @@ function updateCourtTimeline() {
   `;
 }
 
+/** ④の入力（試合時間・インターバル・第1試合開始時間）が変わるたびに、詳細タイムラインと見積もりを更新する */
+function updateScheduleUI() {
+    updateDetailedCourtTimeline();
+    updateScheduleEstimate();
+}
+
+function updateDetailedCourtTimeline() {
+    const box = document.getElementById("courtTimelineDetailed");
+    if (!box) return;
+    const t = appState.admin.selectedTournament;
+    const savedCourts = t ? parseCourtsJson(t.courts) : [];
+    if (!savedCourts.length) { box.innerHTML = ""; return; }
+
+    const firstMatchTime = document.getElementById("scheduleFirstMatchTime")?.value || "";
+    const duration = Number(document.getElementById("scheduleMatchDuration")?.value) || 0;
+    const lastMatchEndTime = document.getElementById("scheduleLastMatchEndTime")?.value || "";
+    if (!firstMatchTime || !duration) { box.innerHTML = ""; return; }
+
+    renderCourtTimeline(box, savedCourts, firstMatchTime, duration, lastMatchEndTime || null);
+}
+
 /**
- * コートごとの予約時間・試合時間設定から、総試合数と各コートで確保できる枠数をその場で見積もる。
- * 入力変更のたびに呼ばれ、枠が不足する場合はここで警告する（送信前に気づけるようにするため）。
- * ロジックは schedule.gs の buildCourtSlots と同じ考え方（各コートの実開始 = max(コート予約開始, 第1試合開始)）。
+ * チーム数・コート予約・試合時間設定から、総試合数（の見込み）とチームあたりの試合数目安を見積もる。
+ * 総当たりを前提にしないため、「不足エラー」ではなく「このコート・時間だとチームあたり何試合になるか」を示す。
  */
 function updateScheduleEstimate() {
     const box = document.getElementById("scheduleEstimateBox");
     if (!box) return;
+    const t = appState.admin.selectedTournament;
     const teamCount = appState.admin.selectedTeams.length;
+    const savedCourts = t ? parseCourtsJson(t.courts) : [];
     const durationInput = document.getElementById("scheduleMatchDuration");
     if (!durationInput) { box.innerHTML = ""; return; }
 
+    if (!savedCourts.length) {
+        box.innerHTML = `<p class="text-dim mt-8">②でコートを予約すると、試合数の見積もりが表示されます。</p>`;
+        return;
+    }
     if (teamCount < 2) {
         box.innerHTML = `<p class="text-dim mt-8">チームを2チーム以上登録すると、試合数の見積もりが表示されます。</p>`;
         return;
@@ -1177,45 +1300,154 @@ function updateScheduleEstimate() {
     const duration = Number(durationInput.value) || 0;
     const interval = Number(document.getElementById("scheduleInterval")?.value) || 0;
     const firstMatchTime = document.getElementById("scheduleFirstMatchTime")?.value || "";
-    const courtRows = [...document.querySelectorAll(".court-row")].map((row) => ({
-        name: row.querySelector(".court-name").value.trim() || "(名称未設定)",
-        start: row.querySelector(".court-start").value,
-        end: row.querySelector(".court-end").value,
-    }));
-
-    if (!duration || !firstMatchTime || courtRows.some((c) => !c.start || !c.end)) {
-        box.innerHTML = `<p class="text-dim mt-8">試合時間・第1試合開始時間・コートの予約時間をすべて入力すると、見積もりが表示されます。</p>`;
+    const lastMatchEndTime = document.getElementById("scheduleLastMatchEndTime")?.value || "";
+    if (!duration || !firstMatchTime) {
+        box.innerHTML = `<p class="text-dim mt-8">試合時間・第1試合開始時間を入力すると、見積もりが表示されます。</p>`;
         return;
     }
 
-    const totalMatches = (teamCount * (teamCount - 1)) / 2; // 総当たり戦の試合数
     const toMin = (hhmm) => { const p = hhmm.split(":").map(Number); return p[0] * 60 + p[1]; };
-    const toLabel = (min) => { const h = Math.floor(min / 60) % 24, m = min % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`; };
     const firstMin = toMin(firstMatchTime);
+    const lastMin = lastMatchEndTime ? toMin(lastMatchEndTime) : null;
     const span = duration + interval;
 
     let totalSlots = 0;
-    const perCourtRowsHtml = courtRows.map((c) => {
+    const perCourtRowsHtml = savedCourts.map((c) => {
         const startMin = Math.max(toMin(c.start), firstMin);
-        const endMin = toMin(c.end);
-        let count = 0;
-        let cursor = startMin;
+        let endMin = toMin(c.end);
+        if (lastMin !== null) endMin = Math.min(endMin, lastMin);
+        let count = 0, cursor = startMin;
         while (cursor + duration <= endMin) { count++; cursor += span; }
         totalSlots += count;
-        const rangeLabel = count > 0 ? `${toLabel(startMin)} 〜 ${toLabel(startMin + (count - 1) * span + duration)}` : "使用不可";
-        return `<div class="schedule-estimate-row"><span>${escapeHtml(c.name)}</span><strong>${count}枠（${rangeLabel}）</strong></div>`;
+        return `<div class="schedule-estimate-row"><span>${escapeHtml(c.name)}</span><strong>${count}枠</strong></div>`;
     }).join("");
 
-    const shortage = totalMatches - totalSlots;
+    const totalPossiblePairs = (teamCount * (teamCount - 1)) / 2;
+    const cappedMatches = Math.min(totalSlots, totalPossiblePairs);
+    const avgPerTeam = teamCount > 0 ? (2 * cappedMatches) / teamCount : 0;
+    const roundsCompletable = totalSlots >= totalPossiblePairs;
 
     box.innerHTML = `
-    <div class="schedule-estimate-row"><span>総当たり試合数</span><strong>${totalMatches}試合</strong></div>
-    ${perCourtRowsHtml}
     <div class="schedule-estimate-row"><span>確保できる枠の合計</span><strong>${totalSlots}枠</strong></div>
-    ${shortage > 0
-            ? `<p class="error-text mt-8" style="display:block;">⚠️ 枠が${shortage}試合分不足しています。コートの予約時間を延長するか、コートを追加してください。</p>`
-            : `<p class="text-dim mt-8">✓ 全${totalMatches}試合を割り当てられます。</p>`}
+    ${perCourtRowsHtml}
+    <div class="schedule-estimate-row"><span>総当たりに必要な試合数</span><strong>${totalPossiblePairs}試合</strong></div>
+    <div class="schedule-estimate-row"><span>生成される試合数（見込み）</span><strong>約${cappedMatches}試合</strong></div>
+    <p class="text-dim mt-8">
+      ${roundsCompletable
+            ? "✓ この設定なら総当たり戦を組めます。"
+            : `1チームあたり約${Math.floor(avgPerTeam)}〜${Math.ceil(avgPerTeam)}試合になる見込みです（全チーム総当たりには枠が足りないため、できるだけ均等になるよう自動調整されます）。`}
+    </p>
   `;
+}
+
+/* ---------- ⑤ 対戦表の確認・試合順の入れ替え・確定 ---------- */
+/**
+ * 生成された対戦表（下書き／確定済み）を確認し、
+ *   - チームごとの試合数を一覧できるようにする（均等になっているか確認するため）
+ *   - 2試合を選んで「時間・コート」を入れ替えられるようにする（当日の遅刻対応など）
+ *   - 下書きの間だけ「確定」でき、確定すると参加者の画面に公開される
+ * 確定後も試合順の入れ替えは引き続き可能（当日の急な変更に対応するため）。
+ */
+function adminScheduleReviewHtml(t, teams, matches) {
+    const teamName = (id) => (teams.find((x) => x.team_id === id) || {}).name || "?";
+    const counts = {};
+    teams.forEach((tm) => { counts[tm.team_id] = 0; });
+    matches.forEach((m) => { counts[m.home_team_id] = (counts[m.home_team_id] || 0) + 1; counts[m.away_team_id] = (counts[m.away_team_id] || 0) + 1; });
+    const countValues = Object.values(counts);
+    const minCount = countValues.length ? Math.min(...countValues) : 0;
+    const maxCount = countValues.length ? Math.max(...countValues) : 0;
+
+    const balanceRows = teams.map((tm) => `
+    <div class="schedule-estimate-row"><span>${escapeHtml(tm.name)}</span><strong>${counts[tm.team_id] || 0}試合</strong></div>
+  `).join("");
+
+    const sortedMatches = [...matches].sort((a, b) => (a.start_time > b.start_time ? 1 : a.start_time < b.start_time ? -1 : 0));
+    const selection = appState.admin.swapSelection;
+
+    const matchRowsHtml = sortedMatches.map((m) => {
+        const isSelected = selection.includes(m.match_id);
+        return `
+      <div class="swap-match-row ${isSelected ? "selected" : ""}" data-action="toggleMatchSwapSelect" data-match-id="${m.match_id}">
+        <div class="swap-match-time">
+          <div>${m.start_time}</div>
+          <div class="court-badge">${escapeHtml(m.court_name)}</div>
+        </div>
+        <div class="swap-match-teams">${escapeHtml(teamName(m.home_team_id))} <span class="text-dim">vs</span> ${escapeHtml(teamName(m.away_team_id))}</div>
+        <div class="swap-match-check">${isSelected ? "✓" : ""}</div>
+      </div>`;
+    }).join("");
+
+    const isConfirmed = t.schedule_status === "CONFIRMED";
+
+    return `
+    <div class="glass-card mt-16">
+      <h3>${stepBadgeHtml(5, isConfirmed)} 対戦表の確認・確定 <span class="admin-selected-badge ${isConfirmed ? "" : "draft"}">${scheduleStatusLabel(t.schedule_status)}</span></h3>
+
+      <div class="admin-section-title" style="margin-top:14px;">チームごとの試合数（${minCount === maxCount ? "均等です" : `${minCount}〜${maxCount}試合`}）</div>
+      <div class="mt-8">${balanceRows}</div>
+
+      <div class="admin-section-title" style="margin-top:18px;">試合順の入れ替え</div>
+      <p class="text-dim mt-8">入れ替えたい2試合をタップして選択すると、「入れ替える」ボタンが表示されます（当日の遅刻対応などにご利用ください）。</p>
+      <div class="swap-match-list mt-8">${matchRowsHtml}</div>
+      ${selection.length === 2 ? `
+        <button class="btn btn-primary btn-block mt-16" data-action="swapSelectedMatches">選択した2試合の時間・コートを入れ替える</button>
+      ` : ""}
+
+      ${!isConfirmed ? `
+        <div class="admin-section-title" style="margin-top:18px;">公開</div>
+        <p class="text-dim mt-8">内容を確認し、試合数のバランスに問題なければ確定してください。確定すると参加者の画面（対戦表・順位）に表示されます。</p>
+        <button class="btn btn-primary btn-block mt-16" data-action="confirmSchedule">この対戦表を確定して参加者に公開する</button>
+      ` : `<p class="text-dim mt-16">✓ 確定済みです。参加者の画面に表示されています。入れ替えを行うと即座に反映されます。</p>`}
+    </div>
+  `;
+}
+
+function toggleMatchSwapSelect(matchId) {
+    const sel = appState.admin.swapSelection;
+    const idx = sel.indexOf(matchId);
+    if (idx !== -1) {
+        sel.splice(idx, 1);
+    } else {
+        if (sel.length >= 2) sel.shift(); // 3つ目を選んだら一番古い選択を外す
+        sel.push(matchId);
+    }
+    render();
+}
+
+async function onSwapSelectedMatches() {
+    const [matchIdA, matchIdB] = appState.admin.swapSelection;
+    if (!matchIdA || !matchIdB) return;
+    showLoadingSpinner(true);
+    const res = await apiPostAuthed("swapMatches", { match_id_a: matchIdA, match_id_b: matchIdB });
+    showLoadingSpinner(false);
+    appState.admin.swapSelection = [];
+    if (res.status === "success") {
+        showToast(res.message || "試合を入れ替えました", "success");
+        await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
+        render();
+    } else {
+        showToast(res.message, "error");
+    }
+}
+
+async function onConfirmSchedule() {
+    const tournamentId = appState.admin.selectedTournamentId;
+    if (!tournamentId) return;
+    const confirmed = window.confirm("対戦表を確定します。確定すると参加者の画面（対戦表・順位）に表示されます。よろしいですか？");
+    if (!confirmed) return;
+
+    showLoadingSpinner(true);
+    const res = await apiPostAuthed("confirmSchedule", { tournament_id: tournamentId });
+    showLoadingSpinner(false);
+    if (res.status === "success") {
+        showToast(res.message || "対戦表を確定しました", "success");
+        await loadTournament();
+        appState.admin.tournamentsLoaded = false;
+        await loadAdminTournaments();
+        render();
+    } else {
+        showToast(res.message, "error");
+    }
 }
 
 /** 大会一覧の取得。成否に関わらず tournamentsLoaded を立てて自動再取得ループを防止する。 */
@@ -1241,15 +1473,20 @@ async function loadAdminTournaments() {
     }
 }
 
-/** 選択中の大会の詳細（チーム・出場メンバー・試合）を取得する */
+/**
+ * 選択中の大会の詳細（コート・チーム・出場メンバー・試合）を取得する。
+ * 管理者専用の getAdminTournamentDetail を使用し、下書き状態の対戦表も表示できるようにする
+ * （参加者向けの getTournament は、対戦表が確定するまで matches を返さない）。
+ */
 async function loadAdminSelectedTournamentDetail(tournamentId) {
-    const res = await apiGet("getTournament", { tournament_id: tournamentId });
+    const res = await apiPostAuthed("getAdminTournamentDetail", { tournament_id: tournamentId });
     if (res.status === "success") {
         appState.admin.selectedTournament = res.data.tournament;
         appState.admin.selectedTeams = res.data.teams || [];
         appState.admin.selectedUsers = res.data.users || [];
         appState.admin.selectedMatches = res.data.matches || [];
     }
+    appState.admin.swapSelection = [];
     if (appState.route === "adminDashboard") render();
 }
 
@@ -1261,53 +1498,56 @@ async function onSelectAdminTournament(tournamentId) {
     showLoadingSpinner(false);
 }
 
-/** 大会作成フォーム内で、参加チームを1件ずつ入力する行 */
-function newTeamRowHtml(idx) {
-    return `
-    <div class="new-team-row" data-row="${idx}">
-      <div class="row-top">
-        <input class="field new-team-name" placeholder="チーム名（例：営業企画部 A）" maxlength="30">
-        <button type="button" class="remove-btn" data-action="removeNewTeamRow">×</button>
-      </div>
-      <div class="select-chip-group">
-        <button type="button" class="select-chip selected" data-action="selectChip" data-value="SINGLE">単一部署</button>
-        <button type="button" class="select-chip" data-action="selectChip" data-value="JOINT">合同チーム</button>
-      </div>
-    </div>`;
-}
-function addNewTeamRow() {
-    const list = document.getElementById("newTeamList");
-    const nextIdx = list.children.length + 1;
-    list.insertAdjacentHTML("beforeend", newTeamRowHtml(nextIdx));
-}
-function removeNewTeamRow(btn) {
-    const rows = document.querySelectorAll(".new-team-row");
-    if (rows.length <= 1) return; // 最低1枠は残す
-    btn.closest(".new-team-row").remove();
-}
-
-/** 大会作成＋チーム一括登録（通常の運用フロー） */
+/** 大会作成（名前・開催日のみ。コート予約・チーム登録は選択後の各ステップで行う） */
 async function onCreateTournament() {
     const name = document.getElementById("newTournamentName").value.trim();
     const eventDate = document.getElementById("newTournamentDate").value;
     if (!name || !eventDate) { showToast("大会名と開催日を入力してください", "error"); return; }
 
-    const teams = [...document.querySelectorAll(".new-team-row")]
-        .map((row) => ({
-            name: row.querySelector(".new-team-name").value.trim(),
-            type: row.querySelector(".select-chip.selected").dataset.value,
-        }))
-        .filter((t) => t.name); // チーム名未入力の行は無視（大会だけ作ることも可能）
-
     showLoadingSpinner(true);
-    const res = await apiPostAuthed("createTournament", { name, event_date: eventDate, teams });
+    const res = await apiPostAuthed("createTournament", { name, event_date: eventDate });
     showLoadingSpinner(false);
     if (res.status === "success") {
         showToast(res.message || "大会を作成しました", "success");
         // 作成した大会を操作対象として選択し、一覧・現行大会情報を更新する
         appState.admin.selectedTournamentId = res.data.tournament_id;
+        appState.admin.showCreateForm = false; // 作成後はフォームを畳み、選択中の大会の手順に注目を戻す
         appState.admin.tournamentsLoaded = false;
         await loadTournament();
+        await loadAdminTournaments();
+        render();
+    } else {
+        showToast(res.message, "error");
+    }
+}
+
+function toggleCreateTournamentForm() {
+    appState.admin.showCreateForm = !appState.admin.showCreateForm;
+    render();
+}
+
+/** 大会を削除する（関連するチーム・出場メンバー・対戦表もすべて削除される取り消せない操作） */
+async function onDeleteTournament(tournamentId) {
+    const t = appState.admin.tournaments.find((x) => x.tournament_id === tournamentId);
+    const name = t ? t.name : "この大会";
+    const confirmed = window.confirm(
+        `「${name}」を削除します。\nチーム・出場メンバー・対戦表もすべて削除され、元に戻せません。\n本当によろしいですか？`
+    );
+    if (!confirmed) return;
+
+    showLoadingSpinner(true);
+    const res = await apiPostAuthed("deleteTournament", { tournament_id: tournamentId });
+    showLoadingSpinner(false);
+    if (res.status === "success") {
+        showToast(res.message || "大会を削除しました", "success");
+        if (appState.admin.selectedTournamentId === tournamentId) {
+            appState.admin.selectedTournamentId = null;
+            appState.admin.selectedTournament = null;
+            appState.admin.selectedTeams = [];
+            appState.admin.selectedUsers = [];
+            appState.admin.selectedMatches = [];
+        }
+        appState.admin.tournamentsLoaded = false;
         await loadAdminTournaments();
         render();
     } else {
@@ -1337,7 +1577,7 @@ async function onCreateTeam() {
     }
 }
 
-/** 対戦表自動生成（試合時間・インターバル・第1試合開始時間・コートごとの予約時間を管理者が編集可能） */
+/** 対戦表自動生成（下書き状態で作成される。参加者への公開は⑤の確定操作で行う） */
 async function onGenerateSchedule() {
     const tournamentId = appState.admin.selectedTournamentId;
     if (!tournamentId) { showToast("大会を選択してください", "error"); return; }
@@ -1346,29 +1586,21 @@ async function onGenerateSchedule() {
     const matchDuration = Number(document.getElementById("scheduleMatchDuration").value);
     const interval = Number(document.getElementById("scheduleInterval").value);
     const firstMatchTime = document.getElementById("scheduleFirstMatchTime").value;
+    const lastMatchEndTime = document.getElementById("scheduleLastMatchEndTime").value; // 任意入力
 
     if (!matchDuration || matchDuration <= 0) { showToast("試合時間を正しく入力してください", "error"); return; }
     if (Number.isNaN(interval) || interval < 0) { showToast("インターバルを正しく入力してください", "error"); return; }
     if (!firstMatchTime) { showToast("第1試合開始時間を入力してください", "error"); return; }
     if (!isQuarterHourTime(firstMatchTime)) { showToast("第1試合開始時間は15分刻みで入力してください", "error"); return; }
-
-    const courts = [...document.querySelectorAll(".court-row")].map((row) => ({
-        name: row.querySelector(".court-name").value.trim(),
-        start: row.querySelector(".court-start").value,
-        end: row.querySelector(".court-end").value,
-    }));
-    if (!courts.length) { showToast("コートを1面以上設定してください", "error"); return; }
-    if (courts.some((c) => !c.name)) { showToast("すべてのコートにコート名を入力してください", "error"); return; }
-    if (courts.some((c) => !c.start || !c.end)) { showToast("すべてのコートに予約時間を入力してください", "error"); return; }
-    if (courts.some((c) => !isQuarterHourTime(c.start) || !isQuarterHourTime(c.end))) {
-        showToast("コートの予約時間は15分刻みで入力してください", "error"); return;
+    if (lastMatchEndTime) {
+        if (!isQuarterHourTime(lastMatchEndTime)) { showToast("最終試合終了時間は15分刻みで入力してください", "error"); return; }
+        if (lastMatchEndTime <= firstMatchTime) { showToast("最終試合終了時間は、第1試合開始時間より後にしてください", "error"); return; }
     }
-    if (courts.some((c) => c.start >= c.end)) { showToast("コートの予約終了時刻は開始時刻より後にしてください", "error"); return; }
 
     // 既に対戦表が生成済みの場合は、上書きしてよいか明示的に確認する（誤操作による事故防止）
     if (existingMatchCount > 0) {
         const confirmed = window.confirm(
-            `この大会には既に対戦表が生成されています（現在 ${existingMatchCount}試合）。\n再生成すると、これまでの試合結果はすべて上書きされます。\n本当によろしいですか？`
+            `この大会には既に対戦表が生成されています（現在 ${existingMatchCount}試合）。\n再生成すると、これまでの試合結果と試合順の入れ替えはすべて上書きされます。\n本当によろしいですか？`
         );
         if (!confirmed) return;
     }
@@ -1379,11 +1611,11 @@ async function onGenerateSchedule() {
         match_duration_min: matchDuration,
         interval_min: interval,
         first_match_start_time: firstMatchTime,
-        courts,
+        last_match_end_time: lastMatchEndTime || null,
     });
     showLoadingSpinner(false);
     if (res.status === "success") {
-        showToast(res.message || "対戦表を生成しました", "success");
+        showToast(res.message || "対戦表を下書き作成しました", "success");
         await loadTournament();
         appState.admin.tournamentsLoaded = false;
         await loadAdminTournaments();

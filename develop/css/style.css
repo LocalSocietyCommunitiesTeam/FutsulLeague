@@ -1044,6 +1044,11 @@ body.no-scroll {
     border-radius: 50%;
 }
 
+.dot-marker-end {
+    background: var(--warn-red);
+    border-radius: 50%;
+}
+
 .timeline-wrap {
     background: rgba(0, 0, 0, 0.18);
     border: 1px solid var(--glass-border);
@@ -1105,6 +1110,10 @@ body.no-scroll {
     width: 2px;
     background: var(--warn-yellow);
     z-index: 2;
+}
+
+.timeline-marker-line.end {
+    background: var(--warn-red);
 }
 
 .timeline-unusable-label {
@@ -1249,6 +1258,133 @@ body.no-scroll {
     font-family: var(--font-display);
     color: var(--lime);
     font-size: 14px;
+}
+
+/* 管理者ダッシュボード: 運用ステップ番号バッジ（①②③④⑤）。未完了は控えめな色、完了するとライム色＋チェックマークになる。 */
+.step-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    margin-right: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: rgba(255, 255, 255, 0.85);
+    background: rgba(255, 255, 255, 0.14);
+    border: 1px solid var(--glass-border);
+    border-radius: 50%;
+    vertical-align: middle;
+    transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.step-badge.complete {
+    background: var(--lime);
+    color: var(--ink);
+    border-color: var(--lime);
+    font-size: 13px;
+}
+
+.admin-selected-badge.draft {
+    background: var(--warn-yellow);
+}
+
+/* 管理者ダッシュボード: 大会一覧カードの削除ボタン */
+.tournament-delete-btn {
+    width: 28px;
+    height: 28px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--glass-border);
+    background: rgba(255, 255, 255, 0.06);
+    color: rgba(255, 255, 255, 0.55);
+    border-radius: 50%;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.tournament-delete-btn:hover,
+.tournament-delete-btn:active {
+    background: rgba(255, 84, 112, 0.18);
+    color: var(--warn-red);
+    border-color: rgba(255, 84, 112, 0.5);
+}
+
+/* 管理者ダッシュボード: ④対戦表自動生成 内の「②で保存済みコート」読み取り専用サマリー */
+.court-summary-list {
+    margin-top: 8px;
+}
+
+.court-summary-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 10px;
+    margin-bottom: 6px;
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+}
+
+.court-summary-row span:last-child {
+    color: var(--lime);
+    font-family: var(--font-display);
+    font-size: 13px;
+}
+
+/* 管理者ダッシュボード: ⑤対戦表の確認・試合順入れ替え */
+.swap-match-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    max-height: 420px;
+    overflow-y: auto;
+}
+
+.swap-match-row {
+    display: grid;
+    grid-template-columns: 56px 1fr 24px;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    min-height: var(--tap-min);
+    background: var(--glass-bg);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+
+.swap-match-row.selected {
+    border-color: var(--lime);
+    background: rgba(198, 255, 0, 0.12);
+}
+
+.swap-match-time {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.75);
+    line-height: 1.4;
+}
+
+.swap-match-time .court-badge {
+    margin-top: 2px;
+    padding: 1px 6px;
+    font-size: 10px;
+}
+
+.swap-match-teams {
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.swap-match-check {
+    text-align: center;
+    color: var(--lime);
+    font-weight: 700;
 }
 
 /* ---------- 16. 空・エラー状態 ---------- */
