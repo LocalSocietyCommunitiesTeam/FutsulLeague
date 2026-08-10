@@ -53,6 +53,24 @@ async function init() {
 function bindGlobalEvents() {
     document.addEventListener("click", onGlobalClick);
     document.addEventListener("input", onGlobalInput);
+    document.addEventListener("keydown", onGlobalKeydown);
+}
+
+/**
+ * テキスト入力欄で Enter キーを押したら、同じ入力エリア内の主要な送信ボタン
+ * （data-enter-submit を付けた要素）をクリックしたことにする。
+ * 現状は管理者ログインのパスワード欄で使用。
+ */
+function onGlobalKeydown(e) {
+    if (e.key !== "Enter") return;
+    const input = e.target.closest("[data-enter-submit]");
+    if (!input) return;
+    const targetSelector = input.dataset.enterSubmit;
+    const submitBtn = document.querySelector(targetSelector);
+    if (submitBtn) {
+        e.preventDefault();
+        submitBtn.click();
+    }
 }
 
 /* ---------- 2. ルーティング ---------- */
@@ -82,7 +100,7 @@ function renderHeader() {
         entry: { title: "出場メンバー登録", back: true },
         schedule: { title: "タイムスケジュール", back: false },
         matchDetail: { title: "試合詳細", back: true },
-        ranking: { title: "ランキング", back: false },
+        ranking: { title: "順位", back: false },
         archive: { title: "過去大会アーカイブ", back: false },
         adminLogin: { title: "管理者ログイン", back: true },
         adminDashboard: { title: "管理者ダッシュボード", back: true },
@@ -142,6 +160,7 @@ function onGlobalClick(e) {
         createTeam: () => onCreateTeam(),
         selectAdminTournament: () => onSelectAdminTournament(el.dataset.tournamentId),
         deleteTournament: () => onDeleteTournament(el.dataset.tournamentId),
+        updateTournamentStatus: () => onUpdateTournamentStatus(el.dataset.tournamentId, el.dataset.status),
         toggleCreateTournamentForm: () => toggleCreateTournamentForm(),
         toggleMatchSwapSelect: () => toggleMatchSwapSelect(el.dataset.matchId),
         swapSelectedMatches: () => onSwapSelectedMatches(),
@@ -202,7 +221,7 @@ async function loadRankings() {
     if (res.status === "success") {
         appState.rankings = res.data;
     } else {
-        showToast(res.message || "ランキングの取得に失敗しました", "error");
+        showToast(res.message || "順位の取得に失敗しました", "error");
     }
     appState.rankingsLoaded = true;
     if (appState.route === "ranking") render();
@@ -243,7 +262,7 @@ function renderHome() {
     return `
     ${heroTrophyHtml("TOURNAMENT", t.name)}
     <div class="glass-card tilt">
-      <p class="text-dim">${escapeHtml(t.event_date)} 開催 ／ ステータス: ${statusLabel(t.status)}</p>
+      <p class="text-dim">${escapeHtml(formatDateDisplay(t.event_date))} 開催 ／ ステータス: ${statusLabel(t.status)}</p>
       <div class="flex gap-8 mt-16">
         <button class="btn btn-primary" data-action="goSchedule">対戦表を見る</button>
         <button class="btn btn-ghost" data-action="goEntry">出場メンバー登録</button>
@@ -252,8 +271,8 @@ function renderHome() {
     <div class="glass-card tilt mt-16">
       <span class="eyebrow">RANKING</span>
       <h2>順位・個人得点</h2>
-      <p class="text-dim mt-8">チーム順位と個人得点ランキングをリアルタイムで確認できます。</p>
-      <button class="btn mt-16" data-action="goRanking">ランキングを見る</button>
+      <p class="text-dim mt-8">チーム・個人の順位をリアルタイムで確認できます。</p>
+      <button class="btn mt-16" data-action="goRanking">順位を見る</button>
     </div>
     <div class="glass-card tilt mt-16">
       <span class="eyebrow">ARCHIVE</span>
@@ -264,7 +283,7 @@ function renderHome() {
   `;
 }
 
-/** トロフィー写真を使ったヒーローバナー（ホーム・ランキング画面で使用） */
+/** トロフィー写真を使ったヒーローバナー（ホーム・順位画面で使用） */
 function heroTrophyHtml(eyebrow, title) {
     return `
     <div class="hero-trophy tilt">
@@ -277,7 +296,7 @@ function heroTrophyHtml(eyebrow, title) {
 }
 
 function statusLabel(s) {
-    return { PLANNING: "開催準備中", IN_PROGRESS: "開催中", FINISHED: "終了" }[s] || s;
+    return { PLANNING: "これから", IN_PROGRESS: "開催中", FINISHED: "終了" }[s] || s;
 }
 
 /* =========================================================================
@@ -457,6 +476,7 @@ function renderMatchDetail() {
     const home = teamName(m.home_team_id);
     const away = teamName(m.away_team_id);
     const side = appState.scoreEntry.side;
+    const tournamentFinished = appState.tournament && appState.tournament.status === "FINISHED";
 
     return `
     <div class="scoreboard-3d tilt">
@@ -475,6 +495,12 @@ function renderMatchDetail() {
       </div>
     </div>
 
+    ${tournamentFinished ? `
+    <div class="glass-card">
+      <h3>結果を入力する</h3>
+      <p class="text-dim mt-8">この大会は終了しているため、結果の入力はできません。</p>
+    </div>
+    ` : `
     <div class="glass-card">
       <h3>結果を入力する</h3>
       <p class="text-dim mt-8">自チームを選択すると、そのチームの入力欄のみ操作できます。</p>
@@ -491,6 +517,7 @@ function renderMatchDetail() {
       <button class="btn btn-primary btn-block mt-16" id="submitScoreBtn" data-action="submitScore" disabled>結果を送信</button>
       <p class="error-text hidden" id="scoreError"></p>
     </div>
+    `}
   `;
 }
 
@@ -605,20 +632,20 @@ function flipScoreDigits(matchId) {
 }
 
 /* =========================================================================
-   U05 : ランキング画面
+   U05 : 順位画面
    ・データが無い場合の自動読み込みは1回のみ。以降は手動リロードボタンで対応。
    ========================================================================= */
 function renderRanking() {
     if (!appState.rankingsLoaded) {
         loadRankings();
-        return emptyState("🏆", "ランキングを読み込んでいます…");
+        return emptyState("🏆", "順位を読み込んでいます…");
     }
     const isEmpty = !appState.rankings.team_rankings.length && !appState.rankings.individual_rankings.length;
     if (isEmpty) {
-        return emptyStateWithReload("🏆", "ランキングデータがありません。", "reloadRankings");
+        return emptyStateWithReload("🏆", "順位データがありません。", "reloadRankings");
     }
     return `
-    ${heroTrophyHtml("RANKING", "順位・個人得点ランキング")}
+    ${heroTrophyHtml("RANKING", "順位・個人得点")}
     <div class="tabs">
       <button class="tab-btn ${appState.rankingTab === "team" ? "active" : ""}" data-action="switchRankingTab" data-tab="team">チーム順位</button>
       <button class="tab-btn ${appState.rankingTab === "individual" ? "active" : ""}" data-action="switchRankingTab" data-tab="individual">個人得点</button>
@@ -635,7 +662,8 @@ function switchRankingTab(tab) {
 }
 function teamRankingHtml() {
     const list = appState.rankings.team_rankings || [];
-    if (!list.length) return emptyState("🏆", "チーム順位データがありません。");
+    // 全チームの試合数が0（まだ1試合も行われていない）場合も、個人得点データが無い場合と同様の空表示にする
+    if (!list.length || list.every((r) => r.played === 0)) return emptyState("🏆", "チーム順位データがありません。");
     return list.map((r) => `
     <div class="rank-row">
       <div class="rank-num">${r.rank}</div>
@@ -677,12 +705,14 @@ function renderArchive() {
     if (!appState.archive.years.length) {
         return emptyStateWithReload("📦", "過去大会のアーカイブがありません。", "reloadArchiveYears");
     }
+    // 年度が複数ある場合のみ選択チップを表示する（1年度しかなければ選ばせず、そのまま表示する）
+    const showYearSelector = appState.archive.years.length > 1;
     const yearChips = appState.archive.years.map((y) => `
     <button type="button" class="select-chip ${appState.archive.selectedYear === y ? "selected" : ""}" data-action="selectArchiveYear" data-year="${y}">${y}年度</button>
   `).join("");
 
     return `
-    <div class="select-chip-group">${yearChips}</div>
+    ${showYearSelector ? `<div class="select-chip-group">${yearChips}</div>` : ""}
     ${appState.archive.selectedYear ? archiveRankingSectionHtml() : `<div class="glass-card mt-16"><p class="text-dim">年度を選択してください。</p></div>`}
   `;
 }
@@ -693,6 +723,11 @@ async function loadArchiveYears() {
         appState.archive.years = res.data.years || [];
     }
     appState.archive.yearsLoaded = true;
+    // 年度が1つしかない場合は、選択させずそのままそのデータを表示する
+    if (appState.archive.years.length === 1 && !appState.archive.selectedYear) {
+        await onSelectArchiveYear(appState.archive.years[0]);
+        return; // onSelectArchiveYear内でrender()される
+    }
     if (appState.route === "archive") render();
 }
 async function onSelectArchiveYear(year) {
@@ -733,11 +768,11 @@ function archiveRankingSectionHtml() {
   `;
 }
 /**
- * アーカイブ用チームランキング表示。
+ * アーカイブ用チーム順位表示。
  * 表示項目: 順位・チーム名・平均勝点・試合数・勝点(勝/引/敗)・得失点(得/失)。全件表示（上位5件などの制限なし）。
  */
 function archiveTeamRankingHtml(list) {
-    if (!list.length) return emptyState("🏆", "チーム順位データがありません。");
+    if (!list.length || list.every((r) => r.played === 0)) return emptyState("🏆", "チーム順位データがありません。");
     return list.map((r) => `
     <div class="rank-row">
       <div class="rank-num">${r.rank}</div>
@@ -760,9 +795,9 @@ function renderAdminLogin() {
       <h3>管理者ログイン</h3>
       <div class="form-group mt-16">
         <label class="field-label" for="adminPassword">パスワード</label>
-        <input class="field" id="adminPassword" type="password">
+        <input class="field" id="adminPassword" type="password" data-enter-submit="#adminLoginSubmitBtn">
       </div>
-      <button class="btn btn-primary btn-block" data-action="submitAdminLogin">ログイン</button>
+      <button class="btn btn-primary btn-block" id="adminLoginSubmitBtn" data-action="submitAdminLogin">ログイン</button>
       <p class="error-text hidden" id="adminLoginError"></p>
     </div>
   `;
@@ -854,18 +889,21 @@ function adminTournamentListHtml() {
 }
 function adminTournamentCardHtml(t) {
     const isSelected = t.tournament_id === appState.admin.selectedTournamentId;
+    const canDelete = t.status !== "FINISHED"; // 終了済み(過去)の大会は削除不可
     return `
     <div class="admin-tournament-card ${isSelected ? "selected" : ""}" data-action="selectAdminTournament" data-tournament-id="${t.tournament_id}">
       <div class="flex" style="justify-content:space-between;align-items:flex-start;gap:10px;">
         <div>
           <div class="team-name">${escapeHtml(t.name)}</div>
-          <div class="text-dim" style="font-size:12px;margin-top:2px;">${escapeHtml(t.event_date)} ・ ${statusLabel(t.status)}</div>
+          <div class="text-dim" style="font-size:12px;margin-top:2px;">${escapeHtml(formatDateDisplay(t.event_date))} ・ ${statusLabel(t.status)}</div>
         </div>
         <div class="flex gap-8" style="align-items:flex-start;">
           <div class="text-dim" style="font-size:12px;text-align:right;white-space:nowrap;">
             チーム ${t.team_count}<br>試合 ${t.match_count}
           </div>
-          <button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>
+          ${canDelete
+            ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
+            : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
         </div>
       </div>
       ${isSelected ? `<div class="admin-selected-badge mt-8">操作対象に選択中</div>` : ""}
@@ -915,11 +953,53 @@ function adminSelectedTournamentSectionsHtml() {
     const matches = appState.admin.selectedMatches;
 
     return `
+    ${adminNextStepBannerHtml(t, teams, matches)}
+    ${adminTournamentStatusHtml(t)}
     ${adminCourtsHtml(t)}
     ${adminAddTeamHtml(t, teams)}
     ${adminTeamListHtml(t, teams)}
     ${adminScheduleHtml(t, teams)}
     ${matches.length ? adminScheduleReviewHtml(t, teams, matches) : ""}
+  `;
+}
+
+/**
+ * 「管理者が入力すべきステップを分かるように」するための案内バナー。
+ * 選択中の大会の完了状況（コート予約／チーム数／対戦表生成／確定）から、
+ * 次に何をすればよいかを1行で示す。全て完了している場合はチェック表示にする。
+ */
+function adminNextStepBannerHtml(t, teams, matches) {
+    const hasCourts = parseCourtsJson(t.courts).length > 0;
+    const hasEnoughTeams = teams.length >= 2;
+    const hasSchedule = matches.length > 0;
+    const isConfirmed = t.schedule_status === "CONFIRMED";
+
+    let text;
+    if (!hasCourts) text = "次にやること: ② でコートの予約情報を保存してください。";
+    else if (!hasEnoughTeams) text = "次にやること: ③ でチームを2チーム以上登録してください。";
+    else if (!hasSchedule) text = "次にやること: ④ で対戦表を生成してください。";
+    else if (!isConfirmed) text = "次にやること: ⑤ で内容を確認し、対戦表を確定してください。";
+    else text = "✓ すべての手順が完了しています。当日の急な変更があれば ⑤ から試合順を調整できます。";
+
+    const isDone = text.startsWith("✓");
+    return `<div class="admin-next-step ${isDone ? "done" : ""}">${escapeHtml(text)}</div>`;
+}
+
+/** 大会ステータス（これから／開催中／終了）の選択。「終了」にすると参加者は結果を入力できなくなる。 */
+function adminTournamentStatusHtml(t) {
+    const options = [
+        { value: "PLANNING", label: "これから" },
+        { value: "IN_PROGRESS", label: "開催中" },
+        { value: "FINISHED", label: "終了" },
+    ];
+    return `
+    <div class="glass-card mt-16">
+      <h3>大会ステータス</h3>
+      <p class="text-dim mt-8">「終了」にすると、参加者はこの大会の結果・得点者を入力できなくなります。</p>
+      <div class="select-chip-group mt-8">
+        ${options.map((o) => `<button type="button" class="select-chip ${t.status === o.value ? "selected" : ""}" data-action="updateTournamentStatus" data-tournament-id="${t.tournament_id}" data-status="${o.value}">${o.label}</button>`).join("")}
+      </div>
+    </div>
   `;
 }
 
@@ -940,7 +1020,7 @@ function adminCourtsHtml(t) {
     return `
     <div class="glass-card mt-16">
       <h3>${stepBadgeHtml(2, savedCourts.length > 0)} コート予約 ${savedBadge}</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}）</p>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
       <p class="text-dim mt-8">コートごとに予約時間（15分刻み）を入力してください。空き状況によりコート数が少ない場合や、時間帯によって使えるコート数が変わる場合も、コートごとの実際の予約時間をそのまま入力すれば大丈夫です。</p>
 
       <div id="courtList" class="mt-8">${courtRows}</div>
@@ -1074,7 +1154,7 @@ function adminAddTeamHtml(t, teams) {
     return `
     <div class="glass-card mt-16">
       <h3>${stepBadgeHtml(3, teams.length >= 2)} チーム登録</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}）</p>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
       <p class="text-dim mt-8">部署からのエントリーが決まり次第、1件ずつ追加してください（1大会あたり目安12部署程度。人数が少ない部署は合同チームで参加できます）。</p>
       <div class="form-group mt-16">
         <label class="field-label" for="addTeamName">チーム名</label>
@@ -1138,7 +1218,7 @@ function adminScheduleHtml(t, teams) {
     return `
     <div class="glass-card mt-16">
       <h3>${stepBadgeHtml(4, alreadyGenerated)} 対戦表自動生成</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(t.event_date)}） ／ 登録チーム数: ${teamCount}</p>
+      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}） ／ 登録チーム数: ${teamCount}</p>
 
       <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
       ${hasCourts
@@ -1555,6 +1635,33 @@ async function onDeleteTournament(tournamentId) {
     }
 }
 
+/** 大会ステータス（これから／開催中／終了）を更新する */
+async function onUpdateTournamentStatus(tournamentId, newStatus) {
+    if (!tournamentId || !newStatus) return;
+    const current = appState.admin.selectedTournament;
+    if (current && current.status === newStatus) return; // 変更なし
+
+    if (newStatus === "FINISHED") {
+        const confirmed = window.confirm(
+            "この大会を「終了」にします。以降、参加者はこの大会の結果・得点者を入力できなくなります。よろしいですか？"
+        );
+        if (!confirmed) return;
+    }
+
+    showLoadingSpinner(true);
+    const res = await apiPostAuthed("updateTournamentStatus", { tournament_id: tournamentId, status: newStatus });
+    showLoadingSpinner(false);
+    if (res.status === "success") {
+        showToast(res.message || "大会のステータスを更新しました", "success");
+        await loadAdminSelectedTournamentDetail(tournamentId);
+        appState.admin.tournamentsLoaded = false;
+        await loadAdminTournaments();
+        render();
+    } else {
+        showToast(res.message, "error");
+    }
+}
+
 /** 選択中の大会に、チームを1件追加登録する */
 async function onCreateTeam() {
     const name = document.getElementById("addTeamName").value.trim();
@@ -1638,6 +1745,10 @@ function emptyStateWithReload(icon, text, reloadAction) {
 }
 function escapeHtml(str) {
     return String(str ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+/** 画面表示用の日付フォーマット。スプレッドシート/フォームは "YYYY-MM-DD" だが、表示は "YYYY/MM/DD" に統一する。 */
+function formatDateDisplay(dateStr) {
+    return String(dateStr || "").replace(/-/g, "/");
 }
 function showToast(message, type = "success") {
     const toast = document.getElementById("toast");
