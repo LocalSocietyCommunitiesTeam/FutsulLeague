@@ -216,7 +216,7 @@ async function loadTournament() {
 
 /** ランキング取得。成否に関わらず rankingsLoaded を立てることで自動再取得を1回に限定する。 */
 async function loadRankings() {
-    const fiscalYear = new Date().getFullYear();
+    const fiscalYear = getCurrentFiscalYear();
     const res = await apiGet("getRankings", { fiscal_year: fiscalYear });
     if (res.status === "success") {
         appState.rankings = res.data;
@@ -666,7 +666,7 @@ function teamRankingHtml() {
     if (!list.length || list.every((r) => r.played === 0)) return emptyState("🏆", "チーム順位データがありません。");
     return list.map((r) => `
     <div class="rank-row">
-      <div class="rank-num">${r.rank}</div>
+      <div class="rank-num ${r.rank <= 3 ? "medal" : ""}">${r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}</div>
       <div>
         <div class="team-name">${escapeHtml(r.name)}</div>
         <div class="team-rank-stats">
@@ -739,7 +739,7 @@ async function onSelectArchiveYear(year) {
     if (res.status === "success") {
         appState.archive.data = res.data;
     } else {
-        appState.archive.data = { team_rankings: [], individual_rankings: [] };
+        appState.archive.data = { team_rankings: [], individual_rankings: [], tournaments: [] };
     }
     render();
 }
@@ -748,15 +748,17 @@ function switchArchiveRankingTab(tab) {
     render();
 }
 function archiveRankingSectionHtml() {
-    const data = appState.archive.data || { team_rankings: [], individual_rankings: [] };
+    const data = appState.archive.data || { team_rankings: [], individual_rankings: [], tournaments: [] };
     const teamList = data.team_rankings || [];
     const indivList = data.individual_rankings || [];
+    const tournamentList = data.tournaments || [];
 
     if (!teamList.length && !indivList.length) {
         return `<div class="glass-card mt-16">${emptyStateWithReload("🏆", `${appState.archive.selectedYear}年度の順位データがありません。`, "reloadArchiveYearData")}</div>`;
     }
 
     return `
+    ${archiveTournamentSummaryHtml(tournamentList)}
     <div class="tabs mt-16">
       <button class="tab-btn ${appState.archive.rankingTab === "team" ? "active" : ""}" data-action="switchArchiveRankingTab" data-tab="team">チーム順位</button>
       <button class="tab-btn ${appState.archive.rankingTab === "individual" ? "active" : ""}" data-action="switchArchiveRankingTab" data-tab="individual">個人得点</button>
@@ -764,6 +766,17 @@ function archiveRankingSectionHtml() {
     </div>
     <div class="glass-card tab-panel">
       ${appState.archive.rankingTab === "team" ? archiveTeamRankingHtml(teamList) : individualRankingHtml(indivList)}
+    </div>
+  `;
+}
+/** 選択中の年度・その年度に属する大会名の一覧を表示する（1年度に複数大会があり得るため）。 */
+function archiveTournamentSummaryHtml(tournamentList) {
+    return `
+    <div class="glass-card mt-16 archive-tournament-summary">
+      <span class="eyebrow">${appState.archive.selectedYear}年度</span>
+      ${tournamentList.length
+            ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
+            : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
     </div>
   `;
 }
@@ -775,7 +788,7 @@ function archiveTeamRankingHtml(list) {
     if (!list.length || list.every((r) => r.played === 0)) return emptyState("🏆", "チーム順位データがありません。");
     return list.map((r) => `
     <div class="rank-row">
-      <div class="rank-num">${r.rank}</div>
+      <div class="rank-num ${r.rank <= 3 ? "medal" : ""}">${r.rank <= 3 ? ["🥇", "🥈", "🥉"][r.rank - 1] : r.rank}</div>
       <div>
         <div class="team-name">${escapeHtml(r.name)}</div>
         <div class="team-rank-stats">
@@ -1749,6 +1762,17 @@ function escapeHtml(str) {
 /** 画面表示用の日付フォーマット。スプレッドシート/フォームは "YYYY-MM-DD" だが、表示は "YYYY/MM/DD" に統一する。 */
 function formatDateDisplay(dateStr) {
     return String(dateStr || "").replace(/-/g, "/");
+}
+/**
+ * 「今日」が属する年度（4月始まり〜翌3月）を返す。バックエンドの getCurrentFiscalYear（ranking.gs）と
+ * 同じルール。単純な暦年（getFullYear()）だと、1〜3月に開催中のランキング画面を開いたとき
+ * 実際の年度とズレた fiscal_year をリクエストしてしまうため、フロント側もこのルールに合わせる。
+ */
+function getCurrentFiscalYear() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth() + 1; // getMonth()は0始まりのため+1
+    return month >= 4 ? year : year - 1;
 }
 function showToast(message, type = "success") {
     const toast = document.getElementById("toast");
