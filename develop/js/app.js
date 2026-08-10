@@ -446,7 +446,7 @@ function matchCardHtml(m) {
     return `
     <div class="glass-card tilt match-card" data-action="openMatch" data-match-id="${m.match_id}">
       <div class="meta-row">
-        <span>${m.start_time}〜${m.end_time}</span>
+        <span>${formatTimeDisplay(m.start_time)}〜${formatTimeDisplay(m.end_time)}</span>
         <span class="court-badge">${escapeHtml(m.court_name)}</span>
         <span class="status-badge ${m.status === "FINISHED" ? "finished" : "scheduled"}">${m.status === "FINISHED" ? "終了" : "予定"}</span>
       </div>
@@ -491,7 +491,7 @@ function renderMatchDetail() {
           <span class="digit-flip">：</span>
           <span class="digit-flip" id="awayDigit">${m.status === "FINISHED" ? m.away_score : "-"}</span>
         </div>
-        <div class="scoreboard-court">${escapeHtml(m.court_name)} ／ ${m.start_time}〜${m.end_time}</div>
+        <div class="scoreboard-court">${escapeHtml(m.court_name)} ／ ${formatTimeDisplay(m.start_time)}〜${formatTimeDisplay(m.end_time)}</div>
       </div>
     </div>
 
@@ -1462,7 +1462,7 @@ function adminScheduleReviewHtml(t, teams, matches) {
         return `
       <div class="swap-match-row ${isSelected ? "selected" : ""}" data-action="toggleMatchSwapSelect" data-match-id="${m.match_id}">
         <div class="swap-match-time">
-          <div>${m.start_time}</div>
+          <div>${formatTimeDisplay(m.start_time)}</div>
           <div class="court-badge">${escapeHtml(m.court_name)}</div>
         </div>
         <div class="swap-match-teams">${escapeHtml(teamName(m.home_team_id))} <span class="text-dim">vs</span> ${escapeHtml(teamName(m.away_team_id))}</div>
@@ -1761,7 +1761,14 @@ function escapeHtml(str) {
 }
 /** 画面表示用の日付フォーマット。スプレッドシート/フォームは "YYYY-MM-DD" だが、表示は "YYYY/MM/DD" に統一する。 */
 function formatDateDisplay(dateStr) {
-    return String(dateStr || "").replace(/-/g, "/");
+    const datePart = String(dateStr || "").split("T")[0]; // 万一ISO日時文字列が来ても日付部分のみを使う
+    return datePart.replace(/-/g, "/");
+}
+/** 万一ISO日時文字列（例: "1899-12-30T10:15:00.000Z"）が来ても "HH:mm" 部分のみを取り出す */
+function formatTimeDisplay(timeStr) {
+    const str = String(timeStr || "");
+    const match = str.match(/(\d{2}:\d{2})/);
+    return match ? match[1] : str;
 }
 /**
  * 「今日」が属する年度（4月始まり〜翌3月）を返す。バックエンドの getCurrentFiscalYear（ranking.gs）と
