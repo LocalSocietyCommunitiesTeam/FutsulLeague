@@ -23,7 +23,6 @@ const appState = {
         tournaments: [], tournamentsLoaded: false,      // 管理者ダッシュボードの「登録済み大会一覧」
         selectedTournamentId: null,                     // 管理対象として選択中の大会
         selectedTournament: null, selectedTeams: [], selectedUsers: [], selectedMatches: [],
-        swapSelection: [],                              // 対戦表の試合入れ替えで選択中のmatch_id（最大2件）
         showCreateForm: false,                          // 「①大会作成」フォームの開閉状態（大会が既にある場合は畳んでおく）
     },
     isAdmin: false,
@@ -53,6 +52,7 @@ async function init() {
 function bindGlobalEvents() {
     document.addEventListener("click", onGlobalClick);
     document.addEventListener("input", onGlobalInput);
+    document.addEventListener("change", onGlobalInput); // <select>のchangeはブラウザによりinputが飛ばないことがあるため両方拾う
     document.addEventListener("keydown", onGlobalKeydown);
 }
 
@@ -139,6 +139,8 @@ function onGlobalClick(e) {
         openMatch: () => navigate("matchDetail", { selectedMatchId: el.dataset.matchId, scoreEntry: { side: null } }),
         selectSide: () => selectScoreSide(el.dataset.side),
         submitScore: () => onSubmitScore(),
+        addScorerRow: () => addScorerRow(el.dataset.side, el.dataset.teamId),
+        goToEntryForTeam: () => goToEntryForTeam(el.dataset.teamId),
         addMember: () => addMemberRow(),
         removeMember: () => removeMemberRow(el),
         addCourtRow: () => addCourtRow(),
@@ -162,8 +164,6 @@ function onGlobalClick(e) {
         deleteTournament: () => onDeleteTournament(el.dataset.tournamentId),
         updateTournamentStatus: () => onUpdateTournamentStatus(el.dataset.tournamentId, el.dataset.status),
         toggleCreateTournamentForm: () => toggleCreateTournamentForm(),
-        toggleMatchSwapSelect: () => toggleMatchSwapSelect(el.dataset.matchId),
-        swapSelectedMatches: () => onSwapSelectedMatches(),
         confirmSchedule: () => onConfirmSchedule(),
         selectChip: () => selectChip(el),
     };
@@ -248,7 +248,7 @@ function render() {
 function afterRenderHook() {
     enableTilt(".tilt");
     if (appState.route === "matchDetail") validateScoreForm();
-    if (appState.route === "adminDashboard") { updateSimpleCourtTimeline(); updateScheduleUI(); }
+    if (appState.route === "adminDashboard") { updateSimpleCourtTimeline(); updateScheduleUI(); enableMatchDragDrop(); }
 }
 
 /* =========================================================================
@@ -510,8 +510,8 @@ function renderMatchDetail() {
       </div>
 
       <div class="mt-16">
-        ${teamEntryPanelHtml("home", home, side)}
-        ${teamEntryPanelHtml("away", away, side)}
+        ${teamEntryPanelHtml("home", home, m.home_team_id, side)}
+        ${teamEntryPanelHtml("away", away, m.away_team_id, side)}
       </div>
 
       <button class="btn btn-primary btn-block mt-16" id="submitScoreBtn" data-action="submitScore" disabled>結果を送信</button>
@@ -521,32 +521,62 @@ function renderMatchDetail() {
   `;
 }
 
-function teamEntryPanelHtml(sideKey, name, activeSide) {
+function teamEntryPanelHtml(sideKey, name, teamId, activeSide) {
     const isActive = activeSide === sideKey;
     const disabledAttr = isActive ? "" : "disabled";
+    const members = appState.users.filter((u) => u.team_id === teamId);
     return `
     <div class="team-panel glass-card ${isActive ? "" : "opponent-locked"} mt-16" data-side-panel="${sideKey}">
       <h4>${escapeHtml(name)}</h4>
       <label class="field-label mt-8">総得点</label>
-      <input class="field score-total" data-side="${sideKey}" type="number" min="0" inputmode="numeric" ${disabledAttr}>
-      <label class="field-label mt-8">得点者内訳（氏名・得点）</label>
-      <div class="scorer-list" data-scorer-list="${sideKey}">
-        ${scorerRowHtml(sideKey, disabledAttr)}
+      <input class="field score-total" data-side="${sideKey}" data-team-id="${teamId}" type="number" min="0" inputmode="numeric" ${disabledAttr}>
+
+      <div data-scorer-section="${sideKey}">
+        <label class="field-label mt-8">得点者内訳（選手・得点）</label>
+        ${members.length ? `
+          <div class="scorer-list" data-scorer-list="${sideKey}" data-team-id="${teamId}">
+            ${scorerRowHtml(sideKey, teamId, disabledAttr)}
+          </div>
+          ${isActive ? `<button type="button" class="btn btn-ghost mt-8 scorer-add-btn" data-action="addScorerRow" data-side="${sideKey}" data-team-id="${teamId}">＋ 得点者を追加</button>` : ""}
+        ` : `
+          <div class="scorer-empty-state mt-8">
+            <p class="text-dim">出場メンバーが登録されていません。得点者を選ぶには、先に出場メンバー登録が必要です。</p>
+            ${isActive ? `<button type="button" class="btn btn-primary mt-8" data-action="goToEntryForTeam" data-team-id="${teamId}">出場メンバーを登録する</button>` : ""}
+          </div>
+        `}
       </div>
-      ${isActive ? `<button type="button" class="btn btn-ghost mt-8" data-scorer-add="${sideKey}" onclick="addScorerRow('${sideKey}')">＋ 得点者を追加</button>` : ""}
     </div>`;
 }
-function scorerRowHtml(sideKey, disabledAttr) {
+/** 得点者1名分の入力行。選手は登録済みメンバーからプルダウンで選ぶ（自由記述の氏名入力は行わない）。 */
+function scorerRowHtml(sideKey, teamId, disabledAttr) {
+    const members = appState.users.filter((u) => u.team_id === teamId);
+    const options = members.map((u) => `<option value="${u.user_id}">${escapeHtml(u.name)}</option>`).join("");
     return `
     <div class="scorer-row">
-      <input class="field scorer-name" data-side="${sideKey}" placeholder="氏名" ${disabledAttr}>
-      <input class="field scorer-points" data-side="${sideKey}" type="number" min="0" placeholder="得点" ${disabledAttr}>
+      <div class="scorer-row-inputs">
+        <select class="field scorer-name" data-side="${sideKey}" ${disabledAttr}>
+          <option value="">選手を選択</option>
+          ${options}
+          <option value="__unregistered__">↳ リストにいない選手</option>
+        </select>
+        <input class="field scorer-points" data-side="${sideKey}" type="number" min="0" placeholder="得点" ${disabledAttr}>
+      </div>
+      <div class="scorer-unregistered-hint">
+        リストにない選手は、先に
+        <button type="button" class="link-btn" data-action="goToEntryForTeam" data-team-id="${teamId}">出場メンバー登録</button>
+        を行ってください。
+      </div>
     </div>`;
 }
-function addScorerRow(sideKey) {
+function addScorerRow(sideKey, teamId) {
     const disabledAttr = appState.scoreEntry.side === sideKey ? "" : "disabled";
-    document.querySelector(`[data-scorer-list="${sideKey}"]`).insertAdjacentHTML("beforeend", scorerRowHtml(sideKey, disabledAttr));
+    document.querySelector(`[data-scorer-list="${sideKey}"]`).insertAdjacentHTML("beforeend", scorerRowHtml(sideKey, teamId, disabledAttr));
     validateScoreForm();
+}
+/** チーム未選択のまま得点画面を離れて出場メンバー登録（U02）へ移動し、そのチームを選んだ状態にする */
+function goToEntryForTeam(teamId) {
+    appState.entry.selectedTeamId = teamId;
+    navigate("entry");
 }
 
 function selectScoreSide(side) {
@@ -561,26 +591,47 @@ function validateScoreForm() {
     const side = appState.scoreEntry.side;
     if (!side) { btn.disabled = true; return; }
 
+    // リストにない選手が選択されている得点者行には、行ごとに登録を促すヒントを表示する
+    document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`).forEach((row) => {
+        const select = row.querySelector(".scorer-name");
+        row.classList.toggle("show-hint", select && select.value === "__unregistered__");
+    });
+
     const totalInput = document.querySelector(`.score-total[data-side="${side}"]`);
     const total = Number(totalInput.value);
+    const totalValid = totalInput.value !== "" && total >= 0 && Number.isInteger(total);
+
+    const scorerSection = document.querySelector(`[data-scorer-section="${side}"]`);
+    // 0点の場合は得点者の入力自体が不要なため、内訳セクションを畳んで必須チェックから外す
+    if (scorerSection) scorerSection.classList.toggle("scorer-section-collapsed", totalValid && total === 0);
+
+    if (totalValid && total === 0) {
+        totalInput.classList.remove("error");
+        errorEl.classList.add("hidden");
+        btn.disabled = false;
+        return;
+    }
+
     const scorerRows = [...document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`)];
+    const hasUnresolvedRow = scorerRows.some((row) => row.querySelector(".scorer-name")?.value === "__unregistered__");
     const breakdownSum = scorerRows.reduce((sum, row) => {
         const pts = Number(row.querySelector(".scorer-points").value || 0);
         return sum + pts;
     }, 0);
 
-    const totalValid = totalInput.value !== "" && total >= 0 && Number.isInteger(total);
     const sumMatches = totalValid && breakdownSum === total;
-
     totalInput.classList.toggle("error", totalInput.value !== "" && !sumMatches);
 
-    if (totalInput.value !== "" && !sumMatches) {
+    if (hasUnresolvedRow) {
+        errorEl.textContent = "リストにない選手が選択されています。出場メンバー登録を行ってください";
+        errorEl.classList.remove("hidden");
+    } else if (totalInput.value !== "" && !sumMatches) {
         errorEl.textContent = "総得点と内訳が一致しません";
         errorEl.classList.remove("hidden");
     } else {
         errorEl.classList.add("hidden");
     }
-    btn.disabled = !sumMatches;
+    btn.disabled = !sumMatches || hasUnresolvedRow;
 }
 
 async function onSubmitScore() {
@@ -588,12 +639,12 @@ async function onSubmitScore() {
     const m = appState.matches.find((x) => x.match_id === appState.selectedMatchId);
     const teamId = side === "home" ? m.home_team_id : m.away_team_id;
     const total = Number(document.querySelector(`.score-total[data-side="${side}"]`).value);
-    const scorers = [...document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`)]
+    const scorers = total === 0 ? [] : [...document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`)]
         .map((row) => ({
-            name: row.querySelector(".scorer-name").value.trim(),
+            user_id: row.querySelector(".scorer-name").value,
             points: Number(row.querySelector(".scorer-points").value || 0),
         }))
-        .filter((s) => s.name);
+        .filter((s) => s.user_id && s.user_id !== "__unregistered__");
 
     showLoadingSpinner(true);
     const res = await apiPost({
@@ -838,7 +889,6 @@ function onAdminLogout() {
         tournaments: [], tournamentsLoaded: false,
         selectedTournamentId: null,
         selectedTournament: null, selectedTeams: [], selectedUsers: [], selectedMatches: [],
-        swapSelection: [],
         showCreateForm: false,
     };
     navigate("home");
@@ -1442,7 +1492,6 @@ function updateScheduleEstimate() {
  * 確定後も試合順の入れ替えは引き続き可能（当日の急な変更に対応するため）。
  */
 function adminScheduleReviewHtml(t, teams, matches) {
-    const teamName = (id) => (teams.find((x) => x.team_id === id) || {}).name || "?";
     const counts = {};
     teams.forEach((tm) => { counts[tm.team_id] = 0; });
     matches.forEach((m) => { counts[m.home_team_id] = (counts[m.home_team_id] || 0) + 1; counts[m.away_team_id] = (counts[m.away_team_id] || 0) + 1; });
@@ -1454,22 +1503,6 @@ function adminScheduleReviewHtml(t, teams, matches) {
     <div class="schedule-estimate-row"><span>${escapeHtml(tm.name)}</span><strong>${counts[tm.team_id] || 0}試合</strong></div>
   `).join("");
 
-    const sortedMatches = [...matches].sort((a, b) => (a.start_time > b.start_time ? 1 : a.start_time < b.start_time ? -1 : 0));
-    const selection = appState.admin.swapSelection;
-
-    const matchRowsHtml = sortedMatches.map((m) => {
-        const isSelected = selection.includes(m.match_id);
-        return `
-      <div class="swap-match-row ${isSelected ? "selected" : ""}" data-action="toggleMatchSwapSelect" data-match-id="${m.match_id}">
-        <div class="swap-match-time">
-          <div>${formatTimeDisplay(m.start_time)}</div>
-          <div class="court-badge">${escapeHtml(m.court_name)}</div>
-        </div>
-        <div class="swap-match-teams">${escapeHtml(teamName(m.home_team_id))} <span class="text-dim">vs</span> ${escapeHtml(teamName(m.away_team_id))}</div>
-        <div class="swap-match-check">${isSelected ? "✓" : ""}</div>
-      </div>`;
-    }).join("");
-
     const isConfirmed = t.schedule_status === "CONFIRMED";
 
     return `
@@ -1480,11 +1513,8 @@ function adminScheduleReviewHtml(t, teams, matches) {
       <div class="mt-8">${balanceRows}</div>
 
       <div class="admin-section-title" style="margin-top:18px;">試合順の入れ替え</div>
-      <p class="text-dim mt-8">入れ替えたい2試合をタップして選択すると、「入れ替える」ボタンが表示されます（当日の遅刻対応などにご利用ください）。</p>
-      <div class="swap-match-list mt-8">${matchRowsHtml}</div>
-      ${selection.length === 2 ? `
-        <button class="btn btn-primary btn-block mt-16" data-action="swapSelectedMatches">選択した2試合の時間・コートを入れ替える</button>
-      ` : ""}
+      <p class="text-dim mt-8">試合をドラッグして、別の試合の上にドロップすると時間・コートが入れ替わります（対戦カードはそのまま。当日の遅刻対応などにご利用ください）。</p>
+      ${festivalTimetableHtml(matches, teams)}
 
       ${!isConfirmed ? `
         <div class="admin-section-title" style="margin-top:18px;">公開</div>
@@ -1495,25 +1525,163 @@ function adminScheduleReviewHtml(t, teams, matches) {
   `;
 }
 
-function toggleMatchSwapSelect(matchId) {
-    const sel = appState.admin.swapSelection;
-    const idx = sel.indexOf(matchId);
-    if (idx !== -1) {
-        sel.splice(idx, 1);
-    } else {
-        if (sel.length >= 2) sel.shift(); // 3つ目を選んだら一番古い選択を外す
-        sel.push(matchId);
-    }
-    render();
+/**
+ * 「試合順の入れ替え」を夏フェスのタイムテーブルのような見た目で表示する。
+ * 横軸=コート（列）、縦軸=時刻。各試合をブロックとして時間に応じた高さ・位置で配置する。
+ * ドラッグ&ドロップの実際の挙動は afterRenderHook から呼ばれる enableMatchDragDrop() が担当する
+ * （描画のたびにDOMを丸ごと差し替える都合上、ドラッグ操作自体は描画後に別途バインドする）。
+ */
+function festivalTimetableHtml(matches, teams) {
+    if (!matches.length) return `<p class="text-dim mt-8">試合がありません。</p>`;
+    const teamName = (id) => (teams.find((x) => x.team_id === id) || {}).name || "?";
+
+    const toMin = (hhmm) => { const p = String(hhmm).split(":").map(Number); return p[0] * 60 + p[1]; };
+    const toLabel = (min) => { const h = Math.floor(min / 60) % 24, m = min % 60; return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`; };
+
+    const courts = [...new Set(matches.map((m) => m.court_name))];
+    const allMin = matches.flatMap((m) => [toMin(m.start_time), toMin(m.end_time)]);
+    const rangeStart = Math.min(...allMin);
+    const rangeEnd = Math.max(...allMin);
+    const totalMin = Math.max(rangeEnd - rangeStart, 30);
+
+    // ブロックが文字サイズ分の高さを確保しても、同一コート内で隣の試合と重ならないよう、
+    // 実際の試合間隔（同一コート内で連続する試合の開始時刻の差）から1分あたりの高さを動的に算出する。
+    // 試合時間・インターバルの設定値に関わらず、常に安全な余白を確保できる。
+    const MIN_BLOCK_HEIGHT = 46; // ブロックが確保すべき最低高さ(px)。文字サイズに合わせて調整
+    let minGapMin = Infinity;
+    courts.forEach((court) => {
+        const times = matches.filter((m) => m.court_name === court).map((m) => toMin(m.start_time)).sort((a, b) => a - b);
+        for (let i = 1; i < times.length; i++) {
+            const gap = times[i] - times[i - 1];
+            if (gap > 0 && gap < minGapMin) minGapMin = gap;
+        }
+    });
+    if (!isFinite(minGapMin)) minGapMin = 10; // 各コート1試合のみ等、間隔が算出できない場合のフォールバック
+
+    const PX_PER_MIN = Math.max(2.4, MIN_BLOCK_HEIGHT / minGapMin);
+    const gridHeight = Math.round(totalMin * PX_PER_MIN);
+
+    const tickStepMin = 15;
+    const firstTick = Math.ceil(rangeStart / tickStepMin) * tickStepMin;
+    const ticks = [];
+    for (let tmin = firstTick; tmin <= rangeEnd; tmin += tickStepMin) ticks.push(tmin);
+
+    const timeAxisHtml = `
+    <div class="festival-col festival-time-axis">
+      <div class="festival-col-header"></div>
+      <div class="festival-col-body" style="height:${gridHeight}px;">
+        ${ticks.map((tmin) => `<div class="festival-time-label" style="top:${Math.round((tmin - rangeStart) * PX_PER_MIN)}px;">${toLabel(tmin)}</div>`).join("")}
+      </div>
+    </div>`;
+
+    const courtColumnsHtml = courts.map((court) => {
+        const courtMatches = matches.filter((m) => m.court_name === court);
+        const blocksHtml = courtMatches.map((m) => {
+            const startMin = toMin(m.start_time), endMin = toMin(m.end_time);
+            const top = Math.round((startMin - rangeStart) * PX_PER_MIN);
+            const height = Math.max(Math.round((endMin - startMin) * PX_PER_MIN), MIN_BLOCK_HEIGHT);
+            return `
+        <div class="festival-block" data-match-id="${m.match_id}" style="top:${top}px; height:${height}px;">
+          <div class="festival-block-time">${formatTimeDisplay(m.start_time)}</div>
+          <div class="festival-block-teams">${escapeHtml(teamName(m.home_team_id))}<span class="text-dim">×</span>${escapeHtml(teamName(m.away_team_id))}</div>
+        </div>`;
+        }).join("");
+        return `
+      <div class="festival-col">
+        <div class="festival-col-header">${escapeHtml(court)}</div>
+        <div class="festival-col-body" style="height:${gridHeight}px;">
+          ${ticks.map((tmin) => `<div class="festival-gridline" style="top:${Math.round((tmin - rangeStart) * PX_PER_MIN)}px;"></div>`).join("")}
+          ${blocksHtml}
+        </div>
+      </div>`;
+    }).join("");
+
+    return `
+    <div class="festival-timetable-scroll mt-8">
+      <div class="festival-timetable">
+        ${timeAxisHtml}
+        ${courtColumnsHtml}
+      </div>
+    </div>`;
 }
 
-async function onSwapSelectedMatches() {
-    const [matchIdA, matchIdB] = appState.admin.swapSelection;
-    if (!matchIdA || !matchIdB) return;
+/**
+ * フェス風タイムテーブルのドラッグ&ドロップを有効化する。
+ * ポインターイベント（マウス／タッチ両対応）で、ブロックを掴んで別ブロックの上に離すと入れ替わる。
+ * 描画のたびに呼び直す必要があるため afterRenderHook から呼ぶ。
+ */
+function enableMatchDragDrop() {
+    document.querySelectorAll(".festival-block").forEach((block) => {
+        block.addEventListener("pointerdown", onFestivalBlockPointerDown);
+    });
+}
+
+let festivalDragState = null;
+
+function onFestivalBlockPointerDown(e) {
+    const block = e.currentTarget;
+    e.preventDefault();
+    try { block.setPointerCapture(e.pointerId); } catch (err) { /* noop */ }
+
+    festivalDragState = {
+        pointerId: e.pointerId,
+        block,
+        matchId: block.dataset.matchId,
+        startX: e.clientX,
+        startY: e.clientY,
+        dropTargetId: null,
+    };
+    block.classList.add("dragging");
+
+    block.addEventListener("pointermove", onFestivalBlockPointerMove);
+    block.addEventListener("pointerup", onFestivalBlockPointerUp);
+    block.addEventListener("pointercancel", onFestivalBlockPointerUp);
+}
+
+function onFestivalBlockPointerMove(e) {
+    if (!festivalDragState || e.pointerId !== festivalDragState.pointerId) return;
+    const dx = e.clientX - festivalDragState.startX;
+    const dy = e.clientY - festivalDragState.startY;
+    festivalDragState.block.style.transform = `translate(${dx}px, ${dy}px)`;
+
+    // ポインタ直下にある別ブロックをドロップ候補として検出・ハイライトする
+    festivalDragState.block.style.pointerEvents = "none";
+    const elUnder = document.elementFromPoint(e.clientX, e.clientY);
+    festivalDragState.block.style.pointerEvents = "";
+    const targetBlock = elUnder ? elUnder.closest(".festival-block") : null;
+
+    document.querySelectorAll(".festival-block.drop-target").forEach((b) => b.classList.remove("drop-target"));
+    if (targetBlock && targetBlock !== festivalDragState.block) {
+        targetBlock.classList.add("drop-target");
+        festivalDragState.dropTargetId = targetBlock.dataset.matchId;
+    } else {
+        festivalDragState.dropTargetId = null;
+    }
+}
+
+async function onFestivalBlockPointerUp(e) {
+    if (!festivalDragState || e.pointerId !== festivalDragState.pointerId) return;
+    const { block, matchId, dropTargetId } = festivalDragState;
+
+    block.removeEventListener("pointermove", onFestivalBlockPointerMove);
+    block.removeEventListener("pointerup", onFestivalBlockPointerUp);
+    block.removeEventListener("pointercancel", onFestivalBlockPointerUp);
+    block.classList.remove("dragging");
+    block.style.transform = "";
+    document.querySelectorAll(".festival-block.drop-target").forEach((b) => b.classList.remove("drop-target"));
+
+    festivalDragState = null;
+
+    if (dropTargetId && dropTargetId !== matchId) {
+        await performMatchSwap(matchId, dropTargetId);
+    }
+}
+
+/** 2試合の時間・コートを入れ替える（対戦カード自体は維持） */
+async function performMatchSwap(matchIdA, matchIdB) {
     showLoadingSpinner(true);
     const res = await apiPostAuthed("swapMatches", { match_id_a: matchIdA, match_id_b: matchIdB });
     showLoadingSpinner(false);
-    appState.admin.swapSelection = [];
     if (res.status === "success") {
         showToast(res.message || "試合を入れ替えました", "success");
         await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
@@ -1579,7 +1747,6 @@ async function loadAdminSelectedTournamentDetail(tournamentId) {
         appState.admin.selectedUsers = res.data.users || [];
         appState.admin.selectedMatches = res.data.matches || [];
     }
-    appState.admin.swapSelection = [];
     if (appState.route === "adminDashboard") render();
 }
 
@@ -1789,10 +1956,17 @@ function showToast(message, type = "success") {
     showToast._t = setTimeout(() => toast.classList.remove("show"), 2600);
 }
 /** ローディング表示中は背面のスクロールを禁止する（htmlとbody両方にno-scrollを付与） */
+// showLoadingSpinner はネストして呼ばれることがある（例: onXxx内でtrue→内部でloadTournament()が
+// 独自にtrue/falseを呼ぶ→onXxxがfalseで閉じる）。単純なbool切替だと、内側のfalseで
+// 外側の処理が終わる前にオーバーレイが消えてしまう（＝ローディングUIの表示崩れ）。
+// 参照カウント方式にし、すべてのtrueに対応するfalseが揃うまで表示し続けるようにする。
+let loadingSpinnerDepth = 0;
 function showLoadingSpinner(show) {
-    document.getElementById("loadingOverlay").classList.toggle("show", !!show);
-    document.documentElement.classList.toggle("no-scroll", !!show);
-    document.body.classList.toggle("no-scroll", !!show);
+    loadingSpinnerDepth = Math.max(0, loadingSpinnerDepth + (show ? 1 : -1));
+    const isShowing = loadingSpinnerDepth > 0;
+    document.getElementById("loadingOverlay").classList.toggle("show", isShowing);
+    document.documentElement.classList.toggle("no-scroll", isShowing);
+    document.body.classList.toggle("no-scroll", isShowing);
 }
 
 /* ---------- 7. 3Dティルト（グラスカード・スコアボード用） ---------- */

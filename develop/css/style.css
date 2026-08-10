@@ -632,11 +632,67 @@ a {
   margin-top: 10px;
 }
 
-.scorer-row {
+.scorer-row-inputs {
   display: grid;
   grid-template-columns: 1fr 72px;
   gap: 8px;
   align-items: center;
+}
+
+.scorer-row select.scorer-name {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0L5 6L10 0Z' fill='%23c6ff00'/></svg>");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 30px;
+}
+
+.scorer-unregistered-hint {
+  display: none;
+  margin-top: 6px;
+  padding: 8px 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--warn-yellow);
+  background: rgba(255, 210, 63, 0.10);
+  border: 1px solid rgba(255, 210, 63, 0.35);
+  border-radius: var(--radius-sm);
+}
+
+.scorer-row.show-hint .scorer-unregistered-hint {
+  display: block;
+}
+
+.scorer-empty-state {
+  padding: 12px;
+  border-radius: var(--radius-sm);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed var(--glass-border);
+}
+
+.scorer-section-collapsed .scorer-list,
+.scorer-section-collapsed .scorer-add-btn {
+  display: none;
+}
+
+.scorer-section-collapsed::after {
+  content: "0点のため、得点者の入力は不要です。";
+  display: block;
+  margin-top: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--lime);
+  font-weight: 700;
+  text-decoration: underline;
+  font-size: inherit;
+  cursor: pointer;
 }
 
 .field {
@@ -1409,55 +1465,130 @@ body.no-scroll {
   font-size: 13px;
 }
 
-/* 管理者ダッシュボード: ⑤対戦表の確認・試合順入れ替え */
-.swap-match-list {
+/* 管理者ダッシュボード: ⑤対戦表の確認・試合順入れ替え（夏フェス風タイムテーブル + ドラッグ&ドロップ） */
+.festival-timetable-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: rgba(0, 0, 0, 0.18);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  padding: 10px;
+}
+
+.festival-timetable {
+  display: flex;
+  gap: 6px;
+  width: max-content;
+}
+
+.festival-col {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  max-height: 420px;
-  overflow-y: auto;
+  flex-shrink: 0;
+  width: 148px;
 }
 
-.swap-match-row {
-  display: grid;
-  grid-template-columns: 56px 1fr 24px;
+.festival-time-axis {
+  width: 58px;
+}
+
+.festival-col-header {
+  height: 32px;
+  display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 10px 12px;
-  min-height: var(--tap-min);
-  background: var(--glass-bg);
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-sm);
-  cursor: pointer;
-  transition: border-color var(--dur-fast), background var(--dur-fast);
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--lime);
+  background: rgba(198, 255, 0, 0.08);
+  border-radius: 6px 6px 0 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding: 0 6px;
 }
 
-.swap-match-row.selected {
+.festival-col-body {
+  position: relative;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 0 0 6px 6px;
+}
+
+.festival-gridline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.festival-time-label {
+  position: absolute;
+  left: 0;
+  right: 6px;
+  top: 0;
+  transform: translateY(-50%);
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.65);
+  text-align: right;
+}
+
+.festival-block {
+  position: absolute;
+  left: 3px;
+  right: 3px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  background: linear-gradient(135deg, rgba(198, 255, 0, 0.22), rgba(198, 255, 0, 0.10));
+  border: 1px solid rgba(198, 255, 0, 0.45);
+  border-radius: 6px;
+  padding: 4px 7px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+  transition: box-shadow var(--dur-fast), border-color var(--dur-fast);
+  z-index: 1;
+}
+
+.festival-block:active {
+  cursor: grabbing;
+}
+
+.festival-block.dragging {
+  z-index: 50;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
   border-color: var(--lime);
-  background: rgba(198, 255, 0, 0.12);
+  opacity: 0.92;
 }
 
-.swap-match-time {
-  font-size: 11px;
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.4;
+.festival-block.drop-target {
+  border-color: #fff;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(198, 255, 0, 0.15));
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.6);
 }
 
-.swap-match-time .court-badge {
-  margin-top: 2px;
-  padding: 1px 6px;
-  font-size: 10px;
+.festival-block-time {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--lime);
+  line-height: 1.2;
 }
 
-.swap-match-teams {
+.festival-block-teams {
   font-size: 13px;
   font-weight: 600;
+  line-height: 1.3;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.swap-match-check {
-  text-align: center;
-  color: var(--lime);
-  font-weight: 700;
+.festival-block-teams .text-dim {
+  font-size: 11px;
+  margin: 0 3px;
 }
 
 /* ---------- 16. 空・エラー状態 ---------- */
