@@ -18,6 +18,7 @@ const appState = {
     selectedMatchId: null,
     scoreEntry: { side: null },     // "home" | "away" | null（自チーム選択トグル）
     entry: { selectedTeamId: null },// 出場メンバー登録画面で選択中のチーム
+    schedule: { filterTeamId: null },// タイムスケジュール画面のチーム絞り込み（nullは全件表示）
     archive: { years: [], yearsLoaded: false, selectedYear: null, data: null, rankingTab: "team" },
     admin: {
         tournaments: [], tournamentsLoaded: false,      // 管理者ダッシュボードの「登録済み大会一覧」
@@ -137,6 +138,7 @@ function onGlobalClick(e) {
         goRanking: () => navigate("ranking"),
         goArchive: () => navigate("archive"),
         openMatch: () => navigate("matchDetail", { selectedMatchId: el.dataset.matchId, scoreEntry: { side: null } }),
+        filterScheduleByTeam: () => filterScheduleByTeam(el.dataset.teamId),
         selectSide: () => selectScoreSide(el.dataset.side),
         submitScore: () => onSubmitScore(),
         addScorerRow: () => addScorerRow(el.dataset.side, el.dataset.teamId),
@@ -433,11 +435,38 @@ async function onSubmitMembers() {
    ========================================================================= */
 function renderSchedule() {
     if (!appState.matches.length) return emptyState("📅", "対戦カードはまだ登録されていません。");
-    const rows = [...appState.matches]
+
+    const filterId = appState.schedule.filterTeamId;
+    const participatingTeamIds = [...new Set(appState.matches.flatMap((m) => [m.home_team_id, m.away_team_id]))];
+    const teamChips = appState.teams
+        .filter((t) => participatingTeamIds.includes(t.team_id))
+        .map((t) => `
+      <button type="button" class="select-chip ${filterId === t.team_id ? "selected" : ""}" data-action="filterScheduleByTeam" data-team-id="${t.team_id}">${escapeHtml(t.name)}</button>
+    `).join("");
+
+    const filterBarHtml = `
+    <div class="select-chip-group schedule-filter-bar">
+      <button type="button" class="select-chip ${filterId ? "" : "selected"}" data-action="filterScheduleByTeam" data-team-id="">すべて</button>
+      ${teamChips}
+    </div>`;
+
+    const filteredMatches = filterId
+        ? appState.matches.filter((m) => m.home_team_id === filterId || m.away_team_id === filterId)
+        : appState.matches;
+
+    if (!filteredMatches.length) {
+        return `${filterBarHtml}${emptyState("📅", "このチームの対戦カードはありません。")}`;
+    }
+
+    const rows = [...filteredMatches]
         .sort((a, b) => (a.start_time > b.start_time ? 1 : -1))
         .map(matchCardHtml)
         .join("");
-    return `<div class="flex-col">${rows}</div>`;
+    return `${filterBarHtml}<div class="flex-col">${rows}</div>`;
+}
+function filterScheduleByTeam(teamId) {
+    appState.schedule.filterTeamId = teamId || null;
+    render();
 }
 
 function matchCardHtml(m) {
