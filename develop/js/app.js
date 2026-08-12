@@ -208,6 +208,7 @@ function onGlobalClick(e) {
         reloadArchiveYears: () => { appState.archive.yearsLoaded = false; render(); },
         reloadArchiveYearData: () => onSelectArchiveYear(appState.archive.selectedYear),
         submitAdminLogin: () => onAdminLogin(),
+        toggleAdminPasswordVisibility: () => toggleAdminPasswordVisibility(),
         adminLogout: () => onAdminLogout(),
         generateSchedule: () => onGenerateSchedule(),
         createTournament: () => onCreateTournament(),
@@ -231,6 +232,9 @@ function onGlobalClick(e) {
 }
 
 function onGlobalInput(e) {
+    if (e.target.classList && (e.target.classList.contains("score-total") || e.target.classList.contains("scorer-points"))) {
+        sanitizeNonNegativeIntegerInput(e.target);
+    }
     if (appState.route === "matchDetail") validateScoreForm();
     if (e.target.classList && e.target.classList.contains("member-name")) {
         convertSpaceRealtime(e.target);
@@ -243,6 +247,18 @@ function onGlobalInput(e) {
     }
     if (e.target.classList && (e.target.classList.contains("court-name") || e.target.classList.contains("court-start") || e.target.classList.contains("court-end"))) {
         updateSimpleCourtTimeline();
+    }
+}
+
+/** 得点入力欄（総得点・得点者内訳）で、マイナス記号や数字以外の文字を入力の時点で除去する（カーソル位置は維持） */
+function sanitizeNonNegativeIntegerInput(el) {
+    const pos = el.selectionStart;
+    const cleaned = el.value.replace(/[^\d]/g, "");
+    if (cleaned !== el.value) {
+        const removedBefore = el.value.slice(0, pos).length - cleaned.slice(0, pos).length;
+        el.value = cleaned;
+        const newPos = Math.max(0, pos - removedBefore);
+        el.setSelectionRange(newPos, newPos);
     }
 }
 
@@ -277,7 +293,9 @@ async function loadTournament() {
 /** ランキング取得。成否に関わらず rankingsLoaded を立てることで自動再取得を1回に限定する。 */
 async function loadRankings() {
     const fiscalYear = getCurrentFiscalYear();
+    showLoadingSpinner(true);
     const res = await apiGet("getRankings", { fiscal_year: fiscalYear });
+    showLoadingSpinner(false);
     if (res.status === "success") {
         appState.rankings = res.data;
     } else {
@@ -636,7 +654,7 @@ function teamEntryPanelHtml(sideKey, name, teamId, activeSide) {
     <div class="team-panel glass-card ${isActive ? "" : "opponent-locked"} mt-16" data-side-panel="${sideKey}">
       <h4>${escapeHtml(name)}</h4>
       <label class="field-label mt-8">総得点</label>
-      <input class="field score-total" data-side="${sideKey}" data-team-id="${teamId}" type="number" min="0" inputmode="numeric" ${disabledAttr}>
+      <input class="field score-total" data-side="${sideKey}" data-team-id="${teamId}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" ${disabledAttr}>
 
       <div data-scorer-section="${sideKey}">
         <label class="field-label mt-8">得点者内訳（選手・得点）</label>
@@ -666,7 +684,7 @@ function scorerRowHtml(sideKey, teamId, disabledAttr) {
           ${options}
           <option value="__unregistered__">↳ リストにいない選手</option>
         </select>
-        <input class="field scorer-points" data-side="${sideKey}" type="number" min="0" placeholder="得点" ${disabledAttr}>
+        <input class="field scorer-points" data-side="${sideKey}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="得点" ${disabledAttr}>
       </div>
       <div class="scorer-unregistered-hint">
         リストにない選手は、先に
@@ -721,6 +739,12 @@ function validateScoreForm() {
 
     const scorerRows = [...document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`)];
     const hasUnresolvedRow = scorerRows.some((row) => row.querySelector(".scorer-name")?.value === "__unregistered__");
+    const hasInvalidPoints = scorerRows.some((row) => {
+        const raw = row.querySelector(".scorer-points").value;
+        if (raw === "") return false; // 未入力は0点扱いのため許容（下のbreakdownSumで0として計算される）
+        const pts = Number(raw);
+        return !Number.isInteger(pts) || pts < 0;
+    });
     const breakdownSum = scorerRows.reduce((sum, row) => {
         const pts = Number(row.querySelector(".scorer-points").value || 0);
         return sum + pts;
@@ -729,7 +753,10 @@ function validateScoreForm() {
     const sumMatches = totalValid && breakdownSum === total;
     totalInput.classList.toggle("error", totalInput.value !== "" && !sumMatches);
 
-    if (hasUnresolvedRow) {
+    if (hasInvalidPoints) {
+        errorEl.textContent = "得点者の得点は0以上の整数で入力してください";
+        errorEl.classList.remove("hidden");
+    } else if (hasUnresolvedRow) {
         errorEl.textContent = "リストにない選手が選択されています。出場メンバー登録を行ってください";
         errorEl.classList.remove("hidden");
     } else if (totalInput.value !== "" && !sumMatches) {
@@ -738,7 +765,7 @@ function validateScoreForm() {
     } else {
         errorEl.classList.add("hidden");
     }
-    btn.disabled = !sumMatches || hasUnresolvedRow;
+    btn.disabled = !sumMatches || hasUnresolvedRow || hasInvalidPoints;
 }
 
 async function onSubmitScore() {
@@ -876,7 +903,9 @@ function renderArchive() {
 }
 /** 年度一覧の取得。成否に関わらず yearsLoaded を立てて自動再取得ループを防止する。 */
 async function loadArchiveYears() {
+    showLoadingSpinner(true);
     const res = await apiGet("getArchiveYears", {});
+    showLoadingSpinner(false);
     if (res.status === "success") {
         appState.archive.years = res.data.years || [];
     }
@@ -966,12 +995,31 @@ function renderAdminLogin() {
       <h3>管理者ログイン</h3>
       <div class="form-group mt-16">
         <label class="field-label" for="adminPassword">パスワード</label>
-        <input class="field" id="adminPassword" type="password" data-enter-submit="#adminLoginSubmitBtn">
+        <div class="password-field-wrap">
+          <input class="field" id="adminPassword" type="password" autocomplete="current-password" data-enter-submit="#adminLoginSubmitBtn">
+          <button type="button" class="password-toggle-btn" data-action="toggleAdminPasswordVisibility" aria-label="パスワードを表示">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="adminPasswordEyeIcon">
+              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path>
+              <circle cx="12" cy="12" r="3"></circle>
+            </svg>
+          </button>
+        </div>
       </div>
       <button class="btn btn-primary btn-block" id="adminLoginSubmitBtn" data-action="submitAdminLogin">ログイン</button>
       <p class="error-text hidden" id="adminLoginError"></p>
     </div>
   `;
+}
+/** パスワード欄の表示/非表示を切り替える（アイコンは目／目に斜線を切り替える） */
+function toggleAdminPasswordVisibility() {
+    const input = document.getElementById("adminPassword");
+    const icon = document.getElementById("adminPasswordEyeIcon");
+    const willShow = input.type === "password";
+    input.type = willShow ? "text" : "password";
+    icon.innerHTML = willShow
+        ? `<path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a21.6 21.6 0 0 1 5.06-6.06M9.9 4.24A10.94 10.94 0 0 1 12 4c7 0 11 8 11 8a21.6 21.6 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>`
+        : `<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle>`;
+    input.focus();
 }
 async function onAdminLogin() {
     const password = document.getElementById("adminPassword").value;
@@ -2028,7 +2076,9 @@ async function onConfirmSchedule() {
 
 /** 大会一覧の取得。成否に関わらず tournamentsLoaded を立てて自動再取得ループを防止する。 */
 async function loadAdminTournaments() {
+    showLoadingSpinner(true);
     const res = await apiPostAuthed("getAdminTournaments", {});
+    showLoadingSpinner(false);
     if (res.status === "success") {
         appState.admin.tournaments = res.data.tournaments || [];
     } else {
@@ -2235,10 +2285,11 @@ function emptyState(icon, text) {
     return `<div class="empty-state"><div class="icon">${icon}</div><p>${escapeHtml(text)}</p></div>`;
 }
 /** データ取得中に使う空状態。回転スピナーのアニメーションと、通信の最大待機秒数（api.jsのAPI_TIMEOUT_MSと連動）を表示する。 */
+/** データ取得中に使う空状態のテキスト。アニメーションは全画面共通のサッカーボールローダー（showLoadingSpinner）が担うため、
+    ここでは別のスピナーを重ねて表示しない（過去大会アーカイブ等で二重にローディング表示が出ていた問題の解消）。 */
 function loadingState(text) {
     const maxSec = Math.round(API_TIMEOUT_MS / 1000);
     return `<div class="empty-state">
-    <div class="inline-spinner" aria-hidden="true"></div>
     <p>${escapeHtml(text)}</p>
     <p class="text-dim" style="font-size:11px;margin-top:4px;">最大${maxSec}秒ほどかかることがあります</p>
   </div>`;

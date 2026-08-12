@@ -716,6 +716,36 @@ a {
   outline-offset: 1px;
 }
 
+/* 管理者ログイン: パスワード表示/非表示トグル */
+.password-field-wrap {
+  position: relative;
+}
+
+.password-field-wrap .field {
+  padding-right: 44px;
+}
+
+.password-toggle-btn {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+}
+
+.password-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+}
+
 .field.error {
   border-color: var(--warn-red);
   box-shadow: 0 0 0 3px rgba(255, 84, 112, 0.2);
@@ -853,17 +883,20 @@ a {
   background: rgba(10, 30, 17, 0.92);
   border: 1px solid var(--glass-border);
   padding: 12px 18px;
-  border-radius: 999px;
+  border-radius: 18px;
   font-size: 13px;
   font-weight: 600;
   z-index: 90;
   opacity: 0;
   pointer-events: none;
   transition: all var(--dur-med) var(--ease-out-soft);
-  max-width: 94%;
+  width: max-content;
+  max-width: 88vw;
   text-align: center;
-  white-space: nowrap;
-  /* 短中程度の文言は改行させない。極端に長い文言はこのまま1行を優先し、はみ出しは許容する（省略で情報を欠落させないため） */
+  white-space: normal;
+  word-break: break-word;
+  line-height: 1.5;
+  /* 短文は1行、長文は折り返して高さが伸びる */
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
 }
 
@@ -1112,23 +1145,30 @@ body.no-scroll {
 
 .court-time-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
   margin-top: 8px;
 }
 
 .court-time-row>div {
   min-width: 0;
+  overflow: hidden;
 }
 
-/* grid子要素の既定min-widthはcontentサイズのため、time入力の内在幅で列がはみ出すのを防ぐ */
+/* grid子要素の既定min-widthはcontentサイズのため、time入力の内在幅で列がはみ出す・重なるのを防ぐ */
 .court-time-row .field-label {
   margin-bottom: 4px;
 }
 
+/* iOS（Safari/Chrome for iOS）は date/time 入力のネイティブコントロールの内在幅が大きく、
+   width:100% や min-width:0 だけでは親要素からはみ出す・グリッド内で隣と重なることがある。
+   width を極小値にした上で min-width:100% で伸長させることで、内在幅を無視して
+   確実に親要素の幅いっぱいに収める（Windows Chrome 等では従来どおり問題なく表示される）。 */
 .field[type="time"],
 .field[type="date"] {
-  min-width: 0;
+  width: 1px;
+  min-width: 100%;
+  box-sizing: border-box;
 }
 
 /* 対戦表自動生成: コート予約時間のビジュアルタイムライン（ミニガントチャート） */
@@ -1755,22 +1795,6 @@ body.no-scroll {
 
 /* 画面内インラインのローディングスピナー（グローバルオーバーレイのサッカーボールとは別に、
    ランキング/アーカイブ/管理者一覧など「画面の一部だけ読み込み中」の表現に使う） */
-.inline-spinner {
-  width: 34px;
-  height: 34px;
-  margin: 0 auto 12px;
-  border: 3px solid rgba(198, 255, 0, 0.18);
-  border-top-color: var(--lime);
-  border-radius: 50%;
-  animation: inlineSpin 0.8s linear infinite;
-}
-
-@keyframes inlineSpin {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
 /* ---------- 17. ユーティリティ ---------- */
 .flex {
   display: flex;
