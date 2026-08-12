@@ -8,6 +8,9 @@
 // 例: https://script.google.com/macros/s/XXXXXXXXXXXXXXXX/exec
 const API_BASE_URL = "https://script.google.com/macros/s/AKfycbwiT773IEFOU1om-fxOq4tpx17ZAiYFAKDAW7SRfs--Mcildz-h_KOY7M3eeLkVpA0/exec";
 
+// 通信のタイムアウト値（ミリ秒）。ローディング表示の「最大◯秒」もこの値から算出する。
+const API_TIMEOUT_MS = 15000;
+
 /**
  * GETリクエスト（データ参照系: getTournament / getRankings 等）
  * @param {string} action
@@ -17,13 +20,20 @@ const API_BASE_URL = "https://script.google.com/macros/s/AKfycbwiT773IEFOU1om-fx
 async function apiGet(action, params = {}) {
   const query = new URLSearchParams({ action, ...params }).toString();
   const url = `${API_BASE_URL}?${query}`;
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
-    const res = await fetch(url, { method: "GET" });
+    const res = await fetch(url, { method: "GET", signal: controller.signal });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
     console.error("[apiGet] failed:", action, err);
+    if (err.name === "AbortError") {
+      return { status: "error", data: null, message: `通信がタイムアウトしました（最大${API_TIMEOUT_MS / 1000}秒）。電波状況を確認の上、再度お試しください。` };
+    }
     return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
@@ -34,17 +44,25 @@ async function apiGet(action, params = {}) {
  * @returns {Promise<{status:string, data:any, message:string}>}
  */
 async function apiPost(payload) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT_MS);
   try {
     const res = await fetch(API_BASE_URL, {
       method: "POST",
       headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify(payload),
+      signal: controller.signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return await res.json();
   } catch (err) {
     console.error("[apiPost] failed:", payload && payload.action, err);
+    if (err.name === "AbortError") {
+      return { status: "error", data: null, message: `通信がタイムアウトしました（最大${API_TIMEOUT_MS / 1000}秒）。電波状況を確認の上、再度お試しください。` };
+    }
     return { status: "error", data: null, message: "通信に失敗しました。電波状況を確認の上、再度お試しください。" };
+  } finally {
+    clearTimeout(timeoutId);
   }
 }
 
