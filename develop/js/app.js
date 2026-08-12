@@ -1456,7 +1456,11 @@ function adminTeamRowHtml(tm) {
     }
 
     const sourceDepartments = parseJsonArray(tm.source_departments);
-    const deptRows = (sourceDepartments.length ? sourceDepartments : ["", ""]).map((d, i) => deptRowHtml(d, i)).join("");
+    // 合同チームで既に部署名が登録済みならそれをそのまま編集・削除可能な行として表示する。
+    // 単一部署チームを合同チームに切り替えるケースでは、元々の部署名（＝チーム名）が
+    // そのまま合同チームの1つ目の部署として使えることが多いため、1件目の初期値にしておく。
+    const deptFallback = tm.type === "JOINT" ? ["", ""] : [tm.name, ""];
+    const deptRows = (sourceDepartments.length ? sourceDepartments : deptFallback).map((d, i) => deptRowHtml(d, i)).join("");
     return `
     <div class="admin-team-edit-form">
       <div class="form-group">
