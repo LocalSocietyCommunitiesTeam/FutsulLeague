@@ -1706,8 +1706,28 @@ async function onFestivalBlockPointerUp(e) {
     }
 }
 
-/** 2試合の時間・コートを入れ替える（対戦カード自体は維持） */
+/** 試合1件を「時間 コート（チームA × チームB）」の形で要約する（入れ替え確認ダイアログ用） */
+function formatMatchSummary(matchId) {
+    const m = appState.admin.selectedMatches.find((x) => x.match_id === matchId);
+    if (!m) return matchId;
+    const teamName = (id) => (appState.admin.selectedTeams.find((t) => t.team_id === id) || {}).name || "?";
+    return `${formatTimeDisplay(m.start_time)}〜${formatTimeDisplay(m.end_time)} ${m.court_name}（${teamName(m.home_team_id)} × ${teamName(m.away_team_id)}）`;
+}
+
+/** 2試合の時間・コートを入れ替える（対戦カード自体は維持）。保存前に入れ替え元・入れ替え先を示す確認ダイアログを出す。 */
 async function performMatchSwap(matchIdA, matchIdB) {
+    const fromSummary = formatMatchSummary(matchIdA);
+    const toSummary = formatMatchSummary(matchIdB);
+    const confirmed = window.confirm(
+        `試合の時間・コートを入れ替えます。よろしいですか？\n\n` +
+        `【入れ替え元】\n${fromSummary}\n\n` +
+        `【入れ替え先】\n${toSummary}`
+    );
+    if (!confirmed) {
+        render(); // ドラッグ操作を取り消し、元の並びに戻す
+        return;
+    }
+
     showLoadingSpinner(true);
     const res = await apiPostAuthed("swapMatches", { match_id_a: matchIdA, match_id_b: matchIdB });
     showLoadingSpinner(false);
@@ -2018,4 +2038,4 @@ function enableTilt(selector) {
             card.classList.remove("tilt-active");
         });
     });
-}
+}   
