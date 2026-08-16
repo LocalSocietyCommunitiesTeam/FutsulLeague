@@ -72,8 +72,6 @@ body {
   color: var(--pitch-white);
   min-height: 100dvh;
   -webkit-font-smoothing: antialiased;
-  background-color: var(--turf-deep);
-  /* 画像読み込み前のフォールバック（白フラッシュ防止） */
 }
 
 /*
@@ -85,12 +83,21 @@ body {
     スクロールしてもサイズ基準は常にビューポート（100vw × 100dvh）になり、見切れなくなる。
   ※ CSSの `background-attachment: fixed` プロパティ自体はiOS Safariで挙動が不安定なため使わず、
     position:fixed の要素として実装する（この方法はiOSでも安定して動作する）。
+
+  画像読み込み前・失敗時のフォールバック色（background-color）は、以前は html/body 側に
+  別途指定していたが、別要素の背景だと重なり順（stacking context）に依存してしまい、
+  ブラウザによっては背景画像より手前に出てしまう可能性があった。
+  同じ body::before 要素の background に color と image をまとめて指定することで、
+  「color は常に image の背面に描画される」というCSSの仕様上確実な挙動を利用でき、
+  かつ inset:0 の同一ボックスなので大きさも完全に一致する。
 */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
+  background-color: var(--turf-deep);
+  /* 画像読み込み前・失敗時のフォールバック（白フラッシュ防止） */
   background-image:
     radial-gradient(1200px 700px at 15% -10%, rgba(198, 255, 0, 0.10), transparent 60%),
     linear-gradient(165deg, rgba(9, 34, 18, 0.92) 0%, rgba(16, 50, 27, 0.86) 55%, rgba(20, 64, 35, 0.80) 100%),
@@ -1396,7 +1403,7 @@ body.no-scroll {
 .dept-row {
   display: flex;
   gap: 8px;
-  align-items: center;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
@@ -1404,8 +1411,18 @@ body.no-scroll {
   margin-bottom: 0;
 }
 
-.dept-row .field {
+.dept-row .remove-btn {
+  flex-shrink: 0;
+  margin-top: 0;
+}
+
+.dept-picker {
   flex: 1;
+  min-width: 0;
+}
+
+.dept-picker .field {
+  width: 100%;
 }
 
 /* 管理者ダッシュボード: ⑤対戦カードの変更（試合ごとにホーム/アウェイを選び直す） */
