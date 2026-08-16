@@ -44,10 +44,6 @@ async function init() {
   bindGlobalEvents();
   await loadTournament();
   navigate("home");
-  appState.isAdmin = !!sessionStorage.getItem("admin_token");
-  bindGlobalEvents();
-  await loadTournament();
-  navigate("home");
 }
 
 /**
@@ -57,10 +53,6 @@ async function init() {
  * → 「戻るボタンが効かない」不具合の原因だったため、document委譲に統一して解消。
  */
 function bindGlobalEvents() {
-  document.addEventListener("click", onGlobalClick);
-  document.addEventListener("input", onGlobalInput);
-  document.addEventListener("change", onGlobalInput); // <select>のchangeはブラウザによりinputが飛ばないことがあるため両方拾う
-  document.addEventListener("keydown", onGlobalKeydown);
   document.addEventListener("click", onGlobalClick);
   document.addEventListener("input", onGlobalInput);
   document.addEventListener("change", onGlobalInput); // <select>のchangeはブラウザによりinputが飛ばないことがあるため両方拾う
@@ -82,25 +74,10 @@ function onGlobalKeydown(e) {
     e.preventDefault();
     submitBtn.click();
   }
-  if (e.key !== "Enter") return;
-  const input = e.target.closest("[data-enter-submit]");
-  if (!input) return;
-  const targetSelector = input.dataset.enterSubmit;
-  const submitBtn = document.querySelector(targetSelector);
-  if (submitBtn) {
-    e.preventDefault();
-    submitBtn.click();
-  }
 }
 
 /* ---------- 2. ルーティング ---------- */
 function navigate(route, params = {}) {
-  appState.route = route;
-  Object.assign(appState, params);
-  renderHeader();
-  renderTabbarActive();
-  render();
-  window.scrollTo({ top: 0, behavior: "smooth" });
   appState.route = route;
   Object.assign(appState, params);
   renderHeader();
@@ -116,29 +93,7 @@ function navigate(route, params = {}) {
 async function refreshCurrentScreen() {
   const route = appState.route;
   if (route === "adminLogin") { render(); return; } // 再取得すべきデータが無い画面
-  const route = appState.route;
-  if (route === "adminLogin") { render(); return; } // 再取得すべきデータが無い画面
 
-  showLoadingSpinner(true);
-  if (route === "schedule" || route === "matchDetail" || route === "entry") {
-    await loadTournament();
-  } else if (route === "ranking") {
-    appState.rankingsLoaded = false;
-    await loadRankings();
-  } else if (route === "archive") {
-    if (appState.archive.selectedYear) {
-      await onSelectArchiveYear(appState.archive.selectedYear);
-    } else {
-      appState.archive.yearsLoaded = false;
-      await loadArchiveYears();
-    }
-  } else if (route === "adminDashboard") {
-    appState.admin.tournamentsLoaded = false;
-    await loadAdminTournaments();
-  }
-  showLoadingSpinner(false);
-  showToast("最新の情報に更新しました", "success");
-  render();
   showLoadingSpinner(true);
   if (route === "schedule" || route === "matchDetail" || route === "entry") {
     await loadTournament();
@@ -163,13 +118,6 @@ async function refreshCurrentScreen() {
 
 /** 画面ごとの「戻る」の遷移先。ヘッダー戻るボタンから参照する。 */
 function getBackRoute() {
-  const map = {
-    entry: "home",
-    matchDetail: "schedule",
-    adminLogin: "home",
-    adminDashboard: "home",
-  };
-  return map[appState.route] || "home";
   const map = {
     entry: "home",
     matchDetail: "schedule",
@@ -203,33 +151,11 @@ function renderHeader() {
   const conf = map[appState.route] || map.home;
   headerBrand.innerHTML = conf.back
     ? `<button class="icon-btn back-btn-icon" data-action="goBack" aria-label="戻る">
-  const map = {
-    home: { title: "本社部対抗フットサルリーグ", back: false },
-    entry: { title: "出場メンバー登録", back: true },
-    schedule: { title: "タイムスケジュール", back: false },
-    matchDetail: { title: "試合詳細", back: true },
-    ranking: { title: "順位", back: false },
-    archive: { title: "過去大会アーカイブ", back: false },
-    adminLogin: { title: "管理者ログイン", back: true },
-    adminDashboard: { title: "管理者ダッシュボード", back: true },
-  };
-  const conf = map[appState.route] || map.home;
-  headerBrand.innerHTML = conf.back
-    ? `<button class="icon-btn back-btn-icon" data-action="goBack" aria-label="戻る">
          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
        </button>
        <span>${conf.title}</span>`
     : `<span class="ball-dot"></span><span>${conf.title}</span>`;
-    : `<span class="ball-dot"></span><span>${conf.title}</span>`;
 
-  // ホーム画面のみ「管理者メニュー」への歯車ボタン。それ以外の画面は、画面に表示中のデータを
-  // 再取得する「更新」ボタンに差し替える（画面ごとに何を再取得するかは refreshCurrentScreen が判定する）。
-  const isHome = appState.route === "home";
-  settingsBtn.dataset.action = isHome ? "openAdminMenu" : "refreshCurrentScreen";
-  settingsBtn.setAttribute("aria-label", isHome ? "管理者メニュー" : "更新");
-  settingsBtn.setAttribute("title", isHome ? "管理者メニュー" : "更新");
-  settingsBtn.querySelector("svg").innerHTML = isHome ? GEAR_ICON_SVG : REFRESH_ICON_SVG;
-  settingsBtn.classList.remove("hidden");
   // ホーム画面のみ「管理者メニュー」への歯車ボタン。それ以外の画面は、画面に表示中のデータを
   // 再取得する「更新」ボタンに差し替える（画面ごとに何を再取得するかは refreshCurrentScreen が判定する）。
   const isHome = appState.route === "home";
@@ -241,11 +167,6 @@ function renderHeader() {
 }
 
 function renderTabbarActive() {
-  const mainRoutes = ["home", "schedule", "ranking", "archive"];
-  tabbar.classList.toggle("hidden", !mainRoutes.includes(appState.route));
-  [...tabbar.querySelectorAll(".tabbar-item")].forEach((btn) => {
-    btn.classList.toggle("active", btn.dataset.route === appState.route);
-  });
   const mainRoutes = ["home", "schedule", "ranking", "archive"];
   tabbar.classList.toggle("hidden", !mainRoutes.includes(appState.route));
   [...tabbar.querySelectorAll(".tabbar-item")].forEach((btn) => {
@@ -344,14 +265,6 @@ function sanitizeNonNegativeIntegerInput(el) {
     const newPos = Math.max(0, pos - removedBefore);
     el.setSelectionRange(newPos, newPos);
   }
-  const pos = el.selectionStart;
-  const cleaned = el.value.replace(/[^\d]/g, "");
-  if (cleaned !== el.value) {
-    const removedBefore = el.value.slice(0, pos).length - cleaned.slice(0, pos).length;
-    el.value = cleaned;
-    const newPos = Math.max(0, pos - removedBefore);
-    el.setSelectionRange(newPos, newPos);
-  }
 }
 
 /** 半角スペースをリアルタイムに全角スペースへ変換する（カーソル位置は維持） */
@@ -362,15 +275,8 @@ function convertSpaceRealtime(el) {
     el.value = converted;
     el.setSelectionRange(pos, pos);
   }
-  const pos = el.selectionStart;
-  const converted = toFullWidthSpace(el.value);
-  if (converted !== el.value) {
-    el.value = converted;
-    el.setSelectionRange(pos, pos);
-  }
 }
 function toFullWidthSpace(str) {
-  return String(str || "").replace(/ /g, "　");
   return String(str || "").replace(/ /g, "　");
 }
 
@@ -387,32 +293,10 @@ async function loadTournament() {
   } else {
     showToast(res.message || "大会情報の取得に失敗しました", "error");
   }
-  showLoadingSpinner(true);
-  const res = await apiGet("getTournament", { tournament_id: appState.tournamentId });
-  showLoadingSpinner(false);
-  if (res.status === "success") {
-    appState.tournament = res.data.tournament;
-    appState.matches = res.data.matches || [];
-    appState.teams = res.data.teams || [];
-    appState.users = res.data.users || [];
-  } else {
-    showToast(res.message || "大会情報の取得に失敗しました", "error");
-  }
 }
 
 /** ランキング取得。成否に関わらず rankingsLoaded を立てることで自動再取得を1回に限定する。 */
 async function loadRankings() {
-  const fiscalYear = getCurrentFiscalYear();
-  showLoadingSpinner(true);
-  const res = await apiGet("getRankings", { fiscal_year: fiscalYear });
-  showLoadingSpinner(false);
-  if (res.status === "success") {
-    appState.rankings = res.data;
-  } else {
-    showToast(res.message || "順位の取得に失敗しました", "error");
-  }
-  appState.rankingsLoaded = true;
-  if (appState.route === "ranking") render();
   const fiscalYear = getCurrentFiscalYear();
   showLoadingSpinner(true);
   const res = await apiGet("getRankings", { fiscal_year: fiscalYear });
@@ -442,26 +326,9 @@ function render() {
   const target = document.getElementById("screenInner");
   target.innerHTML = renderers[appState.route] ? renderers[appState.route]() : renderHome();
   afterRenderHook();
-  const renderers = {
-    home: renderHome,
-    entry: renderEntry,
-    schedule: renderSchedule,
-    matchDetail: renderMatchDetail,
-    ranking: renderRanking,
-    archive: renderArchive,
-    adminLogin: renderAdminLogin,
-    adminDashboard: renderAdminDashboard,
-  };
-  screenRoot.innerHTML = `<div class="screen" id="screenInner"></div>`;
-  const target = document.getElementById("screenInner");
-  target.innerHTML = renderers[appState.route] ? renderers[appState.route]() : renderHome();
-  afterRenderHook();
 }
 
 function afterRenderHook() {
-  enableTilt(".tilt");
-  if (appState.route === "matchDetail") validateScoreForm();
-  if (appState.route === "adminDashboard") { updateSimpleCourtTimeline(); updateScheduleUI(); enableMatchDragDrop(); }
   enableTilt(".tilt");
   if (appState.route === "matchDetail") validateScoreForm();
   if (appState.route === "adminDashboard") { updateSimpleCourtTimeline(); updateScheduleUI(); enableMatchDragDrop(); }
@@ -471,11 +338,6 @@ function afterRenderHook() {
    U01 : トップ画面（ホーム）
    ========================================================================= */
 function renderHome() {
-  const t = appState.tournament;
-  if (!t) {
-    return emptyState("⚽", "開催中の大会情報がありません。");
-  }
-  return `
   const t = appState.tournament;
   if (!t) {
     return emptyState("⚽", "開催中の大会情報がありません。");
@@ -507,7 +369,6 @@ function renderHome() {
 /** トロフィー写真を使ったヒーローバナー（ホーム・順位画面で使用） */
 function heroTrophyHtml(eyebrow, title) {
   return `
-  return `
     <div class="hero-trophy tilt">
       <img src="images/trophy.jpg" alt="トロフィー" loading="lazy">
       <div class="hero-trophy-overlay">
@@ -518,7 +379,6 @@ function heroTrophyHtml(eyebrow, title) {
 }
 
 function statusLabel(s) {
-  return { PLANNING: "これから", IN_PROGRESS: "開催中", FINISHED: "終了" }[s] || s;
   return { PLANNING: "これから", IN_PROGRESS: "開催中", FINISHED: "終了" }[s] || s;
 }
 
@@ -539,27 +399,11 @@ function renderEntry() {
   const team = teams.find((t) => t.team_id === appState.entry.selectedTeamId);
   const showDept = team.type === "JOINT";
   const deptOptions = showDept ? parseJsonArray(team.source_departments) : [];
-  const teams = appState.teams;
-  if (!teams.length) {
-    return emptyState("👥", "エントリー可能なチームがまだ登録されていません。管理者にお問い合わせください。");
-  }
-  if (!appState.entry.selectedTeamId || !teams.some((t) => t.team_id === appState.entry.selectedTeamId)) {
-    appState.entry.selectedTeamId = teams[0].team_id;
-  }
-  const team = teams.find((t) => t.team_id === appState.entry.selectedTeamId);
-  const showDept = team.type === "JOINT";
-  const deptOptions = showDept ? parseJsonArray(team.source_departments) : [];
 
-  const teamChips = teams.map((t) => `
   const teamChips = teams.map((t) => `
     <button type="button" class="select-chip ${t.team_id === team.team_id ? "selected" : ""}" data-action="selectEntryTeam" data-team-id="${t.team_id}">${escapeHtml(t.name)}</button>
   `).join("");
 
-  const deptNote = !showDept
-    ? `氏名を入力してください（部署は「${escapeHtml(team.name)}」として自動登録されます）。`
-    : deptOptions.length
-      ? "氏名を入力し、部署をプルダウンから選択してください（合同チームは部署の選択が必須です）。"
-      : "この合同チームには元となる部署名が登録されていません。管理者に「チーム登録」からの設定をご依頼ください。";
   const deptNote = !showDept
     ? `氏名を入力してください（部署は「${escapeHtml(team.name)}」として自動登録されます）。`
     : deptOptions.length
@@ -606,20 +450,9 @@ function memberRowHtml(idx, prefill = {}, showDept = true, deptOptions = []) {
     if (deptOptions.length) {
       const options = deptOptions.map((d) => `<option value="${escapeHtml(d)}" ${prefill.department === d ? "selected" : ""}>${escapeHtml(d)}</option>`).join("");
       deptField = `<select class="field member-dept">
-  const placeholder = idx % 2 === 1 ? "明安　太郎" : "明安　花子";
-  let deptField = "";
-  if (showDept) {
-    if (deptOptions.length) {
-      const options = deptOptions.map((d) => `<option value="${escapeHtml(d)}" ${prefill.department === d ? "selected" : ""}>${escapeHtml(d)}</option>`).join("");
-      deptField = `<select class="field member-dept">
         <option value="">部署を選択</option>
         ${options}
       </select>`;
-    } else {
-      deptField = `<input class="field member-dept" placeholder="部署名" maxlength="20" value="${escapeHtml(prefill.department || "")}">`;
-    }
-  }
-  return `
     } else {
       deptField = `<input class="field member-dept" placeholder="部署名" maxlength="20" value="${escapeHtml(prefill.department || "")}">`;
     }
@@ -639,17 +472,8 @@ function addMemberRow() {
   const list = document.getElementById("memberList");
   const nextIdx = list.children.length + 1;
   list.insertAdjacentHTML("beforeend", memberRowHtml(nextIdx, {}, showDept, deptOptions));
-  const team = appState.teams.find((t) => t.team_id === appState.entry.selectedTeamId);
-  const showDept = !!team && team.type === "JOINT";
-  const deptOptions = showDept ? parseJsonArray(team.source_departments) : [];
-  const list = document.getElementById("memberList");
-  const nextIdx = list.children.length + 1;
-  list.insertAdjacentHTML("beforeend", memberRowHtml(nextIdx, {}, showDept, deptOptions));
 }
 function removeMemberRow(btn) {
-  const rows = document.querySelectorAll(".member-row");
-  if (rows.length <= 1) return; // 最低1枠は残す（UI上の下限。入力必須ではない）
-  btn.closest(".member-row").remove();
   const rows = document.querySelectorAll(".member-row");
   if (rows.length <= 1) return; // 最低1枠は残す（UI上の下限。入力必須ではない）
   btn.closest(".member-row").remove();
@@ -694,9 +518,9 @@ async function onSubmitMembers() {
   }
   errorEl.classList.add("hidden");
 
-    showLoadingSpinner(true);
-    const res = await apiPost({ action: "submitMembers", team_id: team.team_id, members });
-    showLoadingSpinner(false);
+  showLoadingSpinner(true);
+  const res = await apiPost({ action: "submitMembers", entry_id: team.entry_id, members });
+  showLoadingSpinner(false);
 
   if (res.status === "success") {
     showToast("出場メンバーを登録しました", "success");
@@ -828,10 +652,13 @@ function renderMatchDetail() {
 }
 
 function teamEntryPanelHtml(sideKey, name, teamId, activeSide) {
-    const isActive = activeSide === sideKey;
-    const disabledAttr = isActive ? "" : "disabled";
-    const members = appState.users.filter((u) => u.team_id === teamId);
-    return `
+  const isActive = activeSide === sideKey;
+  const disabledAttr = isActive ? "" : "disabled";
+  // 出場メンバーはエントリ（この大会×この部署の参加登録）単位で管理しているため、
+  // 部署ID（teamId）から対応するエントリを引き当ててから絞り込む。
+  const entryId = (appState.teams.find((t) => t.team_id === teamId) || {}).entry_id;
+  const members = appState.users.filter((u) => u.entry_id === entryId);
+  return `
     <div class="team-panel glass-card ${isActive ? "" : "opponent-locked"} mt-16" data-side-panel="${sideKey}">
       <h4>${escapeHtml(name)}</h4>
       <label class="field-label mt-8">総得点</label>
@@ -854,10 +681,10 @@ function teamEntryPanelHtml(sideKey, name, teamId, activeSide) {
     </div>`;
 }
 /** 得点者1名分の入力行。選手は登録済みメンバーからプルダウンで選ぶ（自由記述の氏名入力は行わない）。 */
-function scorerRowHtml(sideKey, teamId, disabledAttr) {
-    const members = appState.users.filter((u) => u.team_id === teamId);
-    const options = members.map((u) => `<option value="${u.user_id}">${escapeHtml(u.name)}</option>`).join("");
-    return `
+function scorerRowHtml(sideKey, teamId, entryId, disabledAttr) {
+  const members = appState.users.filter((u) => u.entry_id === entryId);
+  const options = members.map((u) => `<option value="${u.user_id}">${escapeHtml(u.name)}</option>`).join("");
+  return `
     <div class="scorer-row">
       <div class="scorer-row-inputs">
         <select class="field scorer-name" data-side="${sideKey}" ${disabledAttr}>
@@ -875,9 +702,10 @@ function scorerRowHtml(sideKey, teamId, disabledAttr) {
     </div>`;
 }
 function addScorerRow(sideKey, teamId) {
-    const disabledAttr = appState.scoreEntry.side === sideKey ? "" : "disabled";
-    document.querySelector(`[data-scorer-list="${sideKey}"]`).insertAdjacentHTML("beforeend", scorerRowHtml(sideKey, teamId, disabledAttr));
-    validateScoreForm();
+  const disabledAttr = appState.scoreEntry.side === sideKey ? "" : "disabled";
+  const entryId = (appState.teams.find((t) => t.team_id === teamId) || {}).entry_id;
+  document.querySelector(`[data-scorer-list="${sideKey}"]`).insertAdjacentHTML("beforeend", scorerRowHtml(sideKey, teamId, entryId, disabledAttr));
+  validateScoreForm();
 }
 /** チーム未選択のまま得点画面を離れて出場メンバー登録（U02）へ移動し、そのチームを選んだ状態にする */
 function goToEntryForTeam(teamId) {
@@ -1143,8 +971,8 @@ function archiveTournamentSummaryHtml(tournamentList) {
     <div class="glass-card mt-16 archive-tournament-summary">
       <span class="eyebrow">${appState.archive.selectedYear}年度</span>
       ${tournamentList.length
-            ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
-            : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
+        ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
+        : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
     </div>
   `;
 }
@@ -1301,8 +1129,8 @@ function adminTournamentCardHtml(t) {
             チーム ${t.team_count}<br>試合 ${t.match_count}
           </div>
           ${canDelete
-      ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
-      : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
+            ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
+            : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
         </div>
       </div>
       ${isSelected ? `<div class="admin-selected-badge mt-8">操作対象に選択中</div>` : ""}
@@ -1592,7 +1420,12 @@ function onDeptSelectChange(select) {
 }
 
 function adminAddTeamHtml(t, teams) {
-    return `
+  const known = appState.admin.knownDepartments || []; // [{department_id,name,type,source_departments}]
+  const knownNames = known.map((d) => d.name);
+  const enteredIds = new Set(teams.map((tm) => tm.team_id));
+  const availableExisting = known.filter((d) => !enteredIds.has(d.department_id)); // この大会にまだ未参加の部署のみ選べる
+
+  return `
     <div class="glass-card mt-16">
       <h3>${stepBadgeHtml(3, teams.length >= 2)} チーム登録</h3>
       <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
@@ -1649,18 +1482,18 @@ function selectTeamRegMode(el) {
   if (section) section.classList.toggle("hidden", !isNew);
 }
 /** 合同チームの「元となる部署名」1件分の入力行（大会作成フォーム・編集フォーム共通）。1・2件目はプレースホルダーで例を示す。 */
-function deptRowHtml(value = "", idx = 0) {
-    const placeholder = idx === 0 ? "営企" : idx === 1 ? "情シス" : "部署名";
-    return `
+function deptRowHtml(value = "", idx = 0, knownDepartments = []) {
+  const placeholder = idx === 0 ? "営企" : idx === 1 ? "情シス" : "部署名";
+  return `
     <div class="dept-row">
       <div class="dept-picker">${departmentPickerHtml(value, knownDepartments, placeholder)}</div>
       <button type="button" class="remove-btn" data-action="removeDeptRow">×</button>
     </div>`;
 }
 function addDeptRow(targetId) {
-    const list = document.getElementById(targetId);
-    const idx = list.querySelectorAll(".dept-row").length;
-    list.insertAdjacentHTML("beforeend", deptRowHtml("", idx));
+  const list = document.getElementById(targetId);
+  const idx = list.querySelectorAll(".dept-row").length;
+  list.insertAdjacentHTML("beforeend", deptRowHtml("", idx, appState.admin.knownDepartments || []));
 }
 function removeDeptRow(btn) {
   const list = btn.closest("[id]");
@@ -1677,9 +1510,9 @@ function selectTeamTypeChip(el) {
 }
 /** 選択中の参加形態チップグループから、合同チームの元部署名（空欄は除く）を取得する */
 function collectDeptNames(listId) {
-    return [...document.querySelectorAll(`#${listId} .dept-name`)]
-        .map((el) => el.value.trim())
-        .filter(Boolean);
+  return [...document.querySelectorAll(`#${listId} .dept-row`)]
+    .map((row) => readDepartmentPickerValue(row))
+    .filter(Boolean);
 }
 
 function adminTeamListHtml(t, teams) {
@@ -1692,9 +1525,10 @@ function adminTeamListHtml(t, teams) {
 }
 /** チーム1件分の行。編集中（editingTeamId一致）は編集フォーム、それ以外は通常表示にする。 */
 function adminTeamRowHtml(tm) {
-    const memberCount = appState.admin.selectedUsers.filter((u) => u.team_id === tm.team_id).length;
-    if (appState.admin.editingTeamId !== tm.team_id) {
-        return `
+  const knownNames = (appState.admin.knownDepartments || []).map((d) => d.name).filter((n) => n !== tm.name);
+  const memberCount = appState.admin.selectedUsers.filter((u) => u.entry_id === tm.entry_id).length;
+  if (appState.admin.editingTeamId !== tm.team_id) {
+    return `
       <div class="pending-row admin-team-row">
         <span>${escapeHtml(tm.name)} <span class="text-dim">(${tm.type === "JOINT" ? "合同" : "単一"} ・ ${memberCount}名登録済み)</span></span>
         <span class="admin-team-row-actions">
@@ -1704,13 +1538,13 @@ function adminTeamRowHtml(tm) {
       </div>`;
   }
 
-    const sourceDepartments = parseJsonArray(tm.source_departments);
-    // 合同チームで既に部署名が登録済みならそれをそのまま編集・削除可能な行として表示する。
-    // 単一部署チームを合同チームに切り替えるケースでは、元々の部署名（＝チーム名）が
-    // そのまま合同チームの1つ目の部署として使えることが多いため、1件目の初期値にしておく。
-    const deptFallback = tm.type === "JOINT" ? ["", ""] : [tm.name, ""];
-    const deptRows = (sourceDepartments.length ? sourceDepartments : deptFallback).map((d, i) => deptRowHtml(d, i)).join("");
-    return `
+  const sourceDepartments = parseJsonArray(tm.source_departments);
+  // 合同チームで既に部署名が登録済みならそれをそのまま編集・削除可能な行として表示する。
+  // 単一部署チームを合同チームに切り替えるケースでは、元々の部署名（＝チーム名）が
+  // そのまま合同チームの1つ目の部署として使えることが多いため、1件目の初期値にしておく。
+  const deptFallback = tm.type === "JOINT" ? ["", ""] : [tm.name, ""];
+  const deptRows = (sourceDepartments.length ? sourceDepartments : deptFallback).map((d, i) => deptRowHtml(d, i, knownNames)).join("");
+  return `
     <div class="admin-team-edit-form">
       <div class="form-group">
         <label class="field-label">チーム名（部署名）</label>
@@ -1744,11 +1578,11 @@ function cancelEditTeam() {
   render();
 }
 async function onSaveEditTeam(teamId) {
-    const name = document.getElementById("editTeamName").value.trim();
-    const type = document.querySelector("#editTeamTypeGroup .select-chip.selected").dataset.value === "JOINT" ? "JOINT" : "SINGLE";
-    if (!name) { showToast("チーム名を入力してください", "error"); return; }
-    const sourceDepartments = type === "JOINT" ? collectDeptNames("editTeamDeptList") : [];
-    if (type === "JOINT" && !sourceDepartments.length) { showToast("合同チームは元となる部署名を1つ以上入力してください", "error"); return; }
+  const name = document.getElementById("editTeamName").value.trim();
+  const type = document.querySelector("#editTeamTypeGroup .select-chip.selected").dataset.value === "JOINT" ? "JOINT" : "SINGLE";
+  if (!name) { showToast("チーム名を入力してください", "error"); return; }
+  const sourceDepartments = type === "JOINT" ? collectDeptNames("editTeamDeptList") : [];
+  if (type === "JOINT" && !sourceDepartments.length) { showToast("合同チームは元となる部署名を1つ以上選択・入力してください", "error"); return; }
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("updateTeam", { team_id: teamId, name, type, source_departments: sourceDepartments });
@@ -1762,26 +1596,24 @@ async function onSaveEditTeam(teamId) {
     showToast(res.message, "error");
   }
 }
-async function onDeleteTeam(teamId) {
-    const tm = appState.admin.selectedTeams.find((x) => x.team_id === teamId);
-    const name = tm ? tm.name : "このチーム";
-    const confirmed = window.confirm(
-        `「${name}」を削除します。\n出場メンバーの登録内容や、このチームが関わる試合もあわせて削除され、元に戻せません。\n本当によろしいですか？`
-    );
-    if (!confirmed) return;
+async function onDeleteTeam(entryId, name) {
+  const confirmed = window.confirm(
+    `「${name}」をこの大会から削除します。\n出場メンバーの登録内容や、この大会でのこのチームの試合もあわせて削除され、元に戻せません。\n（部署そのものは残るため、次回以降の大会では引き続き選択できます）\n本当によろしいですか？`
+  );
+  if (!confirmed) return;
 
-    showLoadingSpinner(true);
-    const res = await apiPostAuthed("deleteTeam", { team_id: teamId });
-    showLoadingSpinner(false);
-    if (res.status === "success") {
-        showToast(res.message || "チームを削除しました", "success");
-        await loadTournament();
-        appState.admin.tournamentsLoaded = false;
-        await loadAdminTournaments();
-        await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
-    } else {
-        showToast(res.message, "error");
-    }
+  showLoadingSpinner(true);
+  const res = await apiPostAuthed("deleteTeam", { entry_id: entryId });
+  showLoadingSpinner(false);
+  if (res.status === "success") {
+    showToast(res.message || "チームを削除しました", "success");
+    await loadTournament();
+    appState.admin.tournamentsLoaded = false;
+    await loadAdminTournaments();
+    await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
+  } else {
+    showToast(res.message, "error");
+  }
 }
 
 /* ---------- ④ 対戦表自動生成 ---------- */
@@ -1820,8 +1652,8 @@ function adminScheduleHtml(t, teams) {
 
       <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
       ${hasCourts
-            ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
-            : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
+        ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
+        : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
 
       ${alreadyGenerated ? `
         <div class="schedule-warning mt-16">
@@ -2016,8 +1848,8 @@ function updateScheduleEstimate() {
     </div>
     <p class="text-dim mt-8">
       ${roundsCompletable
-            ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
-            : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
+        ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
+        : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
     </p>
   `;
 }
@@ -2359,14 +2191,15 @@ async function loadAdminTournaments() {
  * （参加者向けの getTournament は、対戦表が確定するまで matches を返さない）。
  */
 async function loadAdminSelectedTournamentDetail(tournamentId) {
-    const res = await apiPostAuthed("getAdminTournamentDetail", { tournament_id: tournamentId });
-    if (res.status === "success") {
-        appState.admin.selectedTournament = res.data.tournament;
-        appState.admin.selectedTeams = res.data.teams || [];
-        appState.admin.selectedUsers = res.data.users || [];
-        appState.admin.selectedMatches = res.data.matches || [];
-    }
-    if (appState.route === "adminDashboard") render();
+  const res = await apiPostAuthed("getAdminTournamentDetail", { tournament_id: tournamentId });
+  if (res.status === "success") {
+    appState.admin.selectedTournament = res.data.tournament;
+    appState.admin.selectedTeams = res.data.teams || [];
+    appState.admin.selectedUsers = res.data.users || [];
+    appState.admin.selectedMatches = res.data.matches || [];
+    appState.admin.knownDepartments = res.data.known_departments || [];
+  }
+  if (appState.route === "adminDashboard") render();
 }
 
 async function onSelectAdminTournament(tournamentId) {
@@ -2463,27 +2296,41 @@ async function onUpdateTournamentStatus(tournamentId, newStatus) {
 
 /** 選択中の大会に、チームを1件追加登録する */
 async function onCreateTeam() {
+  const tournamentId = appState.admin.selectedTournamentId;
+  if (!tournamentId) { showToast("大会を選択してください", "error"); return; }
+
+  const modeGroup = document.getElementById("addTeamModeGroup");
+  const isExistingMode = !!modeGroup && document.querySelector("#addTeamModeGroup .select-chip.selected").dataset.value !== "NEW";
+
+  let payload = { tournament_id: tournamentId };
+  if (isExistingMode) {
+    const departmentId = document.getElementById("addTeamExistingSelect").value;
+    if (!departmentId) { showToast("部署を選択してください", "error"); return; }
+    payload.department_id = departmentId;
+  } else {
     const name = document.getElementById("addTeamName").value.trim();
     const type = document.querySelector("#addTeamTypeGroup .select-chip.selected").dataset.value === "JOINT" ? "JOINT" : "SINGLE";
-    const tournamentId = appState.admin.selectedTournamentId;
-    if (!tournamentId) { showToast("大会を選択してください", "error"); return; }
     if (!name) { showToast("チーム名を入力してください", "error"); return; }
     const sourceDepartments = type === "JOINT" ? collectDeptNames("addTeamDeptList") : [];
-    if (type === "JOINT" && !sourceDepartments.length) { showToast("合同チームは元となる部署名を1つ以上入力してください", "error"); return; }
+    if (type === "JOINT" && !sourceDepartments.length) { showToast("合同チームは元となる部署名を1つ以上選択・入力してください", "error"); return; }
+    payload.name = name;
+    payload.type = type;
+    payload.source_departments = sourceDepartments;
+  }
 
-    showLoadingSpinner(true);
-    const res = await apiPostAuthed("createTeam", { tournament_id: tournamentId, name, type, source_departments: sourceDepartments });
-    showLoadingSpinner(false);
-    if (res.status === "success") {
-        showToast("チームを登録しました", "success");
-        document.getElementById("addTeamName").value = "";
-        await loadTournament();
-        appState.admin.tournamentsLoaded = false;
-        await loadAdminTournaments();
-        render();
-    } else {
-        showToast(res.message, "error");
-    }
+  showLoadingSpinner(true);
+  const res = await apiPostAuthed("createTeam", payload);
+  showLoadingSpinner(false);
+  if (res.status === "success") {
+    showToast("チームを登録しました", "success");
+    await loadTournament();
+    appState.admin.tournamentsLoaded = false;
+    await loadAdminTournaments();
+    await loadAdminSelectedTournamentDetail(tournamentId);
+    render();
+  } else {
+    showToast(res.message, "error");
+  }
 }
 
 /** 対戦表自動生成（下書き状態で作成される。参加者への公開は⑤の確定操作で行う） */
