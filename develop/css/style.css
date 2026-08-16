@@ -1425,6 +1425,14 @@ body.no-scroll {
   width: 100%;
 }
 
+.dept-row:last-child {
+  margin-bottom: 0;
+}
+
+.dept-row .field {
+  flex: 1;
+}
+
 /* 管理者ダッシュボード: ⑤対戦カードの変更（試合ごとにホーム/アウェイを選び直す） */
 .match-team-edit-list {
   display: flex;
