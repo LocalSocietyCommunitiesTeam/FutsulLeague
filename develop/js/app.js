@@ -111,9 +111,9 @@ async function refreshCurrentScreen() {
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
   }
+  render();
   showLoadingSpinner(false);
   showToast("最新の情報に更新しました", "success");
-  render();
 }
 
 /** 画面ごとの「戻る」の遷移先。ヘッダー戻るボタンから参照する。 */
@@ -284,13 +284,14 @@ function toFullWidthSpace(str) {
 async function loadTournament() {
   showLoadingSpinner(true);
   const res = await apiGet("getTournament", { tournament_id: appState.tournamentId });
-  showLoadingSpinner(false);
   if (res.status === "success") {
     appState.tournament = res.data.tournament;
     appState.matches = res.data.matches || [];
     appState.teams = res.data.teams || [];
     appState.users = res.data.users || [];
-  } else {
+  }
+  showLoadingSpinner(false);
+  if (res.status !== "success") {
     showToast(res.message || "大会情報の取得に失敗しました", "error");
   }
 }
@@ -300,14 +301,15 @@ async function loadRankings() {
   const fiscalYear = getCurrentFiscalYear();
   showLoadingSpinner(true);
   const res = await apiGet("getRankings", { fiscal_year: fiscalYear });
-  showLoadingSpinner(false);
   if (res.status === "success") {
     appState.rankings = res.data;
-  } else {
-    showToast(res.message || "順位の取得に失敗しました", "error");
   }
   appState.rankingsLoaded = true;
   if (appState.route === "ranking") render();
+  showLoadingSpinner(false);
+  if (res.status !== "success") {
+    showToast(res.message || "順位の取得に失敗しました", "error");
+  }
 }
 
 /* ---------- 5. メインレンダラ ---------- */
@@ -360,7 +362,7 @@ function renderHome() {
     <div class="glass-card tilt mt-16">
       <span class="eyebrow">ARCHIVE</span>
       <h2>過去大会アーカイブ</h2>
-      <p class="text-dim mt-8">過去の試合結果・最終順位を振り返る。</p>
+      <p class="text-dim mt-8">過去の試合結果・最終順位を振り返ることができます。</p>
       <button class="btn mt-16" data-action="goArchive">アーカイブを見る</button>
     </div>
   `;
@@ -520,13 +522,14 @@ async function onSubmitMembers() {
 
   showLoadingSpinner(true);
   const res = await apiPost({ action: "submitMembers", entry_id: team.entry_id, members });
-  showLoadingSpinner(false);
 
   if (res.status === "success") {
-    showToast("出場メンバーを登録しました", "success");
     await loadTournament(); // appState.users を最新化（再編集にも即対応）
     navigate("home");
+    showLoadingSpinner(false);
+    showToast("出場メンバーを登録しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message || "登録に失敗しました", "error");
   }
 }
@@ -802,15 +805,16 @@ async function onSubmitScore() {
     score: total,
     scorers,
   });
-  showLoadingSpinner(false);
 
   if (res.status === "success") {
-    showToast("スコアを更新しました", "success");
     appState.matches = res.data.matches;               // 1. ローカルStateを最新データで更新
     flipScoreDigits(res.data.updated_match_id);          // 2. スコアボードのフリップアニメーション
     loadRankings();                                      // 3. バックグラウンドで最新ランキングを再取得
     render();
+    showLoadingSpinner(false);
+    showToast("スコアを更新しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -895,53 +899,61 @@ function individualRankingHtml(list) {
    ・チーム順位／個人得点をタブで切り替え、全件表示する。
    ・チーム順位は「平均勝ち点」ベースでソートされたデータを表示する（原本の順位表の方式に合わせている）。
    ========================================================================= */
+/* =========================================================================
+   U06 : 過去大会アーカイブ画面
+   ・年度一覧の自動読み込みは1回のみ。データが無ければ手動リロードボタンを表示。
+   ・最新（今年度）の大会はアーカイブ対象から除外する（バックエンド側 getArchiveYears で除外済み）。
+   ・過去の年度が複数ある場合は、最新の年度をデフォルトで表示し、他の年度は選択チップで切り替えられる。
+   ・チーム順位／個人得点をタブで切り替え、全件表示する。
+   ・チーム順位は「平均勝ち点」ベースでソートされたデータを表示する（原本の順位表の方式に合わせている）。
+   ========================================================================= */
 function renderArchive() {
   if (!appState.archive.yearsLoaded) {
     loadArchiveYears();
-    return loadingState("アーカイブを読み込んでいます…");
+    return loadingState("過去大会のデータを読み込んでいます…");
   }
   if (!appState.archive.years.length) {
-    return emptyStateWithReload("📦", "過去大会のアーカイブがありません。", "reloadArchiveYears");
+    return emptyStateWithReload("📦", "過去大会の記録はまだありません。大会が「終了」になり、年度が変わるとここに表示されます。", "reloadArchiveYears");
   }
-  // 年度が複数ある場合のみ選択チップを表示する（1年度しかなければ選ばせず、そのまま表示する）
+  // 年度が複数ある場合のみ選択チップを表示する（1年度しかなければ切り替える必要がないため出さない）
   const showYearSelector = appState.archive.years.length > 1;
   const yearChips = appState.archive.years.map((y) => `
     <button type="button" class="select-chip ${appState.archive.selectedYear === y ? "selected" : ""}" data-action="selectArchiveYear" data-year="${y}">${y}年度</button>
   `).join("");
 
   return `
-    ${showYearSelector ? `<div class="select-chip-group">${yearChips}</div>` : ""}
-    ${appState.archive.selectedYear ? archiveRankingSectionHtml() : `<div class="glass-card mt-16"><p class="text-dim">年度を選択してください。</p></div>`}
+    ${showYearSelector ? `<p class="text-dim mt-8">最新の年度をはじめに表示しています。他の年度を見たいときは、下のボタンから切り替えられます。</p><div class="select-chip-group mt-8">${yearChips}</div>` : ""}
+    ${appState.archive.selectedYear ? archiveRankingSectionHtml() : loadingState("過去大会のデータを読み込んでいます…")}
   `;
 }
 /** 年度一覧の取得。成否に関わらず yearsLoaded を立てて自動再取得ループを防止する。 */
 async function loadArchiveYears() {
   showLoadingSpinner(true);
   const res = await apiGet("getArchiveYears", {});
-  showLoadingSpinner(false);
   if (res.status === "success") {
     appState.archive.years = res.data.years || [];
   }
   appState.archive.yearsLoaded = true;
-  // 年度が1つしかない場合は、選択させずそのままそのデータを表示する
-  if (appState.archive.years.length === 1 && !appState.archive.selectedYear) {
-    await onSelectArchiveYear(appState.archive.years[0]);
-    return; // onSelectArchiveYear内でrender()される
+  // 年度が1つ以上ある場合は、最新年度をデフォルトで表示する（他の年度は選択チップから選べる）
+  if (appState.archive.years.length >= 1 && !appState.archive.selectedYear) {
+    await onSelectArchiveYear(appState.archive.years[0]); // 内部でrender()・ローダー制御まで行う
+  } else if (appState.route === "archive") {
+    render();
   }
-  if (appState.route === "archive") render();
+  showLoadingSpinner(false);
 }
 async function onSelectArchiveYear(year) {
   appState.archive.selectedYear = Number(year);
   appState.archive.rankingTab = "team"; // 年度を切り替えたらチーム順位タブに戻す
   showLoadingSpinner(true);
   const res = await apiGet("getArchiveRankings", { fiscal_year: year });
-  showLoadingSpinner(false);
   if (res.status === "success") {
     appState.archive.data = res.data;
   } else {
     appState.archive.data = { team_rankings: [], individual_rankings: [], tournaments: [] };
   }
   render();
+  showLoadingSpinner(false);
 }
 function switchArchiveRankingTab(tab) {
   appState.archive.rankingTab = tab;
@@ -1038,16 +1050,17 @@ async function onAdminLogin() {
   const password = document.getElementById("adminPassword").value;
   showLoadingSpinner(true);
   const res = await apiPost({ action: "adminLogin", password });
-  showLoadingSpinner(false);
   const errorEl = document.getElementById("adminLoginError");
   if (res.status === "success") {
     sessionStorage.setItem("admin_token", res.data.token);
     appState.isAdmin = true;
-    showToast("管理者としてログインしました", "success");
     navigate("adminDashboard");
+    showLoadingSpinner(false);
+    showToast("管理者としてログインしました", "success");
   } else {
     errorEl.textContent = res.message || "パスワードが異なります";
     errorEl.classList.remove("hidden");
+    showLoadingSpinner(false);
   }
 }
 function onAdminLogout() {
@@ -1184,6 +1197,7 @@ function adminSelectedTournamentSectionsHtml() {
   const matches = appState.admin.selectedMatches;
 
   return `
+    ${adminProgressBarHtml(t, teams, matches)}
     ${adminNextStepBannerHtml(t, teams, matches)}
     ${adminTournamentStatusHtml(t)}
     ${adminCourtsHtml(t)}
@@ -1191,6 +1205,42 @@ function adminSelectedTournamentSectionsHtml() {
     ${adminTeamListHtml(t, teams)}
     ${adminScheduleHtml(t, teams)}
     ${matches.length ? adminScheduleReviewHtml(t, teams, matches) : ""}
+  `;
+}
+
+/**
+ * 管理者ダッシュボードの進捗を①〜⑤の5ステップで視覚的に示すプログレスバー。
+ * 「次にやること」バナー（文章での案内）と役割を分け、こちらは
+ * 「今どのステップにいて、あと何ステップ残っているか」をひと目で伝える。
+ * 判定条件は adminNextStepBannerHtml と共通（コート予約・チーム数2以上・対戦表生成・確定）。
+ */
+function adminProgressBarHtml(t, teams, matches) {
+  const hasCourts = parseCourtsJson(t.courts).length > 0;
+  const hasEnoughTeams = teams.length >= 2;
+  const hasSchedule = matches.length > 0;
+  const isConfirmed = t.schedule_status === "CONFIRMED";
+
+  const steps = [
+    { label: "大会作成", done: true }, // この画面が表示されている時点で①は常に完了している
+    { label: "コート予約", done: hasCourts },
+    { label: "チーム登録", done: hasEnoughTeams },
+    { label: "対戦表生成", done: hasSchedule },
+    { label: "確定・公開", done: isConfirmed },
+  ];
+  // 「今ここ」は、まだ完了していない最初のステップ（すべて完了していれば最後のステップを現在地とする）
+  const firstUndone = steps.findIndex((s) => !s.done);
+  const activeIndex = firstUndone === -1 ? steps.length - 1 : firstUndone;
+
+  return `
+    <div class="admin-progress-bar" role="img" aria-label="大会設定の進捗: ${steps.filter((s) => s.done).length} / ${steps.length} ステップ完了">
+      ${steps.map((s, i) => `
+        ${i > 0 ? `<div class="admin-progress-connector ${steps[i - 1].done ? "done" : ""}"></div>` : ""}
+        <div class="admin-progress-step ${s.done ? "done" : ""} ${i === activeIndex ? "current" : ""}">
+          <div class="admin-progress-circle">${s.done ? "✓" : i + 1}</div>
+          <div class="admin-progress-label">${escapeHtml(s.label)}</div>
+        </div>
+      `).join("")}
+    </div>
   `;
 }
 
@@ -1374,12 +1424,13 @@ async function onSaveCourts() {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("saveCourts", { tournament_id: tournamentId, courts });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "コート予約を保存しました", "success");
     await loadAdminSelectedTournamentDetail(tournamentId);
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "コート予約を保存しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -1590,13 +1641,14 @@ async function onSaveEditTeam(teamId) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("updateTeam", { team_id: teamId, name, type, source_departments: sourceDepartments });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "チーム情報を更新しました", "success");
     appState.admin.editingTeamId = null;
     await loadTournament();
     await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
+    showLoadingSpinner(false);
+    showToast(res.message || "チーム情報を更新しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -1608,14 +1660,15 @@ async function onDeleteTeam(entryId, name) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("deleteTeam", { entry_id: entryId });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "チームを削除しました", "success");
     await loadTournament();
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
+    showLoadingSpinner(false);
+    showToast(res.message || "チームを削除しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -1948,12 +2001,13 @@ async function onUpdateMatchTeams(matchId) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("updateMatchTeams", { match_id: matchId, home_team_id: homeTeamId, away_team_id: awayTeamId });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "対戦カードを変更しました", "success");
     await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "対戦カードを変更しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2134,12 +2188,13 @@ async function performMatchSwap(matchIdA, matchIdB) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("swapMatches", { match_id_a: matchIdA, match_id_b: matchIdB });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "試合を入れ替えました", "success");
     await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "試合を入れ替えました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2152,14 +2207,15 @@ async function onConfirmSchedule() {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("confirmSchedule", { tournament_id: tournamentId });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "対戦表を確定しました", "success");
     await loadTournament();
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "対戦表を確定しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2168,11 +2224,9 @@ async function onConfirmSchedule() {
 async function loadAdminTournaments() {
   showLoadingSpinner(true);
   const res = await apiPostAuthed("getAdminTournaments", {});
-  showLoadingSpinner(false);
   if (res.status === "success") {
     appState.admin.tournaments = res.data.tournaments || [];
   } else {
-    showToast(res.message || "大会一覧の取得に失敗しました", "error");
     appState.admin.tournaments = [];
   }
   appState.admin.tournamentsLoaded = true;
@@ -2186,6 +2240,10 @@ async function loadAdminTournaments() {
     await loadAdminSelectedTournamentDetail(appState.admin.selectedTournamentId);
   } else if (appState.route === "adminDashboard") {
     render();
+  }
+  showLoadingSpinner(false);
+  if (res.status !== "success") {
+    showToast(res.message || "大会一覧の取得に失敗しました", "error");
   }
 }
 
@@ -2222,9 +2280,7 @@ async function onCreateTournament() {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("createTournament", { name, event_date: eventDate });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "大会を作成しました", "success");
     // 作成した大会を操作対象として選択し、一覧・現行大会情報を更新する
     appState.admin.selectedTournamentId = res.data.tournament_id;
     appState.admin.showCreateForm = false; // 作成後はフォームを畳み、選択中の大会の手順に注目を戻す
@@ -2232,7 +2288,10 @@ async function onCreateTournament() {
     await loadTournament();
     await loadAdminTournaments();
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "大会を作成しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2253,9 +2312,7 @@ async function onDeleteTournament(tournamentId) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("deleteTournament", { tournament_id: tournamentId });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "大会を削除しました", "success");
     if (appState.admin.selectedTournamentId === tournamentId) {
       appState.admin.selectedTournamentId = null;
       appState.admin.selectedTournament = null;
@@ -2266,7 +2323,10 @@ async function onDeleteTournament(tournamentId) {
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "大会を削除しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2286,14 +2346,15 @@ async function onUpdateTournamentStatus(tournamentId, newStatus) {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("updateTournamentStatus", { tournament_id: tournamentId, status: newStatus });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "大会のステータスを更新しました", "success");
     await loadAdminSelectedTournamentDetail(tournamentId);
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "大会のステータスを更新しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2324,15 +2385,16 @@ async function onCreateTeam() {
 
   showLoadingSpinner(true);
   const res = await apiPostAuthed("createTeam", payload);
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast("チームを登録しました", "success");
     await loadTournament();
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     await loadAdminSelectedTournamentDetail(tournamentId);
     render();
+    showLoadingSpinner(false);
+    showToast("チームを登録しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2373,14 +2435,15 @@ async function onGenerateSchedule() {
     first_match_start_time: firstMatchTime,
     last_match_end_time: lastMatchEndTime || null,
   });
-  showLoadingSpinner(false);
   if (res.status === "success") {
-    showToast(res.message || "対戦表を下書き作成しました", "success");
     await loadTournament();
     appState.admin.tournamentsLoaded = false;
     await loadAdminTournaments();
     render();
+    showLoadingSpinner(false);
+    showToast(res.message || "対戦表を下書き作成しました", "success");
   } else {
+    showLoadingSpinner(false);
     showToast(res.message, "error");
   }
 }
@@ -2389,7 +2452,6 @@ async function onGenerateSchedule() {
 function emptyState(icon, text) {
   return `<div class="empty-state"><div class="icon">${icon}</div><p>${escapeHtml(text)}</p></div>`;
 }
-/** データ取得中に使う空状態。回転スピナーのアニメーションと、通信の最大待機秒数（api.jsのAPI_TIMEOUT_MSと連動）を表示する。 */
 /** データ取得中に使う空状態のテキスト。アニメーションは全画面共通のサッカーボールローダー（showLoadingSpinner）が担うため、
     ここでは別のスピナーを重ねて表示しない（過去大会アーカイブ等で二重にローディング表示が出ていた問題の解消）。 */
 function loadingState(text) {
