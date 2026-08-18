@@ -1585,6 +1585,48 @@ body.no-scroll {
   background: var(--lime);
 }
 
+/* 管理者ダッシュボード: ②〜⑤の操作エリアを開閉できるアコーディオン */
+.admin-accordion {
+  padding: 0;
+  overflow: hidden;
+}
+
+.admin-accordion-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  min-height: var(--tap-min);
+  padding: 16px;
+  margin: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.admin-accordion-header h3 {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-accordion-chevron {
+  flex-shrink: 0;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.5);
+  transition: transform var(--dur-fast);
+}
+
+.admin-accordion.open .admin-accordion-header {
+  padding-bottom: 8px;
+}
+
+.admin-accordion-body {
+  padding: 0 16px 16px;
+}
+
 .admin-next-step {
   position: sticky;
   top: var(--header-h);

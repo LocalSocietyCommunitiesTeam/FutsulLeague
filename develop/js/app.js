@@ -27,6 +27,8 @@ const appState = {
     showCreateForm: false,                          // 「①大会作成」フォームの開閉状態（大会が既にある場合は畳んでおく）
     editingTeamId: null,                             // 編集フォームを開いているチーム（③チーム登録一覧）
     knownDepartments: [],                            // 同一年度内で既に登録されたことがある部署名（チーム登録時の選択肢に使う）
+    showAllTournaments: false,                        // 登録済み大会一覧を全件表示しているか（既定は上位3件のみ）
+    sectionOpenOverride: {},                          // ②〜⑤の各操作エリアをユーザーが手動で開閉した記録（未設定なら「今やるべき操作」を自動で開く）
   },
   isAdmin: false,
 };
@@ -216,6 +218,8 @@ function onGlobalClick(e) {
     createTeam: () => onCreateTeam(),
     selectTeamTypeChip: () => selectTeamTypeChip(el),
     selectTeamRegMode: () => selectTeamRegMode(el),
+    toggleAdminSection: () => toggleAdminSection(el.dataset.section),
+    toggleShowAllTournaments: () => toggleShowAllTournaments(),
     addDeptRow: () => addDeptRow(el.dataset.target),
     removeDeptRow: () => removeDeptRow(el),
     startEditTeam: () => startEditTeam(el.dataset.teamId),
@@ -1121,15 +1125,26 @@ function adminShellHtml(innerHtml) {
   `;
 }
 
-/* ---------- 登録済み大会一覧 ---------- */
+/* ---------- 登録済み大会一覧（既定は最新3件のみ表示） ---------- */
 function adminTournamentListHtml() {
   const tournaments = appState.admin.tournaments;
+  const VISIBLE_COUNT = 3;
+  const showAll = appState.admin.showAllTournaments;
+  const visibleTournaments = showAll ? tournaments : tournaments.slice(0, VISIBLE_COUNT);
+  const hiddenCount = tournaments.length - visibleTournaments.length;
+
   return `
     <div class="admin-section-title">登録済み大会（${tournaments.length}）</div>
     <div class="glass-card">
-      ${tournaments.length ? tournaments.map(adminTournamentCardHtml).join("") : `<p class="text-dim">大会がまだ登録されていません。下の「＋ 新しい大会を作成する」から作成してください。</p>`}
+      ${tournaments.length ? visibleTournaments.map(adminTournamentCardHtml).join("") : `<p class="text-dim">大会がまだ登録されていません。下の「＋ 新しい大会を作成する」から作成してください。</p>`}
+      ${hiddenCount > 0 ? `<button type="button" class="btn btn-ghost btn-block mt-8" data-action="toggleShowAllTournaments">もっと見る（残り${hiddenCount}件）</button>` : ""}
+      ${showAll && tournaments.length > VISIBLE_COUNT ? `<button type="button" class="btn btn-ghost btn-block mt-8" data-action="toggleShowAllTournaments">閉じる</button>` : ""}
     </div>
   `;
+}
+function toggleShowAllTournaments() {
+  appState.admin.showAllTournaments = !appState.admin.showAllTournaments;
+  render();
 }
 function adminTournamentCardHtml(t) {
   const isSelected = t.tournament_id === appState.admin.selectedTournamentId;
@@ -1195,17 +1210,79 @@ function adminSelectedTournamentSectionsHtml() {
   if (!t) return "";
   const teams = appState.admin.selectedTeams;
   const matches = appState.admin.selectedMatches;
+  const stepState = getAdminStepState(t, teams, matches);
 
   return `
     ${adminProgressBarHtml(t, teams, matches)}
     ${adminNextStepBannerHtml(t, teams, matches)}
     ${adminTournamentStatusHtml(t)}
-    ${adminCourtsHtml(t)}
-    ${adminAddTeamHtml(t, teams)}
-    ${adminTeamListHtml(t, teams)}
-    ${adminScheduleHtml(t, teams)}
-    ${matches.length ? adminScheduleReviewHtml(t, teams, matches) : ""}
+    ${adminCourtsHtml(t, stepState)}
+    ${adminTeamSectionHtml(t, teams, stepState)}
+    ${adminScheduleHtml(t, teams, stepState)}
+    ${matches.length ? adminScheduleReviewHtml(t, teams, matches, stepState) : ""}
   `;
+}
+
+/**
+ * ②〜⑤の完了状態と「今やるべき操作（現在地）」を判定する共通ロジック。
+ * プログレスバー・次にやることバナー・各操作エリアのアコーディオン初期開閉状態で共通利用する。
+ */
+function getAdminStepState(t, teams, matches) {
+  const hasCourts = parseCourtsJson(t.courts).length > 0;
+  const hasEnoughTeams = teams.length >= 2;
+  const hasSchedule = matches.length > 0;
+  const isConfirmed = t.schedule_status === "CONFIRMED";
+  // インデックス: 0=①大会作成（選択している時点で常に完了）, 1=②コート予約, 2=③チーム登録, 3=④対戦表生成, 4=⑤確定
+  const doneFlags = [true, hasCourts, hasEnoughTeams, hasSchedule, isConfirmed];
+  const firstUndone = doneFlags.findIndex((d) => !d);
+  const activeIndex = firstUndone === -1 ? doneFlags.length - 1 : firstUndone;
+  return { hasCourts, hasEnoughTeams, hasSchedule, isConfirmed, activeIndex };
+}
+/** アコーディオンのセクションキー（②〜⑤）と、getAdminStepState の doneFlags 配列インデックスの対応 */
+const ADMIN_SECTION_STEP_INDEX = { courts: 1, teams: 2, schedule: 3, review: 4 };
+/** 指定セクションが「今やるべき操作（現在地）」かどうか */
+function isAdminSectionCurrent(sectionKey, stepState) {
+  return stepState.activeIndex === ADMIN_SECTION_STEP_INDEX[sectionKey];
+}
+/**
+ * 指定セクションを開いた状態で表示するか判定する。
+ * ユーザーが手動で開閉した記録（sectionOpenOverride）があればそれを優先し、
+ * 無ければ「今やるべき操作」かどうかで自動判定する。
+ */
+function isAdminSectionOpen(sectionKey, stepState) {
+  const override = appState.admin.sectionOpenOverride[sectionKey];
+  return override !== undefined ? override : isAdminSectionCurrent(sectionKey, stepState);
+}
+/**
+ * ②〜⑤の操作エリアをクリックで開閉できるアコーディオンとして描画する共通ラッパー。
+ * 番号バッジ（①②③④⑤／完了時✓）はヘッダー部分にそのまま残し、開閉のためのシェブロン矢印を添える。
+ * bodyHtml は閉じているときも DOM 上には保持したまま hidden クラスで隠す
+ * （内部の input 要素などを参照する後続処理が、要素の不在でエラーにならないようにするため）。
+ */
+function adminAccordionSectionHtml(sectionKey, stepNumber, titleText, extraBadgeHtml, isComplete, stepState, bodyHtml) {
+  const isOpen = isAdminSectionOpen(sectionKey, stepState);
+  return `
+    <div class="glass-card admin-accordion mt-16 ${isOpen ? "open" : ""}">
+      <button type="button" class="admin-accordion-header" data-action="toggleAdminSection" data-section="${sectionKey}" aria-expanded="${isOpen}">
+        <h3>${stepBadgeHtml(stepNumber, isComplete)} ${escapeHtml(titleText)} ${extraBadgeHtml || ""}</h3>
+        <span class="admin-accordion-chevron">${isOpen ? "▲" : "▼"}</span>
+      </button>
+      <div class="admin-accordion-body ${isOpen ? "" : "hidden"}">
+        ${bodyHtml}
+      </div>
+    </div>
+  `;
+}
+/** アコーディオンのヘッダーをクリックしたときの開閉トグル */
+function toggleAdminSection(sectionKey) {
+  const t = appState.admin.selectedTournament;
+  const teams = appState.admin.selectedTeams;
+  const matches = appState.admin.selectedMatches;
+  if (!t) return;
+  const stepState = getAdminStepState(t, teams, matches);
+  const currentlyOpen = isAdminSectionOpen(sectionKey, stepState);
+  appState.admin.sectionOpenOverride[sectionKey] = !currentlyOpen;
+  render();
 }
 
 /**
@@ -1215,21 +1292,15 @@ function adminSelectedTournamentSectionsHtml() {
  * 判定条件は adminNextStepBannerHtml と共通（コート予約・チーム数2以上・対戦表生成・確定）。
  */
 function adminProgressBarHtml(t, teams, matches) {
-  const hasCourts = parseCourtsJson(t.courts).length > 0;
-  const hasEnoughTeams = teams.length >= 2;
-  const hasSchedule = matches.length > 0;
-  const isConfirmed = t.schedule_status === "CONFIRMED";
-
+  const stepState = getAdminStepState(t, teams, matches);
   const steps = [
     { label: "大会作成", done: true }, // この画面が表示されている時点で①は常に完了している
-    { label: "コート予約", done: hasCourts },
-    { label: "チーム登録", done: hasEnoughTeams },
-    { label: "対戦表生成", done: hasSchedule },
-    { label: "確定・公開", done: isConfirmed },
+    { label: "コート予約", done: stepState.hasCourts },
+    { label: "チーム登録", done: stepState.hasEnoughTeams },
+    { label: "対戦表生成", done: stepState.hasSchedule },
+    { label: "確定・公開", done: stepState.isConfirmed },
   ];
-  // 「今ここ」は、まだ完了していない最初のステップ（すべて完了していれば最後のステップを現在地とする）
-  const firstUndone = steps.findIndex((s) => !s.done);
-  const activeIndex = firstUndone === -1 ? steps.length - 1 : firstUndone;
+  const activeIndex = stepState.activeIndex;
 
   return `
     <div class="admin-progress-bar" role="img" aria-label="大会設定の進捗: ${steps.filter((s) => s.done).length} / ${steps.length} ステップ完了">
@@ -1250,16 +1321,13 @@ function adminProgressBarHtml(t, teams, matches) {
  * 次に何をすればよいかを1行で示す。全て完了している場合はチェック表示にする。
  */
 function adminNextStepBannerHtml(t, teams, matches) {
-  const hasCourts = parseCourtsJson(t.courts).length > 0;
-  const hasEnoughTeams = teams.length >= 2;
-  const hasSchedule = matches.length > 0;
-  const isConfirmed = t.schedule_status === "CONFIRMED";
+  const s = getAdminStepState(t, teams, matches);
 
   let text;
-  if (!hasCourts) text = "次にやること: ② でコートの予約情報を保存してください。";
-  else if (!hasEnoughTeams) text = "次にやること: ③ でチームを2チーム以上登録してください。";
-  else if (!hasSchedule) text = "次にやること: ④ で対戦表を生成してください。";
-  else if (!isConfirmed) text = "次にやること: ⑤ で内容を確認し、対戦表を確定してください。";
+  if (!s.hasCourts) text = "次にやること: ② でコートの予約情報を保存してください。";
+  else if (!s.hasEnoughTeams) text = "次にやること: ③ でチームを2チーム以上登録してください。";
+  else if (!s.hasSchedule) text = "次にやること: ④ で対戦表を生成してください。";
+  else if (!s.isConfirmed) text = "次にやること: ⑤ で内容を確認し、対戦表を確定してください。";
   else text = "✓ すべての手順が完了しています。当日の急な変更があれば ⑤ から試合順を調整できます。";
 
   const isDone = text.startsWith("✓");
@@ -1290,7 +1358,7 @@ function adminTournamentStatusHtml(t) {
  * 2コートだったり、時間帯によって使えるコート数が変わることもある）。この予約内容は
  * 対戦表自動生成（④）とは切り離して、ここで先に保存できるようにしている。
  */
-function adminCourtsHtml(t) {
+function adminCourtsHtml(t, stepState) {
   const savedCourts = parseCourtsJson(t.courts);
   const initialCourts = savedCourts.length ? savedCourts : [{ name: "", start: "19:00", end: "21:00" }];
   const courtRows = initialCourts.map((c, i) => courtRowHtml(i + 1, c)).join("");
@@ -1298,23 +1366,21 @@ function adminCourtsHtml(t) {
     ? `<span class="admin-selected-badge">${savedCourts.length}面 予約済み</span>`
     : `<span class="text-dim" style="font-size:12px;">未予約</span>`;
 
-  return `
-    <div class="glass-card mt-16">
-      <h3>${stepBadgeHtml(2, savedCourts.length > 0)} コート予約 ${savedBadge}</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
-      <p class="text-dim mt-8">コートごとに予約時間（15分刻み）を入力してください。空き状況によりコート数が少ない場合や、時間帯によって使えるコート数が変わる場合も、コートごとの実際の予約時間をそのまま入力すれば大丈夫です。</p>
+  const bodyHtml = `
+    <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
+    <p class="text-dim mt-8">コートごとに予約時間（15分刻み）を入力してください。空き状況によりコート数が少ない場合や、時間帯によって使えるコート数が変わる場合も、コートごとの実際の予約時間をそのまま入力すれば大丈夫です。</p>
 
-      <div id="courtList" class="mt-8">${courtRows}</div>
-      <div class="flex-col gap-8 mt-8">
-        <button class="btn btn-ghost btn-block" data-action="addCourtRow">＋ コートを追加</button>
-        <button class="btn btn-ghost btn-block" data-action="copyCourtTimesToAll" title="1面目の予約時間を、他のすべてのコートにもコピーします">⧉ 1面目の時間に揃える</button>
-      </div>
-
-      <div class="court-timeline" id="courtTimelineSimple"></div>
-
-      <button class="btn btn-primary mt-16" data-action="saveCourts">コート予約を保存する</button>
+    <div id="courtList" class="mt-8">${courtRows}</div>
+    <div class="flex-col gap-8 mt-8">
+      <button class="btn btn-ghost btn-block" data-action="addCourtRow">＋ コートを追加</button>
+      <button class="btn btn-ghost btn-block" data-action="copyCourtTimesToAll" title="1面目の予約時間を、他のすべてのコートにもコピーします">⧉ 1面目の時間に揃える</button>
     </div>
+
+    <div class="court-timeline" id="courtTimelineSimple"></div>
+
+    <button class="btn btn-primary mt-16" data-action="saveCourts">コート予約を保存する</button>
   `;
+  return adminAccordionSectionHtml("courts", 2, "コート予約", savedBadge, savedCourts.length > 0, stepState, bodyHtml);
 }
 
 /** Tournaments.courts（JSON文字列）をパースする。旧形式（カンマ区切り文字列）や未設定時は空配列にフォールバック。 */
@@ -1474,57 +1540,61 @@ function onDeptSelectChange(select) {
   if (!showText) textInput.value = "";
 }
 
-function adminAddTeamHtml(t, teams) {
+function adminTeamSectionHtml(t, teams, stepState) {
   const known = appState.admin.knownDepartments || []; // [{department_id,name,type,source_departments}]
   const knownNames = known.map((d) => d.name);
   const enteredIds = new Set(teams.map((tm) => tm.team_id));
   const availableExisting = known.filter((d) => !enteredIds.has(d.department_id)); // この大会にまだ未参加の部署のみ選べる
+  const countBadge = `<span class="admin-selected-badge ${teams.length >= 2 ? "" : "draft"}">${teams.length}チーム登録済み</span>`;
 
-  return `
-    <div class="glass-card mt-16">
-      <h3>${stepBadgeHtml(3, teams.length >= 2)} チーム登録</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
-      <p class="text-dim mt-8">部署からのエントリーが決まり次第、1件ずつ追加してください（1大会あたり目安12部署程度。人数が少ない部署は合同チームで参加できます）。</p>
+  const bodyHtml = `
+    <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}）</p>
+    <p class="text-dim mt-8">部署からのエントリーが決まり次第、1件ずつ追加してください（1大会あたり目安12部署程度。人数が少ない部署は合同チームで参加できます）。</p>
 
-      ${availableExisting.length ? `
+    ${availableExisting.length ? `
+    <div class="form-group mt-16">
+      <label class="field-label">登録方法</label>
+      <div class="select-chip-group" id="addTeamModeGroup">
+        <button type="button" class="select-chip selected" data-action="selectTeamRegMode" data-target="addTeamNewSection">既存の部署から選ぶ</button>
+        <button type="button" class="select-chip" data-action="selectTeamRegMode" data-value="NEW" data-target="addTeamNewSection">新しい部署を登録する</button>
+      </div>
+      <p class="text-dim mt-8" style="font-size:12px;">同じ年度で既に登録済みの部署を選ぶと、順位の集計に正しく引き継がれます。</p>
+    </div>
+    <div class="form-group" id="addTeamExistingSection">
+      <label class="field-label">部署を選択</label>
+      <select class="field" id="addTeamExistingSelect">
+        ${availableExisting.map((d) => `<option value="${d.department_id}">${escapeHtml(d.name)}（${d.type === "JOINT" ? "合同" : "単一"}）</option>`).join("")}
+      </select>
+    </div>
+    ` : ""}
+
+    <div class="${availableExisting.length ? "hidden" : ""}" id="addTeamNewSection">
       <div class="form-group mt-16">
-        <label class="field-label">登録方法</label>
-        <div class="select-chip-group" id="addTeamModeGroup">
-          <button type="button" class="select-chip selected" data-action="selectTeamRegMode" data-target="addTeamNewSection">既存の部署から選ぶ</button>
-          <button type="button" class="select-chip" data-action="selectTeamRegMode" data-value="NEW" data-target="addTeamNewSection">新しい部署を登録する</button>
+        <label class="field-label">チーム名（部署名）</label>
+        <input class="field" id="addTeamName" placeholder="営業企画部" maxlength="30">
+      </div>
+      <div class="form-group">
+        <label class="field-label">参加形態</label>
+        <div class="select-chip-group" id="addTeamTypeGroup">
+          <button type="button" class="select-chip selected" data-action="selectTeamTypeChip" data-target="addTeamDeptSection">単一部署</button>
+          <button type="button" class="select-chip" data-action="selectTeamTypeChip" data-value="JOINT" data-target="addTeamDeptSection">合同チーム</button>
         </div>
-        <p class="text-dim mt-8" style="font-size:12px;">同じ年度で既に登録済みの部署を選ぶと、順位の集計に正しく引き継がれます。</p>
       </div>
-      <div class="form-group" id="addTeamExistingSection">
-        <label class="field-label">部署を選択</label>
-        <select class="field" id="addTeamExistingSelect">
-          ${availableExisting.map((d) => `<option value="${d.department_id}">${escapeHtml(d.name)}（${d.type === "JOINT" ? "合同" : "単一"}）</option>`).join("")}
-        </select>
+      <div class="form-group hidden" id="addTeamDeptSection">
+        <label class="field-label">元となる部署名（合同チームを構成する各部署）</label>
+        <p class="text-dim mt-8" style="font-size:12px;">ここで選択・登録した部署名が、出場メンバー登録時の部署選択の選択肢になります。</p>
+        <div id="addTeamDeptList" class="mt-8">${deptRowHtml("", 0, knownNames)}${deptRowHtml("", 1, knownNames)}</div>
+        <button type="button" class="btn btn-ghost mt-8" data-action="addDeptRow" data-target="addTeamDeptList">＋ 部署を追加</button>
       </div>
-      ` : ""}
+    </div>
+    <button class="btn btn-primary mt-16" data-action="createTeam">チームを追加</button>
 
-      <div class="${availableExisting.length ? "hidden" : ""}" id="addTeamNewSection">
-        <div class="form-group mt-16">
-          <label class="field-label">チーム名（部署名）</label>
-          <input class="field" id="addTeamName" placeholder="営業企画部" maxlength="30">
-        </div>
-        <div class="form-group">
-          <label class="field-label">参加形態</label>
-          <div class="select-chip-group" id="addTeamTypeGroup">
-            <button type="button" class="select-chip selected" data-action="selectTeamTypeChip" data-target="addTeamDeptSection">単一部署</button>
-            <button type="button" class="select-chip" data-action="selectTeamTypeChip" data-value="JOINT" data-target="addTeamDeptSection">合同チーム</button>
-          </div>
-        </div>
-        <div class="form-group hidden" id="addTeamDeptSection">
-          <label class="field-label">元となる部署名（合同チームを構成する各部署）</label>
-          <p class="text-dim mt-8" style="font-size:12px;">ここで選択・登録した部署名が、出場メンバー登録時の部署選択の選択肢になります。</p>
-          <div id="addTeamDeptList" class="mt-8">${deptRowHtml("", 0, knownNames)}${deptRowHtml("", 1, knownNames)}</div>
-          <button type="button" class="btn btn-ghost mt-8" data-action="addDeptRow" data-target="addTeamDeptList">＋ 部署を追加</button>
-        </div>
-      </div>
-      <button class="btn btn-primary mt-16" data-action="createTeam">チームを追加</button>
+    <div class="admin-section-title" style="margin-top:20px;">登録済みチーム（${teams.length}）</div>
+    <div class="mt-8">
+      ${teams.length ? teams.map((tm) => adminTeamRowHtml(tm)).join("") : `<p class="text-dim">登録済みのチームはありません。</p>`}
     </div>
   `;
+  return adminAccordionSectionHtml("teams", 3, "チーム登録", countBadge, teams.length >= 2, stepState, bodyHtml);
 }
 /** 「既存の部署から選ぶ／新しい部署を登録する」の切り替え */
 function selectTeamRegMode(el) {
@@ -1570,14 +1640,6 @@ function collectDeptNames(listId) {
     .filter(Boolean);
 }
 
-function adminTeamListHtml(t, teams) {
-  return `
-    <div class="admin-section-title">登録済みチーム（${escapeHtml(t.name)} ・ ${teams.length}）</div>
-    <div class="glass-card">
-      ${teams.length ? teams.map((tm) => adminTeamRowHtml(tm)).join("") : `<p class="text-dim">登録済みのチームはありません。</p>`}
-    </div>
-  `;
-}
 /** チーム1件分の行。編集中（editingTeamId一致）は編集フォーム、それ以外は通常表示にする。 */
 function adminTeamRowHtml(tm) {
   const knownNames = (appState.admin.knownDepartments || []).map((d) => d.name).filter((n) => n !== tm.name);
@@ -1690,7 +1752,7 @@ async function onDeleteTeam(entryId, name) {
  *     見積もり試合数をその場でビジュアルタイムライン＋数値で確認できる
  *   - 生成すると「下書き」状態になり、まだ参加者には公開されない（⑤で確定して初めて公開）
  */
-function adminScheduleHtml(t, teams) {
+function adminScheduleHtml(t, teams, stepState) {
   const teamCount = teams.length;
   const savedCourts = parseCourtsJson(t.courts);
   const hasCourts = savedCourts.length > 0;
@@ -1702,51 +1764,50 @@ function adminScheduleHtml(t, teams) {
   else if (!hasCourts) disabledReason = "先に②でコート予約を保存してください。";
   else if (teamCount < 2) disabledReason = "対戦表を生成するには、チームを2チーム以上登録してください。";
 
-  return `
-    <div class="glass-card mt-16">
-      <h3>${stepBadgeHtml(4, alreadyGenerated)} 対戦表自動生成</h3>
-      <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}） ／ 登録チーム数: ${teamCount}</p>
+  const badge = alreadyGenerated ? `<span class="admin-selected-badge">生成済み</span>` : "";
+  const bodyHtml = `
+    <p class="text-dim mt-8">対象の大会: <strong>${escapeHtml(t.name)}</strong>（${escapeHtml(formatDateDisplay(t.event_date))}） ／ 登録チーム数: ${teamCount}</p>
 
-      <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
-      ${hasCourts
+    <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
+    ${hasCourts
       ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
       : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
 
-      ${alreadyGenerated ? `
-        <div class="schedule-warning mt-16">
-          ⚠️ この大会には既に対戦表が生成されています（現在 ${appState.admin.selectedMatches.length}試合、${scheduleStatusLabel(t.schedule_status)}）。<br>
-          再生成すると、これまでの試合結果と試合順の入れ替えはすべて上書きされます。
-        </div>` : ""}
+    ${alreadyGenerated ? `
+      <div class="schedule-warning mt-16">
+        ⚠️ この大会には既に対戦表が生成されています（現在 ${appState.admin.selectedMatches.length}試合、${scheduleStatusLabel(t.schedule_status)}）。<br>
+        再生成すると、これまでの試合結果と試合順の入れ替えはすべて上書きされます。
+      </div>` : ""}
 
-      <p class="admin-section-title" style="margin-top:16px;">試合の時間設定（上から順に入力してください）</p>
-      <div class="form-group mt-8">
-        <label class="field-label" for="scheduleMatchDuration">① 試合時間（分）</label>
-        <input class="field" id="scheduleMatchDuration" type="number" min="1" value="8">
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="scheduleInterval">② インターバル（分）</label>
-        <input class="field" id="scheduleInterval" type="number" min="0" value="2">
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="scheduleFirstMatchTime">③ 第1試合開始時間</label>
-        <input class="field" id="scheduleFirstMatchTime" type="time" step="900" value="19:15">
-        <p class="text-dim mt-8" style="font-size:12px;">コートの予約開始時刻より後になることがあります。各コートの実際の開始時刻は「そのコートの予約開始時刻」と「第1試合開始時間」の遅い方になります。</p>
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="scheduleLastMatchEndTime">④ 最終試合終了時間（任意）</label>
-        <input class="field" id="scheduleLastMatchEndTime" type="time" step="900" value="20:45">
-        <p class="text-dim mt-8" style="font-size:12px;">最も遅い試合の終了時刻の上限です。①〜③をもとに算出される終了時刻がこれを超えないよう調整されます。コートの予約終了時刻より前でも指定できます（未入力なら各コートの予約終了時刻のみが上限になります）。</p>
-      </div>
-
-      <div class="court-timeline" id="courtTimelineDetailed"></div>
-      <div class="schedule-estimate" id="scheduleEstimateBox"></div>
-
-      ${!canGenerate ? `<p class="error-text mt-8" style="display:block;">${disabledReason}</p>` : ""}
-      <button class="btn btn-primary mt-16" data-action="generateSchedule" ${canGenerate ? "" : "disabled"}>
-        ${alreadyGenerated ? "対戦表を再生成する（下書き）" : "対戦表を生成する（下書き）"}
-      </button>
+    <p class="admin-section-title" style="margin-top:16px;">試合の時間設定（上から順に入力してください）</p>
+    <div class="form-group mt-8">
+      <label class="field-label" for="scheduleMatchDuration">① 試合時間（分）</label>
+      <input class="field" id="scheduleMatchDuration" type="number" min="1" value="8">
     </div>
+    <div class="form-group">
+      <label class="field-label" for="scheduleInterval">② インターバル（分）</label>
+      <input class="field" id="scheduleInterval" type="number" min="0" value="2">
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="scheduleFirstMatchTime">③ 第1試合開始時間</label>
+      <input class="field" id="scheduleFirstMatchTime" type="time" step="900" value="19:15">
+      <p class="text-dim mt-8" style="font-size:12px;">コートの予約開始時刻より後になることがあります。各コートの実際の開始時刻は「そのコートの予約開始時刻」と「第1試合開始時間」の遅い方になります。</p>
+    </div>
+    <div class="form-group">
+      <label class="field-label" for="scheduleLastMatchEndTime">④ 最終試合終了時間（任意）</label>
+      <input class="field" id="scheduleLastMatchEndTime" type="time" step="900" value="20:45">
+      <p class="text-dim mt-8" style="font-size:12px;">最も遅い試合の終了時刻の上限です。①〜③をもとに算出される終了時刻がこれを超えないよう調整されます。コートの予約終了時刻より前でも指定できます（未入力なら各コートの予約終了時刻のみが上限になります）。</p>
+    </div>
+
+    <div class="court-timeline" id="courtTimelineDetailed"></div>
+    <div class="schedule-estimate" id="scheduleEstimateBox"></div>
+
+    ${!canGenerate ? `<p class="error-text mt-8" style="display:block;">${disabledReason}</p>` : ""}
+    <button class="btn btn-primary mt-16" data-action="generateSchedule" ${canGenerate ? "" : "disabled"}>
+      ${alreadyGenerated ? "対戦表を再生成する（下書き）" : "対戦表を生成する（下書き）"}
+    </button>
   `;
+  return adminAccordionSectionHtml("schedule", 4, "対戦表自動生成", badge, alreadyGenerated, stepState, bodyHtml);
 }
 
 /** 運用ステップの番号バッジ。完了していればチェックマーク＋ライム色、未完了なら番号＋控えめな色で表示する。 */
@@ -1919,7 +1980,7 @@ function updateScheduleEstimate() {
  *   - 下書きの間だけ「確定」でき、確定すると参加者の画面に公開される
  * 確定後も試合順の入れ替えは引き続き可能（当日の急な変更に対応するため）。
  */
-function adminScheduleReviewHtml(t, teams, matches) {
+function adminScheduleReviewHtml(t, teams, matches, stepState) {
   const counts = {};
   teams.forEach((tm) => { counts[tm.team_id] = 0; });
   matches.forEach((m) => { counts[m.home_team_id] = (counts[m.home_team_id] || 0) + 1; counts[m.away_team_id] = (counts[m.away_team_id] || 0) + 1; });
@@ -1932,29 +1993,27 @@ function adminScheduleReviewHtml(t, teams, matches) {
   `).join("");
 
   const isConfirmed = t.schedule_status === "CONFIRMED";
+  const badge = `<span class="admin-selected-badge ${isConfirmed ? "" : "draft"}">${scheduleStatusLabel(t.schedule_status)}</span>`;
 
-  return `
-    <div class="glass-card mt-16">
-      <h3>${stepBadgeHtml(5, isConfirmed)} 対戦表の確認・確定 <span class="admin-selected-badge ${isConfirmed ? "" : "draft"}">${scheduleStatusLabel(t.schedule_status)}</span></h3>
+  const bodyHtml = `
+    <div class="admin-section-title" style="margin-top:14px;">チームごとの試合数（${minCount === maxCount ? "均等です" : `${minCount}〜${maxCount}試合`}）</div>
+    <div class="mt-8">${balanceRows}</div>
 
-      <div class="admin-section-title" style="margin-top:14px;">チームごとの試合数（${minCount === maxCount ? "均等です" : `${minCount}〜${maxCount}試合`}）</div>
-      <div class="mt-8">${balanceRows}</div>
+    <div class="admin-section-title" style="margin-top:18px;">試合順の入れ替え</div>
+    <p class="text-dim mt-8">試合をドラッグして、別の試合の上にドロップすると時間・コートが入れ替わります（対戦カードはそのまま。当日の遅刻対応などにご利用ください）。</p>
+    ${festivalTimetableHtml(matches, teams)}
 
-      <div class="admin-section-title" style="margin-top:18px;">試合順の入れ替え</div>
-      <p class="text-dim mt-8">試合をドラッグして、別の試合の上にドロップすると時間・コートが入れ替わります（対戦カードはそのまま。当日の遅刻対応などにご利用ください）。</p>
-      ${festivalTimetableHtml(matches, teams)}
+    <div class="admin-section-title" style="margin-top:18px;">対戦カードの変更</div>
+    <p class="text-dim mt-8">対戦チームの組み合わせを間違えた場合など、任意の試合のホーム／アウェイを選び直せます（時間・コートは変わりません）。</p>
+    ${matchTeamEditListHtml(matches, teams)}
 
-      <div class="admin-section-title" style="margin-top:18px;">対戦カードの変更</div>
-      <p class="text-dim mt-8">対戦チームの組み合わせを間違えた場合など、任意の試合のホーム／アウェイを選び直せます（時間・コートは変わりません）。</p>
-      ${matchTeamEditListHtml(matches, teams)}
-
-      ${!isConfirmed ? `
-        <div class="admin-section-title" style="margin-top:18px;">公開</div>
-        <p class="text-dim mt-8">内容を確認し、試合数のバランスに問題なければ確定してください。確定すると参加者の画面（対戦表・順位）に表示されます。</p>
-        <button class="btn btn-primary btn-block mt-16" data-action="confirmSchedule">この対戦表を確定して参加者に公開する</button>
-      ` : `<p class="text-dim mt-16">✓ 確定済みです。参加者の画面に表示されています。入れ替えを行うと即座に反映されます。</p>`}
-    </div>
+    ${!isConfirmed ? `
+      <div class="admin-section-title" style="margin-top:18px;">公開</div>
+      <p class="text-dim mt-8">内容を確認し、試合数のバランスに問題なければ確定してください。確定すると参加者の画面（対戦表・順位）に表示されます。</p>
+      <button class="btn btn-primary btn-block mt-16" data-action="confirmSchedule">この対戦表を確定して参加者に公開する</button>
+    ` : `<p class="text-dim mt-16">✓ 確定済みです。参加者の画面に表示されています。入れ替えを行うと即座に反映されます。</p>`}
   `;
+  return adminAccordionSectionHtml("review", 5, "対戦表の確認・確定", badge, isConfirmed, stepState, bodyHtml);
 }
 
 /**
@@ -2267,6 +2326,7 @@ async function loadAdminSelectedTournamentDetail(tournamentId) {
 async function onSelectAdminTournament(tournamentId) {
   if (tournamentId === appState.admin.selectedTournamentId) return;
   appState.admin.selectedTournamentId = tournamentId;
+  appState.admin.sectionOpenOverride = {}; // 大会を切り替えたら、開閉状態は「今やるべき操作」の自動判定に戻す
   showLoadingSpinner(true);
   await loadAdminSelectedTournamentDetail(tournamentId);
   showLoadingSpinner(false);
