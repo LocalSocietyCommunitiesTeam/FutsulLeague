@@ -219,6 +219,7 @@ function onGlobalClick(e) {
     selectTeamTypeChip: () => selectTeamTypeChip(el),
     selectTeamRegMode: () => selectTeamRegMode(el),
     toggleAdminSection: () => toggleAdminSection(el.dataset.section),
+    scrollToAdminStep: () => scrollToAdminStep(el.dataset.stepIndex),
     toggleShowAllTournaments: () => toggleShowAllTournaments(),
     addDeptRow: () => addDeptRow(el.dataset.target),
     removeDeptRow: () => removeDeptRow(el),
@@ -991,8 +992,8 @@ function archiveTournamentSummaryHtml(tournamentList) {
     <div class="glass-card mt-16 archive-tournament-summary">
       <span class="eyebrow">${appState.archive.selectedYear}年度</span>
       ${tournamentList.length
-      ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
-      : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
+        ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
+        : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
     </div>
   `;
 }
@@ -1161,8 +1162,8 @@ function adminTournamentCardHtml(t) {
             チーム ${t.team_count}<br>試合 ${t.match_count}
           </div>
           ${canDelete
-      ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
-      : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
+            ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
+            : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
         </div>
       </div>
       ${isSelected ? `<div class="admin-selected-badge mt-8">操作対象に選択中</div>` : ""}
@@ -1262,7 +1263,7 @@ function isAdminSectionOpen(sectionKey, stepState) {
 function adminAccordionSectionHtml(sectionKey, stepNumber, titleText, extraBadgeHtml, isComplete, stepState, bodyHtml) {
   const isOpen = isAdminSectionOpen(sectionKey, stepState);
   return `
-    <div class="glass-card admin-accordion mt-16 ${isOpen ? "open" : ""}">
+    <div class="glass-card admin-accordion mt-16 ${isOpen ? "open" : ""}" id="adminSection-${sectionKey}">
       <button type="button" class="admin-accordion-header" data-action="toggleAdminSection" data-section="${sectionKey}" aria-expanded="${isOpen}">
         <h3>${stepBadgeHtml(stepNumber, isComplete)} ${escapeHtml(titleText)} ${extraBadgeHtml || ""}</h3>
         <span class="admin-accordion-chevron">${isOpen ? "▲" : "▼"}</span>
@@ -1286,6 +1287,46 @@ function toggleAdminSection(sectionKey) {
 }
 
 /**
+ * プログレスバーの丸（①〜⑤）をタップしたときの挙動。
+ * 対応する操作エリアのアコーディオンを開いた状態にしたうえで、そこまで自動スクロールする。
+ * ①（大会作成）はアコーディオンではなく「大会ステータス」カードへ、
+ * ⑤（確定・公開）は対戦表がまだ生成されておらずアコーディオン自体が存在しない場合、
+ * 代わりに④（対戦表自動生成）へスクロールする。
+ */
+const ADMIN_PROGRESS_STEP_SECTION = [null, "courts", "teams", "schedule", "review"];
+function scrollToAdminStep(stepIndex) {
+  const index = Number(stepIndex);
+  if (index === 0) {
+    scrollToAdminElement("adminSection-status");
+    return;
+  }
+  const sectionKey = ADMIN_PROGRESS_STEP_SECTION[index];
+  if (!sectionKey) return;
+
+  let targetId = `adminSection-${sectionKey}`;
+  if (!document.getElementById(targetId)) {
+    // ⑤は対戦表が1件も無いとアコーディオン自体が描画されないため、④へフォールバックする
+    targetId = "adminSection-schedule";
+  }
+
+  appState.admin.sectionOpenOverride[sectionKey] = true; // タップしたら必ず開く
+  render();
+  scrollToAdminElement(targetId);
+}
+/**
+ * 指定要素までスクロールする共通ヘルパー。
+ * window.scrollTo() で座標を手計算する方式は、html/bodyの両方にoverflow-x:hiddenを
+ * 指定した構成（横スクロール防止の安全網）のもとではスクロールが効かない場合があったため、
+ * scrollIntoView() に統一している。固定ヘッダー・sticky化したプログレスバーの裏に
+ * 隠れないための余白は、各要素のCSS（scroll-margin-top）側で確保する。
+ */
+function scrollToAdminElement(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+/**
  * 管理者ダッシュボードの進捗を①〜⑤の5ステップで視覚的に示すプログレスバー。
  * 「次にやること」バナー（文章での案内）と役割を分け、こちらは
  * 「今どのステップにいて、あと何ステップ残っているか」をひと目で伝える。
@@ -1303,13 +1344,13 @@ function adminProgressBarHtml(t, teams, matches) {
   const activeIndex = stepState.activeIndex;
 
   return `
-    <div class="admin-progress-bar" role="img" aria-label="大会設定の進捗: ${steps.filter((s) => s.done).length} / ${steps.length} ステップ完了">
+    <div class="admin-progress-bar" aria-label="大会設定の進捗: ${steps.filter((s) => s.done).length} / ${steps.length} ステップ完了">
       ${steps.map((s, i) => `
         ${i > 0 ? `<div class="admin-progress-connector ${steps[i - 1].done ? "done" : ""}"></div>` : ""}
-        <div class="admin-progress-step ${s.done ? "done" : ""} ${i === activeIndex ? "current" : ""}">
+        <button type="button" class="admin-progress-step ${s.done ? "done" : ""} ${i === activeIndex ? "current" : ""}" data-action="scrollToAdminStep" data-step-index="${i}" aria-label="${escapeHtml(s.label)}へ移動">
           <div class="admin-progress-circle">${s.done ? "✓" : i + 1}</div>
           <div class="admin-progress-label">${escapeHtml(s.label)}</div>
-        </div>
+        </button>
       `).join("")}
     </div>
   `;
@@ -1342,7 +1383,7 @@ function adminTournamentStatusHtml(t) {
     { value: "FINISHED", label: "終了" },
   ];
   return `
-    <div class="glass-card mt-16">
+    <div class="glass-card mt-16" id="adminSection-status">
       <h3>大会ステータス</h3>
       <p class="text-dim mt-8">「終了」にすると、参加者はこの大会の結果・得点者を入力できなくなります。</p>
       <div class="select-chip-group mt-8">
@@ -1966,8 +2007,8 @@ function updateScheduleEstimate() {
     </div>
     <p class="text-dim mt-8">
       ${roundsCompletable
-      ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
-      : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
+        ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
+        : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
     </p>
   `;
 }
