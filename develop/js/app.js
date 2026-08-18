@@ -666,6 +666,7 @@ function teamEntryPanelHtml(sideKey, name, teamId, activeSide) {
 
       <div data-scorer-section="${sideKey}">
         <label class="field-label mt-8">得点者内訳（選手・得点）</label>
+        <p class="text-dim" style="font-size:12px;margin-top:2px;">相手のオウンゴールで得た得点は、得点者選択で「⚽ 相手のオウンゴール」を選んでください（個人記録にはなりません）。</p>
         ${members.length ? `
           <div class="scorer-list" data-scorer-list="${sideKey}" data-team-id="${teamId}">
             ${scorerRowHtml(sideKey, teamId, entryId, disabledAttr)}
@@ -690,6 +691,7 @@ function scorerRowHtml(sideKey, teamId, entryId, disabledAttr) {
         <select class="field scorer-name" data-side="${sideKey}" ${disabledAttr}>
           <option value="">選手を選択</option>
           ${options}
+          <option value="__own_goal__">⚽ 相手のオウンゴール</option>
           <option value="__unregistered__">↳ リストにいない選手</option>
         </select>
         <input class="field scorer-points" data-side="${sideKey}" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="得点" ${disabledAttr}>
@@ -783,11 +785,13 @@ async function onSubmitScore() {
   const teamId = side === "home" ? m.home_team_id : m.away_team_id;
   const total = Number(document.querySelector(`.score-total[data-side="${side}"]`).value);
   const scorers = total === 0 ? [] : [...document.querySelectorAll(`[data-scorer-list="${side}"] .scorer-row`)]
-    .map((row) => ({
-      user_id: row.querySelector(".scorer-name").value,
-      points: Number(row.querySelector(".scorer-points").value || 0),
-    }))
-    .filter((s) => s.user_id && s.user_id !== "__unregistered__");
+    .map((row) => {
+      const nameValue = row.querySelector(".scorer-name").value;
+      const points = Number(row.querySelector(".scorer-points").value || 0);
+      if (nameValue === "__own_goal__") return { is_own_goal: true, points };
+      return { user_id: nameValue, points };
+    })
+    .filter((s) => s.is_own_goal || (s.user_id && s.user_id !== "__unregistered__"));
 
   showLoadingSpinner(true);
   const res = await apiPost({
@@ -971,8 +975,8 @@ function archiveTournamentSummaryHtml(tournamentList) {
     <div class="glass-card mt-16 archive-tournament-summary">
       <span class="eyebrow">${appState.archive.selectedYear}年度</span>
       ${tournamentList.length
-        ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
-        : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
+      ? `<ul class="archive-tournament-list">${tournamentList.map((t) => `<li>${escapeHtml(t.name)}<span class="text-dim">（${escapeHtml(formatDateDisplay(t.event_date))}）</span></li>`).join("")}</ul>`
+      : `<p class="text-dim mt-8">この年度の大会情報がありません。</p>`}
     </div>
   `;
 }
@@ -1129,8 +1133,8 @@ function adminTournamentCardHtml(t) {
             チーム ${t.team_count}<br>試合 ${t.match_count}
           </div>
           ${canDelete
-            ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
-            : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
+      ? `<button type="button" class="tournament-delete-btn" data-action="deleteTournament" data-tournament-id="${t.tournament_id}" title="この大会を削除" aria-label="この大会を削除">✕</button>`
+      : `<span class="tournament-delete-locked" title="終了済みの大会は削除できません">🔒</span>`}
         </div>
       </div>
       ${isSelected ? `<div class="admin-selected-badge mt-8">操作対象に選択中</div>` : ""}
@@ -1652,8 +1656,8 @@ function adminScheduleHtml(t, teams) {
 
       <div class="admin-section-title" style="margin-top:14px;">使用コート（②で予約済みの内容）</div>
       ${hasCourts
-        ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
-        : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
+      ? `<div class="court-summary-list">${savedCourts.map((c) => `<div class="court-summary-row"><span>${escapeHtml(c.name)}</span><span>${c.start} 〜 ${c.end}</span></div>`).join("")}</div>`
+      : `<p class="text-dim mt-8">まだコートが予約されていません。②のセクションで保存してください。</p>`}
 
       ${alreadyGenerated ? `
         <div class="schedule-warning mt-16">
@@ -1848,8 +1852,8 @@ function updateScheduleEstimate() {
     </div>
     <p class="text-dim mt-8">
       ${roundsCompletable
-        ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
-        : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
+      ? `✓ 全チームが総当たりで対戦できます（1チームあたり${teamCount - 1}試合）。`
+      : "枠の都合で総当たり戦は組めませんが、できるだけ均等な試合数になるよう自動調整されます。"}
     </p>
   `;
 }
