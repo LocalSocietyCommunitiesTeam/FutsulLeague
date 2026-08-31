@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>試合結果編集</title>
+    <link rel="stylesheet" href="../futsul_files/p_css/matchResult.css" />
+</head>
+
+<body>
+    <div id="app" class="app-container">
+        <section id="match-entry-view" class="view active">
+            <header class="header">
+                <button id="back-to-list" class="back-btn">←</button>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <span id="match-round" class="badge round">第1節</span>
+                    <span id="match-status" class="badge status">予定</span>
+                </div>
+                <h2 style="margin:0;">試合結果入力</h2>
+            </header>
+
+            <div class="form-container">
+                <div class="card">
+                    <label>試合日時</label>
+                    <div class="datetime">
+                        <input type="date" id="match-date" />
+                        <button id="open-time-picker" type="button">🕒 <span id="match-time">19:00</span></button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header flex-between" style="margin-bottom:8px;">
+                        <label style="margin:0;">チーム選択</label>
+                        <div style="display:flex;gap:8px;align-items:center;">
+                            <span id="team1-name" style="font-weight:bold;color:#14788b">--</span>
+                            <span style="color:#666">vs</span>
+                            <span id="team2-name" style="font-weight:bold;color:#14788b">--</span>
+                        </div>
+                    </div>
+
+                    <select id="team1-select"></select>
+                    <select id="team2-select" style="margin-top:8px;"></select>
+
+                    <div class="score-display" style="margin-top:12px;">
+                        <div>
+                            <div class="team-label" id="team1-label"></div>
+                            <div><span id="team1-score" class="score">0</span></div>
+                        </div>
+                        <span class="vs">-</span>
+                        <div>
+                            <div class="team-label" id="team2-label"></div>
+                            <div><span id="team2-score" class="score">0</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label>会場</label>
+                    <input type="text" id="venue-input" placeholder="会場名を入力" />
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3 style="margin:0;">得点者</h3>
+                    </div>
+
+                    <div class="goal-section">
+                        <h4 id="team1-goal-title"></h4>
+                        <div id="team1-goals"></div>
+                        <button class="add-btn" data-team="1" type="button">＋ 得点者追加</button>
+
+                        <h4 id="team2-goal-title" style="margin-top:12px;"></h4>
+                        <div id="team2-goals"></div>
+                        <button class="add-btn" data-team="2" type="button">＋ 得点者追加</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <label>節</label>
+                    <select id="round-select"></select>
+                </div>
+
+                <div style="height:80px"></div> <!-- footer と被らないための余白 -->
+
+            </div>
+
+            <footer class="footer">
+                <button id="cancel-entry" class="cancel-btn" type="button">キャンセル</button>
+                <button id="save-entry" class="save-btn" type="button">保存</button>
+            </footer>
+        </section>
+
+        <div id="time-picker-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>時刻を選択</h3>
+                <div class="time-picker">
+                    <select id="hour-select"></select>
+                    <span>:</span>
+                    <select id="minute-select"></select>
+                </div>
+                <div class="modal-actions">
+                    <button id="cancel-time" type="button">キャンセル</button>
+                    <button id="confirm-time" class="green-btn" type="button">決定</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../futsul_files/p_css/matchResult.js"></script>
+</body>
+
+</html>

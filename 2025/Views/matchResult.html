@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>試合結果一覧</title>
+    <link rel="stylesheet" href="../futsul_files/p_css/matchResult.css" />
+</head>
+
+<body>
+    <div id="app" class="app-container">
+        <section id="match-list-view" class="view active">
+            <header class="header">
+                <h1>⚽ フットサルリーグ</h1>
+                <span class="badge">試合結果</span>
+            </header>
+
+            <!-- フィルタタブを囲むボックス -->
+            <div class="filter-box">
+                <div class="filter-tabs">
+                    <button class="filter-btn active" data-status="すべて">すべて</button>
+                    <button class="filter-btn" data-status="終了">終了</button>
+                    <button class="filter-btn" data-status="進行中">進行中</button>
+                    <button class="filter-btn" data-status="予定">予定</button>
+                </div>
+            </div>
+
+            <div id="match-list-container" class="match-list"></div>
+        </section>
+    </div>
+
+    <script src="../futsul_files/p_css/matchResult.js"></script>
+</body>
+
+</html>
